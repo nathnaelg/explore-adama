@@ -1,0 +1,131 @@
+// /home/natye/smart-tourism/src/core/api/client.ts
+import { env } from "@/src/config/env";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from "axios";
+
+if (!env.API_URL) {
+  throw new Error("API_URL is missing. Check EXPO_PUBLIC_API_URL");
+}
+
+// Storage Keys
+const TOKEN_KEY = '@auth_token';
+const REFRESH_TOKEN_KEY = '@refresh_token';
+const USER_KEY = '@auth_user';
+
+// Logout Callback Handle
+let logoutCallback: (() => void) | null = null;
+
+export const setLogoutCallback = (callback: () => void) => {
+  logoutCallback = callback;
+};
+
+// Create axios instance
+export const apiClient = axios.create({
+  baseURL: env.API_URL,
+  timeout: 15000,
+  headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+  },
+});
+
+// Add request interceptor to attach auth token
+apiClient.interceptors.request.use(
+  async (config) => {
+    // Skip adding token for auth endpoints
+    const isAuthEndpoint = config.url?.includes('/auth/');
+
+    if (!isAuthEndpoint) {
+      try {
+        const token = await AsyncStorage.getItem(TOKEN_KEY);
+        if (token) {
+          config.headers['Authorization'] = `Bearer ${token}`;
+          console.log(`[Auth] Attached token: ${token.substring(0, 15)}...`);
+        }
+      } catch (error) {
+        console.error('Error getting token:', error);
+      }
+    }
+
+    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
+    console.log('[API Headers]', JSON.stringify(config.headers, null, 2));
+
+    return config;
+  },
+  (error) => {
+    console.error('[API Request Error]', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle auth errors (401/403)
+apiClient.interceptors.response.use(
+  (response) => {
+    console.log(`[API Response] ${response.status} ${response.config.url}`);
+    if (response.data) {
+      // Log logic to avoid spamming huge payloads, but show structure
+      const isArray = Array.isArray(response.data);
+      const hasDataProp = response.data && typeof response.data === 'object' && 'data' in response.data;
+      console.log(`[API payload info] IsArray: ${isArray}, HasDataProp: ${hasDataProp}, Keys: ${Object.keys(response.data)}`);
+      // console.log('[API Data]', JSON.stringify(response.data, null, 2)); // Uncomment for full details
+    }
+    return response;
+  },
+  async (error) => {
+    const status = error.response?.status;
+    const url = error.config?.url;
+
+    // Enhanced logging for 403 errors
+    if (status === 403) {
+      console.error('=== 403 FORBIDDEN ERROR ===');
+      console.error('URL:', url);
+      console.error('Method:', error.config?.method?.toUpperCase());
+      console.error('Headers:', JSON.stringify(error.config?.headers, null, 2));
+      console.error('Response:', JSON.stringify(error.response?.data, null, 2));
+      console.error('========================');
+    } else {
+      console.warn(`[API Response Error] ${status} ${url}`, error.response?.data);
+    }
+
+    const originalRequest = error.config || {};
+
+    // Treat 403 the same as 401 for expired/invalid token flows
+    if ((status === 401 || status === 403) && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+        if (refreshToken) {
+          // Use axios directly to avoid interceptor recursion
+          const response = await axios.post(`${env.API_URL}/auth/refresh`, {
+            refreshToken,
+          });
+
+          const { accessToken } = response.data;
+
+          if (accessToken) {
+            // Save new token and update headers
+            await AsyncStorage.setItem(TOKEN_KEY, accessToken);
+            apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            originalRequest.headers = originalRequest.headers || {};
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+
+            // Retry the original request
+            return apiClient(originalRequest);
+          }
+        }
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+        // Clear stored auth and let app handle navigation to login
+        await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY]);
+
+        // Trigger global logout callback to update App state (AuthContext)
+        if (logoutCallback) {
+          logoutCallback();
+        }
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);

@@ -1,0 +1,366 @@
+
+import { OptimizedImage } from '@/src/components/common/OptimizedImage';
+import { useAuth } from '@/src/features/auth/contexts/AuthContext';
+import { useCategories, useGlobalRecommendations, useNearbyPlaces } from '@/src/features/explore/hooks/useExplore';
+import { BlogRail } from '@/src/features/home/components/BlogRail';
+import { EventRail } from '@/src/features/home/components/EventRail';
+import { FeaturedCarousel } from '@/src/features/home/components/FeaturedCarousel';
+import { HomeSkeleton } from '@/src/features/home/components/HomeSkeleton';
+import { useProfile } from '@/src/features/profile/hooks/useProfile';
+import { useThemeColor } from '@/src/hooks/use-theme-color';
+import {
+    checkNotificationPermission,
+} from '@/src/services/push.service';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import {
+    ActivityIndicator,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const CATEGORY_ICONS: Record<string, string> = {
+    'attractions': 'location-outline',
+    'hotels': 'bed-outline',
+    'restaurants': 'restaurant-outline',
+    'events': 'calendar-outline',
+    'shopping': 'cart-outline',
+    'nightlife': 'moon-outline',
+};
+
+export default function HomeScreen() {
+    const bg = useThemeColor({}, 'bg');
+    const card = useThemeColor({}, 'card');
+    const text = useThemeColor({}, 'text');
+    const muted = useThemeColor({}, 'muted');
+    const primary = useThemeColor({}, 'primary');
+    const accent = useThemeColor({}, 'accent');
+
+    const { user: authUser } = useAuth();
+    const insets = useSafeAreaInsets();
+    const { data: recommendations, isLoading: recommendationsLoading } = useGlobalRecommendations();
+    const { data: categories, isLoading: categoriesLoading } = useCategories();
+    // Use Adama center coordinates as default for nearby
+    const { data: nearby, isLoading: nearbyLoading } = useNearbyPlaces({ lat: 8.5414, lng: 39.2689, radius: 20 });
+
+    const [hasUnread, setHasUnread] = useState(false);
+
+    /** 🔔 Notification Icon Handler */
+    const openNotifications = async () => {
+        const granted = await checkNotificationPermission();
+
+        if (!granted) {
+            router.push('/permissions/notifications');
+        } else {
+            router.push('/notifications');
+        }
+    };
+
+    const { data: userProfile } = useProfile(authUser?.id, !!authUser);
+    const userName = userProfile?.profile?.name?.split(' ')[0] || authUser?.email?.split('@')[0] || 'Traveler';
+
+    const isLoading = recommendationsLoading || categoriesLoading || nearbyLoading;
+
+    if (isLoading) {
+        return <HomeSkeleton />;
+    }
+
+    return (
+        <View style={[styles.container, { backgroundColor: bg }]}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+
+                {/* ================= HEADER ================= */}
+                <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+                    <View>
+                        <Text style={[styles.title, { color: text }]}>
+                            Hello, {userName} 👋
+                        </Text>
+                        <Text style={{ color: muted }}>Adama, Ethiopia</Text>
+                    </View>
+
+                    <View style={styles.headerIcons}>
+                        {/* Notification */}
+                        <TouchableOpacity
+                            style={[styles.iconCircle, { backgroundColor: card }]}
+                            onPress={openNotifications}
+                        >
+                            <Ionicons
+                                name="notifications-outline"
+                                size={22}
+                                color={text}
+                            />
+                            {hasUnread && <View style={[styles.badge, { backgroundColor: primary }]} />}
+                        </TouchableOpacity>
+
+                        {/* Profile */}
+                        <TouchableOpacity
+                            style={[styles.iconCircle, { backgroundColor: card }]}
+                            onPress={() => router.push('/profile')}
+                        >
+                            <Ionicons name="person-outline" size={22} color={text} />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* ================= HERO CAROUSEL ================= */}
+                <View style={{ marginTop: 24 }}>
+                    <FeaturedCarousel places={recommendations?.popularPlaces || []} />
+                </View>
+
+                {/* ================= CATEGORIES ================= */}
+                <View style={[styles.sectionHeader, { marginTop: 0 }]}>
+                    <Text style={[styles.sectionTitle, { color: text }]}>Categories</Text>
+                </View>
+
+                <View style={styles.categories}>
+                    {categoriesLoading ? (
+                        <ActivityIndicator size="small" color={primary} />
+                    ) : (
+                        categories?.slice(0, 6).map((cat: any) => (
+                            <TouchableOpacity
+                                key={cat.id}
+                                style={[styles.category, { backgroundColor: card }]}
+                                onPress={() => router.push({ pathname: '/search', params: { categoryId: cat.id } })}
+                            >
+                                <Ionicons
+                                    name={(CATEGORY_ICONS[cat.key] || 'grid-outline') as any}
+                                    size={22}
+                                    color={primary}
+                                />
+                                <Text style={{ color: text, fontSize: 12 }} numberOfLines={1}>
+                                    {cat.name}
+                                </Text>
+                            </TouchableOpacity>
+                        ))
+                    )}
+                </View>
+
+                {/* ================= EVENTS ================= */}
+                <View style={{ marginTop: 24 }}>
+                    <EventRail events={recommendations?.popularEvents || []} />
+                </View>
+
+                {/* ================= POPULAR PLACES ================= */}
+                <Section
+                    title="Popular Places"
+                    action="See all"
+                    text={text}
+                    primary={primary}
+                />
+
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={{ paddingLeft: 20 }}
+                >
+                    {recommendationsLoading ? (
+                        <ActivityIndicator size="large" color={primary} style={{ margin: 50 }} />
+                    ) : (
+                        recommendations?.popularPlaces?.map((place: any) => (
+                            <HotelCard
+                                key={place.id}
+                                place={place}
+                                card={card}
+                                text={text}
+                                muted={muted}
+                                primary={primary}
+                                accent={accent}
+                            />
+                        ))
+                    )}
+                </ScrollView>
+
+                {/* ================= BLOGS / STORIES ================= */}
+                <View style={{ marginTop: 12 }}>
+                    <BlogRail />
+                </View>
+
+                {/* ================= NEARBY ================= */}
+                <Section
+                    title="Nearby Places"
+                    action="View Map"
+                    text={text}
+                    primary={primary}
+                />
+
+                {nearbyLoading ? (
+                    <ActivityIndicator size="small" color={primary} />
+                ) : (
+                    nearby?.data?.slice(0, 3).map((place: any) => (
+                        <TouchableOpacity
+                            key={place.id}
+                            style={[styles.nearby, { backgroundColor: card }]}
+                            onPress={() => router.push(`/ place / ${place.id} `)}
+                        >
+                            <OptimizedImage
+                                source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1501117716987-c8e1ecb210d1' }}
+                                style={styles.nearbyImage}
+                                contentFit="cover"
+                                transition={300}
+                            />
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ color: text, fontWeight: '700' }}>
+                                    {place.name}
+                                </Text>
+                                <Text style={{ color: muted }}>{place.address || 'Adama'}</Text>
+                                <Text style={{ color: primary }}>⭐ {place.avgRating || 'New'}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    ))
+                )}
+
+                <View style={{ height: 40 }} />
+            </ScrollView>
+        </View>
+    );
+}
+
+/* ================= COMPONENTS ================= */
+
+function Section({ title, action, text, primary }: any) {
+    return (
+        <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: text }]}>
+                {title}
+            </Text>
+            {action && (
+                <TouchableOpacity>
+                    <Text style={{ color: primary }}>{action}</Text>
+                </TouchableOpacity>
+            )}
+        </View>
+    );
+}
+
+function HotelCard({ place, card, text, muted, primary, accent }: any) {
+    if (!place) return null;
+
+    return (
+        <TouchableOpacity
+            style={[styles.hotelCard, { backgroundColor: card }]}
+            onPress={() => router.push(`/ place / ${place.id} `)}
+        >
+            <OptimizedImage
+                source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1501117716987-c8e1ecb210d1' }}
+                style={styles.hotelImage}
+                contentFit="cover"
+                transition={300}
+            />
+            <Text style={[styles.hotelTitle, { color: text }]} numberOfLines={1}>
+                {place.name}
+            </Text>
+            <Text style={{ color: muted }} numberOfLines={1}>
+                {place.description || 'Premium experience'}
+            </Text>
+            <View style={styles.hotelFooter}>
+                <Text style={{ color: primary, fontWeight: '700' }}>
+                    ⭐ {place.avgRating || 'New'}
+                </Text>
+                <View style={[styles.bookBtn, { backgroundColor: accent }]}>
+                    <Text style={{ color: '#fff' }}>View</Text>
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+}
+
+
+/* ================= STYLES ================= */
+
+const styles = StyleSheet.create({
+    container: { flex: 1 },
+
+    header: {
+        padding: 20,
+        paddingBottom: 0,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    title: { fontSize: 22, fontWeight: '700' },
+
+    headerIcons: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    iconCircle: {
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    badge: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+    },
+
+    sectionHeader: {
+        paddingHorizontal: 20,
+        marginTop: 28,
+        marginBottom: 16,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    sectionTitle: { fontSize: 18, fontWeight: '700' },
+
+    hotelCard: {
+        width: 260,
+        borderRadius: 20,
+        padding: 14,
+        marginRight: 16,
+    },
+    hotelImage: {
+        width: '100%',
+        height: 140,
+        borderRadius: 16,
+        marginBottom: 10,
+    },
+    hotelTitle: { fontSize: 16, fontWeight: '700' },
+    hotelFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
+        alignItems: 'center',
+    },
+    bookBtn: {
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 12,
+    },
+
+    categories: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 14,
+        paddingHorizontal: 20,
+    },
+    category: {
+        width: '30%',
+        padding: 14,
+        borderRadius: 16,
+        alignItems: 'center',
+        gap: 6,
+    },
+
+    nearby: {
+        marginHorizontal: 20,
+        borderRadius: 16,
+        padding: 14,
+        flexDirection: 'row',
+        gap: 12,
+    },
+    nearbyImage: {
+        width: 60,
+        height: 60,
+        borderRadius: 12,
+    },
+});
