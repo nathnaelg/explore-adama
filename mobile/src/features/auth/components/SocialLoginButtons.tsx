@@ -1,6 +1,7 @@
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import * as AuthSession from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import React, { useState } from 'react';
@@ -36,11 +37,38 @@ export const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({
   const chip = useThemeColor({}, 'chip');
 
   // Google OAuth configuration
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  const redirectUri = AuthSession.makeRedirectUri({
+    scheme: 'smarttourism',
   });
+
+  // Google does not allow custom URI schemes (like exp:// or smarttourism://),
+  // so for Expo Go we must use the proxy. For standalone builds, we use the scheme.
+  const finalRedirectUri = redirectUri.includes('auth.expo.io')
+    ? redirectUri
+    : (redirectUri.startsWith('exp://') || redirectUri.startsWith('smarttourism://'))
+      ? 'https://auth.expo.io/@natk3y0/Explore-Adama'
+      : redirectUri;
+
+  console.log('[Google Auth] Using Redirect URI:', finalRedirectUri);
+
+  const isProxy = finalRedirectUri.includes('auth.expo.io');
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    // For Expo Go (isProxy is true), we MUST use the Web Client ID because it's the only one 
+    // that allows the https://auth.expo.io redirect URI. Native client IDs don't allow it.
+    iosClientId: isProxy
+      ? process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+      : process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    androidClientId: isProxy
+      ? process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+      : process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    redirectUri: finalRedirectUri,
+  });
+
+
+  console.log('[Google Auth] Request object:', !!request);
+
 
   const handleGoogleLogin = async () => {
     setIsLoadingGoogle(true);

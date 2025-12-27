@@ -10,6 +10,7 @@ export interface InitPaymentDto {
 export interface PaymentInitResponse {
     checkoutUrl: string;
     reference?: string;
+    txRef?: string;
     providerData?: any;
 }
 

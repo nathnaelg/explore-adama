@@ -1,5 +1,6 @@
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
+import { useAuth } from '@/src/features/auth/hooks';
 import { NotificationSkeleton } from '@/src/features/notifications/components/NotificationSkeleton';
 import { useMarkAllNotificationsRead, useMarkNotificationRead, useNotifications } from '@/src/features/notifications/hooks/useNotifications';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
@@ -274,6 +275,17 @@ const styles = StyleSheet.create({
     unreadDot: { width: 8, height: 8, borderRadius: 4, marginLeft: 8 },
     cardMessage: { fontSize: 14, lineHeight: 20, marginBottom: 8 },
     cardTime: { fontSize: 12 },
+    emptyState: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 60,
+    },
+    emptyText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginTop: 16,
+    },
     emptySubText: { fontSize: 14, marginTop: 8 },
     guestState: {
         flex: 1,

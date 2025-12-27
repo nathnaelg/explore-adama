@@ -104,7 +104,7 @@ export class PaymentService {
         }
       });
 
-      return { payment, providerData, checkoutUrl };
+      return { payment, providerData, checkoutUrl, txRef: payload.tx_ref };
     } catch (err: any) {
       // log and rethrow
       console.error("Chapa Init Error:", err.response?.data ?? err.message);

@@ -149,10 +149,10 @@ export default function HelpCenterScreen() {
                 {/* Footer */}
                 <View style={styles.footer}>
                     <ThemedText type="default" style={styles.version}>
-                        Adama Smart Tourism v1.0.2
+                        Explore Adama v1.0.2
                     </ThemedText>
                     <ThemedText type="default" style={styles.copyright}>
-                        © 2023 Adama City Administration
+                        © 2025 Explore Adama
                     </ThemedText>
                 </View>
             </ScrollView>

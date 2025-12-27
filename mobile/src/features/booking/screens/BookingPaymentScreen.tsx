@@ -64,7 +64,7 @@ export default function BookingPaymentScreen() {
                 const result = await WebBrowser.openBrowserAsync(response.checkoutUrl);
 
                 // When browser closes, automatically try to verify
-                await checkPaymentStatus(response.providerData.tx_ref);
+                await checkPaymentStatus(response.txRef || response.providerData?.tx_ref);
             } else {
                 Alert.alert("Error", "Could not generate payment link.");
             }
