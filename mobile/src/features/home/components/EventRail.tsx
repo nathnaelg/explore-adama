@@ -4,6 +4,7 @@ import { useAuth } from '@/src/features/auth/contexts/AuthContext';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { router } from 'expo-router';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface EventRailProps {
@@ -11,6 +12,7 @@ interface EventRailProps {
 }
 
 export function EventRail({ events }: EventRailProps) {
+    const { t, i18n } = useTranslation();
     const { isGuest } = useAuth();
     const text = useThemeColor({}, 'text');
     const primary = useThemeColor({}, 'primary');
@@ -22,9 +24,9 @@ export function EventRail({ events }: EventRailProps) {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <ThemedText type="subtitle" style={styles.title}>Happening Soon 🎉</ThemedText>
+                <ThemedText type="subtitle" style={styles.title}>{t('home.happeningSoon')}</ThemedText>
                 <TouchableOpacity onPress={() => router.push('/search?type=event')}>
-                    <ThemedText style={{ color: primary, fontWeight: '600' }}>See all</ThemedText>
+                    <ThemedText style={{ color: primary, fontWeight: '600' }}>{t('common.seeAll')}</ThemedText>
                 </TouchableOpacity>
             </View>
 
@@ -32,7 +34,7 @@ export function EventRail({ events }: EventRailProps) {
                 {events.map((event) => {
                     const date = event.date ? new Date(event.date) : new Date();
                     const day = date.getDate();
-                    const month = date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                    const month = date.toLocaleDateString(i18n.language === 'am' ? 'am-ET' : i18n.language === 'om' ? 'om-ET' : 'en-US', { month: 'short' }).toUpperCase();
                     // Fallback to place address if available (populated), otherwise generic.
                     const location = event.place?.address || event.place?.name || 'Adama';
 
@@ -45,8 +47,8 @@ export function EventRail({ events }: EventRailProps) {
                                     router.push({
                                         pathname: '/(modals)/guest-prompt',
                                         params: {
-                                            title: 'Sign In Required',
-                                            message: 'Please sign in to book your tickets for this event.',
+                                            title: t('common.signInRequired'),
+                                            message: t('placeDetails.bookVisitMsg'),
                                             icon: 'ticket-outline'
                                         }
                                     });

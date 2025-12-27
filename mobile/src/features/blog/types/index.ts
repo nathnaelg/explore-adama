@@ -19,7 +19,8 @@ export interface BlogPost {
   media?: BlogMedia[];
   comments?: BlogComment[];
   viewCount?: number;
-  likeCount?: number;
+  likesCount?: number;
+  isLiked?: boolean;
   commentCount?: number;
 }
 

@@ -1,6 +1,6 @@
-// backend/src/modules/blog/blog.service.ts
 import { prisma } from "../../config/db.ts";
-import crypto from "crypto";
+import { GeminiClient } from "../chat/chat.gemini.ts";
+import { NotificationService } from "../notifications/notification.service.ts";
 
 export class BlogService {
   static async createPost({ authorId, title, body, category, tags = [] }: any) {
@@ -16,14 +16,44 @@ export class BlogService {
     return post;
   }
 
-  static async listPosts({ q, page = 1, limit = 20 }: { q?: string; page?: number; limit?: number }) {
-    const where: any = { status: "APPROVED" }; // public only
-    if (q && q.length) {
+  static async listPosts({ q, page = 1, limit = 20, userId, isAdmin }: { q?: string; page?: number; limit?: number; userId?: string; isAdmin?: boolean }) {
+    const where: any = {};
+
+    // Visibility rules:
+    // 1. APPROVED posts are visible to everyone.
+    // 2. PENDING/REJECTED posts are visible ONLY to the author OR an admin.
+    if (isAdmin) {
+      // Admin sees everything
+    } else if (userId) {
+      // Authenticated user sees APPROVED posts OR their OWN posts
       where.OR = [
-        { title: { contains: q, mode: "insensitive" } },
-        { body: { contains: q, mode: "insensitive" } },
-        { tags: { has: q } }
+        { status: "APPROVED" },
+        { authorId: userId }
       ];
+    } else {
+      // Guest sees only APPROVED posts
+      where.status = "APPROVED";
+    }
+
+    if (q && q.length) {
+      const searchCondition = {
+        OR: [
+          { title: { contains: q, mode: "insensitive" } },
+          { body: { contains: q, mode: "insensitive" } },
+          { tags: { has: q } }
+        ]
+      };
+
+      // Merge search condition with visibility condition
+      if (where.OR) {
+        // If we already have an OR (for userId case), we need to wrap both in an AND
+        const visibilityCondition = { OR: where.OR };
+        delete where.OR;
+        where.AND = [visibilityCondition, searchCondition];
+      } else {
+        // Simple merge
+        Object.assign(where, searchCondition);
+      }
     }
 
     const posts = await prisma.blogPost.findMany({
@@ -31,23 +61,73 @@ export class BlogService {
       orderBy: [{ createdAt: "desc" }],
       skip: (page - 1) * limit,
       take: limit,
-      include: { author: { select: { id: true, email: true, profile: true } }, media: true, comments: true },
+      include: {
+        author: { select: { id: true, email: true, profile: true } },
+        media: true,
+        comments: true,
+        likes: true, // inefficient for large scale but fine for now
+      },
     });
 
     const total = await prisma.blogPost.count({ where });
 
-    return { items: posts, page, limit, total };
+    // Transform to include isLiked and likesCount
+    const transformedPosts = posts.map(p => ({
+      ...p,
+      likesCount: p.likes.length,
+      isLiked: userId ? p.likes.some(l => l.userId === userId) : false,
+      likes: undefined // hide raw likes array
+    }));
+
+    return { items: transformedPosts, page, limit, total };
   }
 
-  static async getPostById(id: string) {
-    return prisma.blogPost.findUnique({
+  static async getPostById(id: string, userId?: string) {
+    const post = await prisma.blogPost.findUnique({
       where: { id },
       include: {
         author: { select: { id: true, email: true, profile: true } },
         media: true,
-        comments: { orderBy: { createdAt: "asc" } },
+        comments: { orderBy: { createdAt: "asc" }, include: { user: { select: { id: true, email: true, profile: true } } } },
+        likes: true,
       },
     });
+
+    if (!post) return null;
+
+    // Increment view count (fire and forget)
+    // We only increment if it's a "view" - usually triggered by GET detail.
+    // To prevent spam, we might want to check unique visits, but for now simple increment.
+    // We'll do this in a separate method or here. Let's do it here asynchronously.
+    prisma.blogPost.update({
+      where: { id },
+      data: { viewCount: { increment: 1 } }
+    }).catch(console.error);
+
+    return {
+      ...post,
+      likesCount: post.likes.length,
+      isLiked: userId ? post.likes.some(l => l.userId === userId) : false,
+      likes: undefined
+    };
+  }
+
+  static async toggleLike(postId: string, userId: string) {
+    const existing = await prisma.like.findFirst({
+      where: { postId, userId }
+    });
+
+    if (existing) {
+      // Unlike
+      await prisma.like.delete({ where: { id: existing.id } });
+      return { liked: false };
+    } else {
+      // Like
+      await prisma.like.create({
+        data: { postId, userId }
+      });
+      return { liked: true };
+    }
   }
 
   static async updatePost({ id, userId, data }: { id: string; userId: string; data: any }) {
@@ -91,10 +171,28 @@ export class BlogService {
 
   // Comments
   static async createComment({ postId, userId, content }: any) {
-    return prisma.comment.create({
+    const comment = await prisma.comment.create({
       data: { postId, userId, content },
       include: { user: { select: { id: true, email: true, profile: true } } }
     });
+
+    // Notify post author
+    try {
+      const post = await prisma.blogPost.findUnique({ where: { id: postId } });
+      if (post && post.authorId !== userId) {
+        await NotificationService.createNotification({
+          userId: post.authorId,
+          type: "SOCIAL",
+          title: "New Comment",
+          message: `${comment.user.profile?.name || "Someone"} commented on your post "${post.title}"`,
+          data: { postId, commentId: comment.id }
+        });
+      }
+    } catch (e) {
+      console.error("Failed to send comment notification", e);
+    }
+
+    return comment;
   }
 
   static async listComments({ postId }: { postId: string }) {
@@ -125,5 +223,22 @@ export class BlogService {
     });
 
     return { moderation, post: updated };
+  }
+
+  static async translatePost({ id, targetLanguage }: { id: string; targetLanguage: string }) {
+    const post = await this.getPostById(id);
+    if (!post) throw new Error("Post not found");
+
+    const [translatedTitle, translatedBody] = await Promise.all([
+      GeminiClient.translate({ text: post.title, targetLanguage }),
+      GeminiClient.translate({ text: post.body, targetLanguage }),
+    ]);
+
+    return {
+      id: post.id,
+      title: translatedTitle,
+      body: translatedBody,
+      language: targetLanguage,
+    };
   }
 }

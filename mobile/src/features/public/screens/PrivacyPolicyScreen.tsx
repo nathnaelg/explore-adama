@@ -4,6 +4,7 @@ import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ScrollView,
     StyleSheet,
@@ -13,6 +14,7 @@ import {
 import { Checkbox } from 'react-native-paper';
 
 export default function PrivacyPolicyScreen() {
+    const { t } = useTranslation();
     const primaryColor = useThemeColor({}, 'primary');
     const textColor = useThemeColor({}, 'text');
     const mutedColor = useThemeColor({}, 'muted');
@@ -47,7 +49,7 @@ export default function PrivacyPolicyScreen() {
                         />
                     </TouchableOpacity>
                     <ThemedText type="title" style={[styles.title, { color: textColor }]}>
-                        Privacy Policy
+                        {t('public.privacyPolicy')}
                     </ThemedText>
                     <View style={{ width: 24 }} />
                 </View>
@@ -55,35 +57,32 @@ export default function PrivacyPolicyScreen() {
                 {/* Updated Date */}
                 <View style={[styles.dateContainer, { borderBottomColor: mutedColor + '20' }]}>
                     <ThemedText type="default" style={[styles.dateText, { color: mutedColor }]}>
-                        Updated Oct 24, 2023
+                        {t('public.updatedAt', { date: 'Oct 24, 2023' })}
                     </ThemedText>
                 </View>
 
                 {/* Introduction */}
                 <View style={[styles.section, { borderBottomColor: mutedColor + '20' }]}>
                     <ThemedText type="title" style={[styles.sectionTitle, { color: textColor }]}>
-                        Your Privacy Matters
+                        {t('public.privacyMatters')}
                     </ThemedText>
                     <ThemedText type="default" style={[styles.description, { color: mutedColor }]}>
-                        At <ThemedText type="default" style={[styles.brand, { color: primaryColor }]}>Adama Smart Tourism</ThemedText>,
-                        we value your trust. Here is a transparent breakdown of how we handle your data while
-                        you explore the city.
+                        {t('public.privacyIntro')}
                     </ThemedText>
                 </View>
 
                 {/* Information We Collect */}
                 <View style={[styles.section, { borderBottomColor: mutedColor + '20' }]}>
                     <ThemedText type="title" style={[styles.sectionTitle, { color: textColor }]}>
-                        Information We Collect
+                        {t('public.infoWeCollect')}
                     </ThemedText>
 
                     <View style={styles.subSection}>
                         <ThemedText type="subtitle" style={[styles.subSectionTitle, { color: textColor }]}>
-                            Location Data
+                            {t('public.locationData')}
                         </ThemedText>
                         <ThemedText type="default" style={[styles.subSectionDescription, { color: mutedColor }]}>
-                            We collect location data to provide you with nearby attractions, hotels, and services.
-                            This helps us personalize your experience and show relevant recommendations.
+                            {t('public.locationDataDesc')}
                         </ThemedText>
                     </View>
 
@@ -99,7 +98,7 @@ export default function PrivacyPolicyScreen() {
                                 uncheckedColor={mutedColor}
                             />
                             <ThemedText type="default" style={[styles.consentText, { color: textColor }]}>
-                                Third-Party Services
+                                {t('public.thirdPartyServices')}
                             </ThemedText>
                         </TouchableOpacity>
 
@@ -114,7 +113,7 @@ export default function PrivacyPolicyScreen() {
                                 uncheckedColor={mutedColor}
                             />
                             <ThemedText type="default" style={[styles.consentText, { color: textColor }]}>
-                                Data Security
+                                {t('public.dataSecurity')}
                             </ThemedText>
                         </TouchableOpacity>
 
@@ -129,7 +128,7 @@ export default function PrivacyPolicyScreen() {
                                 uncheckedColor={mutedColor}
                             />
                             <ThemedText type="default" style={[styles.consentText, { color: textColor }]}>
-                                Marketing Communications
+                                {t('public.marketingComms')}
                             </ThemedText>
                         </TouchableOpacity>
                     </View>
@@ -138,7 +137,7 @@ export default function PrivacyPolicyScreen() {
                 {/* Data Usage */}
                 <View style={[styles.section, { borderBottomColor: mutedColor + '20' }]}>
                     <ThemedText type="title" style={[styles.sectionTitle, { color: textColor }]}>
-                        How We Use Your Data
+                        {t('public.howWeUseData')}
                     </ThemedText>
 
                     <View style={styles.usageItem}>
@@ -147,10 +146,10 @@ export default function PrivacyPolicyScreen() {
                         </View>
                         <View style={styles.usageContent}>
                             <ThemedText type="default" style={[styles.usageTitle, { color: textColor }]}>
-                                Personalized Recommendations
+                                {t('public.personalizedRecs')}
                             </ThemedText>
                             <ThemedText type="default" style={[styles.usageDescription, { color: mutedColor }]}>
-                                Based on your location and preferences to show relevant places and events.
+                                {t('public.personalizedRecsDescPrivacy')}
                             </ThemedText>
                         </View>
                     </View>
@@ -161,10 +160,10 @@ export default function PrivacyPolicyScreen() {
                         </View>
                         <View style={styles.usageContent}>
                             <ThemedText type="default" style={[styles.usageTitle, { color: textColor }]}>
-                                Security & Safety
+                                {t('public.securitySafety')}
                             </ThemedText>
                             <ThemedText type="default" style={[styles.usageDescription, { color: mutedColor }]}>
-                                To ensure your account security and provide emergency services when needed.
+                                {t('public.securitySafetyDesc')}
                             </ThemedText>
                         </View>
                     </View>
@@ -175,10 +174,10 @@ export default function PrivacyPolicyScreen() {
                         </View>
                         <View style={styles.usageContent}>
                             <ThemedText type="default" style={[styles.usageTitle, { color: textColor }]}>
-                                Service Improvement
+                                {t('public.serviceImprovement')}
                             </ThemedText>
                             <ThemedText type="default" style={[styles.usageDescription, { color: mutedColor }]}>
-                                To analyze usage patterns and improve our app features and performance.
+                                {t('public.serviceImprovementDesc')}
                             </ThemedText>
                         </View>
                     </View>
@@ -187,7 +186,7 @@ export default function PrivacyPolicyScreen() {
                 {/* Contact Info */}
                 <View style={[styles.contactSection, { borderBottomColor: mutedColor + '20' }]}>
                     <ThemedText type="subtitle" style={[styles.contactTitle, { color: textColor }]}>
-                        Have specific questions?
+                        {t('public.specificQuestions')}
                     </ThemedText>
                     <TouchableOpacity
                         style={[styles.contactButton, {
@@ -199,7 +198,7 @@ export default function PrivacyPolicyScreen() {
                     >
                         <Ionicons name="person-outline" size={20} color={primaryColor} />
                         <ThemedText type="default" style={[styles.contactButtonText, { color: primaryColor }]}>
-                            Contact our Data Officer
+                            {t('public.contactOfficer')}
                         </ThemedText>
                     </TouchableOpacity>
                 </View>
@@ -211,7 +210,7 @@ export default function PrivacyPolicyScreen() {
                     activeOpacity={0.8}
                 >
                     <ThemedText type="default" style={styles.acceptButtonText}>
-                        I Understand
+                        {t('public.iUnderstand')}
                     </ThemedText>
                 </TouchableOpacity>
             </ScrollView>

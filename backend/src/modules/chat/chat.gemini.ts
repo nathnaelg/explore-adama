@@ -12,7 +12,7 @@ if (!GEMINI_BASE_URL || !GEMINI_API_KEY) {
 }
 
 export const GeminiClient = {
-  async generate({ systemPrompt, history, userMessage }: { systemPrompt: string; history: Array<{role:string, content:string}>; userMessage: string; }) {
+  async generate({ systemPrompt, history, userMessage }: { systemPrompt: string; history: Array<{ role: string, content: string }>; userMessage: string; }) {
     // Build a combined prompt instructing Gemini to return structured JSON
     // We'll ask Gemini to output JSON like: {"reply":"...", "intent":"...", "entities":{...}}
     const instruct = `
@@ -37,7 +37,7 @@ Make sure the JSON is valid and nothing else is printed.
             parts: [{ text: instruct }],
           },
         ],
-        generationConfig: { 
+        generationConfig: {
           temperature: 0.2,
           maxOutputTokens: 800,
         },
@@ -46,10 +46,10 @@ Make sure the JSON is valid and nothing else is printed.
       // Construct endpoint dynamically: GEMINI_BASE_URL/models/{model}:generateContent
       const fullEndpoint = `${GEMINI_BASE_URL}/models/${GEMINI_MODEL}:generateContent`;
       const endpointWithKey = `${fullEndpoint}?key=${GEMINI_API_KEY}`;
-      
+
       const resp = await axios.post(
-        endpointWithKey, 
-        body, 
+        endpointWithKey,
+        body,
         {
           headers: {
             "Content-Type": "application/json",
@@ -60,21 +60,21 @@ Make sure the JSON is valid and nothing else is printed.
 
       // Response Parsing: Use the 'generateContent' structure
       const rawResponseText = resp.data?.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(resp.data);
-      
+
       let rawText = rawResponseText;
       // FIX: Clean Markdown code fences from the raw text
       if (rawText.startsWith("```")) {
-          // Remove the starting triple backticks and optional language identifier (e.g., ```json or ```)
-          const firstNewlineIndex = rawText.indexOf('\n');
-          if (firstNewlineIndex !== -1) {
-              rawText = rawText.substring(firstNewlineIndex + 1);
-          }
-          // Remove the trailing triple backticks
-          if (rawText.endsWith("```")) {
-              rawText = rawText.substring(0, rawText.lastIndexOf("```"));
-          }
+        // Remove the starting triple backticks and optional language identifier (e.g., ```json or ```)
+        const firstNewlineIndex = rawText.indexOf('\n');
+        if (firstNewlineIndex !== -1) {
+          rawText = rawText.substring(firstNewlineIndex + 1);
+        }
+        // Remove the trailing triple backticks
+        if (rawText.endsWith("```")) {
+          rawText = rawText.substring(0, rawText.lastIndexOf("```"));
+        }
       }
-      
+
       let parsed = null;
       try {
         // try to parse any JSON included in output
@@ -92,7 +92,7 @@ Make sure the JSON is valid and nothing else is printed.
           reply: parsed.reply,
           intent: parsed.intent || null,
           entities: parsed.entities || null,
-          raw: rawResponseText, 
+          raw: rawResponseText,
         };
       }
 
@@ -112,6 +112,37 @@ Make sure the JSON is valid and nothing else is printed.
         entities: null,
         raw: err?.response?.data ?? err?.message,
       };
+    }
+  },
+
+  async translate({ text, targetLanguage }: { text: string; targetLanguage: string }) {
+    const instruct = `
+Translate the following text into ${targetLanguage}. 
+Support the following languages: English, Amharic (am), Afan Oromo (om).
+Return ONLY the translated text without any explanations or extra characters.
+
+Text:
+${text}
+`;
+
+    try {
+      const body = {
+        contents: [{ parts: [{ text: instruct }] }],
+        generationConfig: { temperature: 0.1, maxOutputTokens: 2000 },
+      };
+
+      const fullEndpoint = `${GEMINI_BASE_URL}/models/${GEMINI_MODEL}:generateContent`;
+      const endpointWithKey = `${fullEndpoint}?key=${GEMINI_API_KEY}`;
+
+      const resp = await axios.post(endpointWithKey, body, {
+        headers: { "Content-Type": "application/json" },
+        timeout: 20000,
+      });
+
+      return resp.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || text;
+    } catch (err: any) {
+      console.error("GeminiClient.translate error:", err?.response?.data ?? err.message);
+      return text; // Fallback to original text on error
     }
   }
 };

@@ -1,11 +1,11 @@
 export interface Notification {
     id: string;
-    type: 'booking' | 'event' | 'review' | 'system' | 'promotion';
+    type: 'BOOKING' | 'PAYMENT' | 'EVENT' | 'REVIEW' | 'SYSTEM' | 'PROMOTION' | 'SOCIAL';
     title: string;
     message: string;
     isRead: boolean;
     createdAt: string;
-    data?: Record<string, any>; // For deep linking or extra data
+    data?: Record<string, any>;
 }
 
 export interface NotificationStats {

@@ -1,5 +1,6 @@
-import {  RecommendationItemType } from "@prisma/client";
+import { RecommendationItemType } from "@prisma/client";
 import { prisma } from "../../config/db.ts";
+import { NotificationService } from "../notifications/notification.service.ts";
 
 export class FavoriteService {
   static async add(userId: string, itemId: string, itemType: RecommendationItemType) {
@@ -9,9 +10,23 @@ export class FavoriteService {
 
     if (exists) throw new Error("Already favorited");
 
-    return prisma.favorite.create({
+    const fav = await prisma.favorite.create({
       data: { userId, itemId, itemType }
     });
+
+    try {
+      await NotificationService.createNotification({
+        userId,
+        type: "SOCIAL", // or SYSTEM if preferred
+        title: "Added to Favorites",
+        message: `You added this ${itemType.toLowerCase()} to your favorites.`,
+        data: { itemId, itemType }
+      });
+    } catch (e) {
+      console.error("Failed to send favorite notification", e);
+    }
+
+    return fav;
   }
 
   static async remove(userId: string, itemId: string, itemType: RecommendationItemType) {

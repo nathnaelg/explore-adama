@@ -5,6 +5,7 @@ import { useAuth } from '@/src/features/auth/contexts/AuthContext';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -20,6 +21,7 @@ import {
 import { SocialLoginButtons } from '../components/SocialLoginButtons';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   // Theme colors
   const bg = useThemeColor({}, 'bg');
   const card = useThemeColor({}, 'card');
@@ -37,7 +39,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('auth.fillAllFields'));
       return;
     }
 
@@ -53,8 +55,8 @@ export default function LoginScreen() {
         : backendMessage;
 
       Alert.alert(
-        'Login Failed',
-        errorMessage || error.message || 'Invalid credentials. Please try again.'
+        t('auth.loginFailed'),
+        errorMessage || error.message || t('auth.invalidCredentials')
       );
     } finally {
       setIsLoading(false);
@@ -66,7 +68,7 @@ export default function LoginScreen() {
       await continueAsGuest();
       router.replace('/(tabs)');
     } catch (error) {
-      Alert.alert('Error', 'Failed to enter guest mode');
+      Alert.alert(t('common.error'), t('auth.failedGuestMode'));
     }
   };
 
@@ -90,20 +92,20 @@ export default function LoginScreen() {
               resizeMode="contain"
             />
             <ThemedText type="title" style={[styles.appTitle, { color: text }]}>
-              ADAMA CITY
+              {t('common.adamaCity')}
             </ThemedText>
             <ThemedText type="subtitle" style={[styles.welcomeText, { color: muted }]}>
-              Welcome Back
+              {t('auth.welcomeBack')}
             </ThemedText>
             <ThemedText type="default" style={[styles.description, { color: muted }]}>
-              Explore Adama. Discover the best hotels, parks, and hidden gems.
+              {t('auth.loginDescription')}
             </ThemedText>
           </View>
 
           <View style={styles.form}>
             <View style={styles.inputContainer}>
               <ThemedText type="default" style={[styles.label, { color: muted }]}>
-                Email or Phone Number
+                {t('auth.emailOrPhone')}
               </ThemedText>
               <TextInput
                 style={[styles.input, {
@@ -111,7 +113,7 @@ export default function LoginScreen() {
                   borderColor: chip,
                   color: text
                 }]}
-                placeholder="Enter your email or phone"
+                placeholder={t('auth.enterEmail')}
                 placeholderTextColor={muted}
                 value={email}
                 onChangeText={setEmail}
@@ -123,7 +125,7 @@ export default function LoginScreen() {
 
             <View style={styles.inputContainer}>
               <ThemedText type="default" style={[styles.label, { color: muted }]}>
-                Password
+                {t('auth.password')}
               </ThemedText>
               <TextInput
                 style={[styles.input, {
@@ -131,7 +133,7 @@ export default function LoginScreen() {
                   borderColor: chip,
                   color: text
                 }]}
-                placeholder="Enter your password"
+                placeholder={t('auth.enterPassword')}
                 placeholderTextColor={muted}
                 value={password}
                 onChangeText={setPassword}
@@ -147,7 +149,7 @@ export default function LoginScreen() {
                   lightColor={primary}
                   darkColor={primary}
                 >
-                  Forgot Password?
+                  {t('auth.forgotPassword')}
                 </ThemedText>
               </TouchableOpacity>
             </View>
@@ -167,7 +169,7 @@ export default function LoginScreen() {
                   styles.loginButtonText,
                   { color: isButtonDisabled ? muted : '#FFFFFF' }
                 ]}>
-                  Log In →
+                  {t('auth.login')} →
                 </ThemedText>
               )}
             </TouchableOpacity>
@@ -175,7 +177,7 @@ export default function LoginScreen() {
             <View style={styles.divider}>
               <View style={[styles.dividerLine, { backgroundColor: chip }]} />
               <ThemedText type="default" style={[styles.dividerText, { color: muted }]}>
-                OR CONTINUE WITH
+                {t('auth.orContinue')}
               </ThemedText>
               <View style={[styles.dividerLine, { backgroundColor: chip }]} />
             </View>
@@ -183,7 +185,7 @@ export default function LoginScreen() {
             <View style={styles.socialButtons}>
               <SocialLoginButtons
                 onSuccess={() => router.replace('/(tabs)')}
-                onError={(err: string) => Alert.alert('Login Failed', err)}
+                onError={(err: string) => Alert.alert(t('auth.loginFailed'), err)}
               />
             </View>
 
@@ -193,13 +195,13 @@ export default function LoginScreen() {
               disabled={isLoading}
             >
               <ThemedText type="default" style={{ color: muted }}>
-                Don&apos;t have an account?{' '}
+                {t('auth.noAccount')}{' '}
                 <ThemedText
                   type="link"
                   lightColor={primary}
                   darkColor={primary}
                 >
-                  Sign up
+                  {t('auth.signup')}
                 </ThemedText>
               </ThemedText>
             </TouchableOpacity>
@@ -210,7 +212,7 @@ export default function LoginScreen() {
               disabled={isLoading}
             >
               <ThemedText type="default" style={{ color: muted }}>
-                Continue as Guest
+                {t('auth.continueGuest')}
               </ThemedText>
             </TouchableOpacity>
           </View>

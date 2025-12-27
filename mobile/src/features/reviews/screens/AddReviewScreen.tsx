@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
@@ -17,6 +18,7 @@ import {
 } from 'react-native';
 
 export default function AddReviewScreen() {
+    const { t } = useTranslation();
     const { itemId, itemType } = useLocalSearchParams<{ itemId: string, itemType: string }>();
     const { mutate: createReview, isPending } = useCreateReview();
 
@@ -31,7 +33,7 @@ export default function AddReviewScreen() {
 
     const handleSubmit = () => {
         if (!comment.trim()) {
-            Alert.alert('Error', 'Please enter a comment');
+            Alert.alert(t('common.error'), t('reviews.commentPlaceholder'));
             return;
         }
 
@@ -42,11 +44,11 @@ export default function AddReviewScreen() {
             comment,
         }, {
             onSuccess: () => {
-                Alert.alert('Success', 'Review submitted successfully');
+                Alert.alert(t('common.success'), t('reviews.reviewSubmitted'));
                 router.back();
             },
             onError: (err: any) => {
-                Alert.alert('Error', err?.response?.data?.message || 'Failed to submit review');
+                Alert.alert(t('common.error'), err?.response?.data?.message || t('common.error'));
             }
         });
     };
@@ -56,13 +58,13 @@ export default function AddReviewScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={[styles.header, { backgroundColor: card }]}>
                     <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={24} color={text} /></TouchableOpacity>
-                    <ThemedText style={styles.title}>Write a Review</ThemedText>
+                    <ThemedText style={styles.title}>{t('reviews.addReview')}</ThemedText>
                     <View style={{ width: 24 }} />
                 </View>
 
                 <View style={styles.content}>
                     <View style={styles.section}>
-                        <ThemedText style={styles.label}>Rate your experience</ThemedText>
+                        <ThemedText style={styles.label}>{t('reviews.rating')}</ThemedText>
                         <View style={styles.starsContainer}>
                             {[1, 2, 3, 4, 5].map(s => (
                                 <TouchableOpacity key={s} onPress={() => setRating(s)}>
@@ -73,10 +75,10 @@ export default function AddReviewScreen() {
                     </View>
 
                     <View style={styles.section}>
-                        <ThemedText style={styles.label}>Your thoughts</ThemedText>
+                        <ThemedText style={styles.label}>{t('reviews.comment')}</ThemedText>
                         <TextInput
                             style={[styles.input, { color: text, backgroundColor: chip }]}
-                            placeholder="Share your experience..."
+                            placeholder={t('reviews.commentPlaceholder')}
                             placeholderTextColor={muted}
                             value={comment}
                             onChangeText={setComment}
@@ -90,7 +92,7 @@ export default function AddReviewScreen() {
                         onPress={handleSubmit}
                         disabled={!comment.trim() || isPending}
                     >
-                        {isPending ? <ActivityIndicator color="white" /> : <ThemedText style={styles.submitText}>Submit Review</ThemedText>}
+                        {isPending ? <ActivityIndicator color="white" /> : <ThemedText style={styles.submitText}>{t('reviews.submitReview')}</ThemedText>}
                     </TouchableOpacity>
                 </View>
             </ScrollView>

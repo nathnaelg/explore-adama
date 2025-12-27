@@ -2,8 +2,10 @@ import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ScrollView,
     StyleSheet,
@@ -12,7 +14,11 @@ import {
 } from 'react-native';
 
 export default function LanguageSelectionScreen() {
-    const [selectedLanguage, setSelectedLanguage] = useState('English');
+    const { t, i18n } = useTranslation();
+    const [selectedLanguage, setSelectedLanguage] = useState(
+        i18n.language === 'am' ? 'Amharic' :
+            i18n.language === 'om' ? 'Afan Oromo' : 'English'
+    );
 
     const bg = useThemeColor({}, 'bg');
     const card = useThemeColor({}, 'card');
@@ -73,9 +79,11 @@ export default function LanguageSelectionScreen() {
         },
     ];
 
-    const handleLanguageSelect = (languageName: string) => {
+    const handleLanguageSelect = async (code: string, languageName: string) => {
         setSelectedLanguage(languageName);
-        // In a real app, you would save this to async storage and update app language
+        await i18n.changeLanguage(code);
+        await AsyncStorage.setItem('user-language', code);
+
         setTimeout(() => {
             router.back();
         }, 300);
@@ -127,7 +135,7 @@ export default function LanguageSelectionScreen() {
                                         { backgroundColor: card },
                                         isSelected && { backgroundColor: `${primary}15`, borderColor: primary, borderWidth: 2 },
                                     ]}
-                                    onPress={() => handleLanguageSelect(language.name)}
+                                    onPress={() => handleLanguageSelect(language.code, language.name)}
                                 >
                                     <View style={styles.languageInfo}>
                                         <View style={styles.languageTexts}>

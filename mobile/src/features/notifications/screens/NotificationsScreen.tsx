@@ -7,6 +7,7 @@ import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     RefreshControl,
@@ -18,6 +19,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function NotificationsScreen() {
+    const { t } = useTranslation();
     const bg = useThemeColor({}, 'bg');
     const card = useThemeColor({}, 'card');
     const text = useThemeColor({}, 'text');
@@ -28,35 +30,50 @@ export default function NotificationsScreen() {
     const filterBorder = muted + '40'; // Transparent muted
 
     const insets = useSafeAreaInsets();
-    const [selectedFilter, setSelectedFilter] = useState('All');
-    const filters = ['All', 'Bookings', 'Events', 'Info'];
+    const [selectedFilter, setSelectedFilter] = useState(t('notifications.all'));
+    const filters = [t('notifications.all'), t('notifications.bookings'), t('notifications.events'), t('notifications.info')];
 
-    const { data, isLoading, refetch, isRefetching } = useNotifications();
+    const { data, isLoading, refetch, isRefetching, error, isError } = useNotifications();
     const { mutate: markRead } = useMarkNotificationRead();
     const { mutate: markAllRead, isPending: isMarkingAll } = useMarkAllNotificationsRead();
 
     // Safely access notifications array and defaults
     // The backend returns { data: [], total: 0, ... }
     const notifications = useMemo(() => data?.data || [], [data]);
+
+    // DEBUG LOGS
+    const { user } = useAuth();
+    console.log('[NotificationsDebug] Current User ID:', user?.id);
+    console.log('[NotificationsDebug] Data from hook:', JSON.stringify(data, null, 2));
+    console.log('[NotificationsDebug] Notifications array length:', notifications.length);
+    console.log('[NotificationsDebug] isLoading:', isLoading, 'isRefetching:', isRefetching);
+    console.log('[NotificationsDebug] Error:', error);
+    console.log('[NotificationsDebug] isError:', isError);
+
     const hasUnread = notifications.some(n => !n.isRead);
 
     const filteredNotifications = useMemo(() => {
-        if (selectedFilter === 'All') return notifications;
+        if (selectedFilter === t('notifications.all')) return notifications;
         const typeMap: Record<string, string> = {
-            'Bookings': 'booking',
-            'Events': 'event',
-            'Info': 'system'
+            [t('notifications.bookings')]: 'BOOKING',
+            [t('notifications.events')]: 'EVENT',
+            [t('notifications.info')]: 'SYSTEM'
         };
         const targetType = typeMap[selectedFilter];
-        return notifications.filter(n => n.type === targetType || (selectedFilter === 'Info' && (n.type === 'promotion' || n.type === 'system')));
+        return notifications.filter(n => {
+            if (targetType === 'BOOKING') return n.type === 'BOOKING' || n.type === 'PAYMENT';
+            if (targetType === 'EVENT') return n.type === 'EVENT' || n.type === 'REVIEW' || n.type === 'SOCIAL';
+            if (targetType === 'SYSTEM') return n.type === 'SYSTEM' || n.type === 'PROMOTION';
+            return n.type === targetType;
+        });
     }, [notifications, selectedFilter]);
 
     // Grouping Logic
     const groupedNotifications = useMemo(() => {
         const groups: { title: string, data: typeof notifications }[] = [
-            { title: 'TODAY', data: [] },
-            { title: 'YESTERDAY', data: [] },
-            { title: 'EARLIER', data: [] }
+            { title: t('notifications.today'), data: [] },
+            { title: t('notifications.yesterday'), data: [] },
+            { title: t('notifications.earlier'), data: [] }
         ];
 
         const now = new Date();
@@ -81,11 +98,14 @@ export default function NotificationsScreen() {
     // To match "App Theme", we rely more on the primary color and neutral variations
     const getIconStyle = (type: string) => {
         switch (type) {
-            case 'booking': return { bg: primary + '15', color: primary, icon: 'ticket-outline' as const };
-            case 'event': return { bg: primary + '15', color: primary, icon: 'musical-note-outline' as const };
-            case 'review': return { bg: primary + '15', color: primary, icon: 'star' as const };
-            case 'promotion': return { bg: primary + '15', color: primary, icon: 'star' as const };
-            default: return { bg: primary + '15', color: primary, icon: 'volume-medium-outline' as const };
+            case 'BOOKING': return { bg: primary + '15', color: primary, icon: 'ticket-outline' as const };
+            case 'PAYMENT': return { bg: primary + '15', color: primary, icon: 'card-outline' as const };
+            case 'EVENT': return { bg: primary + '15', color: primary, icon: 'musical-note-outline' as const };
+            case 'REVIEW': return { bg: primary + '15', color: primary, icon: 'star-outline' as const };
+            case 'SOCIAL': return { bg: primary + '15', color: primary, icon: 'heart-outline' as const };
+            case 'PROMOTION': return { bg: primary + '15', color: primary, icon: 'pricetag-outline' as const };
+            case 'SYSTEM':
+            default: return { bg: primary + '15', color: primary, icon: 'notifications-outline' as const };
         }
     };
 
@@ -94,8 +114,8 @@ export default function NotificationsScreen() {
         const now = new Date();
         const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
 
-        if (diffInHours < 24) return `${diffInHours}h ago`;
-        return 'Yesterday';
+        if (diffInHours < 24) return t('notifications.hoursAgo', { count: diffInHours });
+        return t('notifications.yesterday');
     };
 
     const { isGuest } = useAuth();
@@ -118,15 +138,15 @@ export default function NotificationsScreen() {
                     <View style={[styles.guestIconCircle, { backgroundColor: primary + '15' }]}>
                         <Ionicons name="notifications-outline" size={60} color={primary} />
                     </View>
-                    <ThemedText type="title" style={styles.guestTitle}>Stay Updated</ThemedText>
+                    <ThemedText type="title" style={styles.guestTitle}>{t('notifications.stayUpdated')}</ThemedText>
                     <ThemedText style={[styles.guestSubtitle, { color: muted }]}>
-                        Sign in to receive updates about your bookings, community stories, and travel tips.
+                        {t('notifications.guestSubtitle')}
                     </ThemedText>
                     <TouchableOpacity
                         style={[styles.signInButton, { backgroundColor: primary }]}
                         onPress={() => router.push('/(auth)/login')}
                     >
-                        <ThemedText style={styles.signInButtonText}>Sign In / Register</ThemedText>
+                        <ThemedText style={styles.signInButtonText}>{t('profile.signInRegister')}</ThemedText>
                     </TouchableOpacity>
                 </View>
             </ThemedView>
@@ -145,12 +165,12 @@ export default function NotificationsScreen() {
                     <Ionicons name="arrow-back" size={24} color={text} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => markAllRead()} disabled={isMarkingAll || !hasUnread}>
-                    <ThemedText style={{ color: muted, fontSize: 14, fontWeight: '600' }}>Mark all read</ThemedText>
+                    <ThemedText style={{ color: muted, fontSize: 14, fontWeight: '600' }}>{t('notifications.markAllRead')}</ThemedText>
                 </TouchableOpacity>
             </View>
 
             <View style={{ paddingHorizontal: 20, paddingBottom: 10 }}>
-                <ThemedText style={[styles.title, { color: text }]}>Notifications</ThemedText>
+                <ThemedText style={[styles.title, { color: text }]}>{t('common.notifications')}</ThemedText>
             </View>
 
             {/* Filter Tabs */}
@@ -185,8 +205,8 @@ export default function NotificationsScreen() {
                 ) : groupedNotifications.length === 0 ? (
                     <View style={styles.emptyState}>
                         <Ionicons name="notifications-off-outline" size={64} color={muted} />
-                        <ThemedText style={[styles.emptyText, { color: text }]}>No Notifications</ThemedText>
-                        <ThemedText style={[styles.emptySubText, { color: muted }]}>You&apos;re all caught up!</ThemedText>
+                        <ThemedText style={[styles.emptyText, { color: text }]}>{t('notifications.noNotifications')}</ThemedText>
+                        <ThemedText style={[styles.emptySubText, { color: muted }]}>{t('notifications.allCaughtUp')}</ThemedText>
                     </View>
                 ) : (
                     groupedNotifications.map((group, groupIndex) => (

@@ -1,6 +1,7 @@
 // backend/src/modules/blog/blog.routes.ts
 import { Router } from "express";
 import { auth } from "../middleware/auth.ts";
+import { laxAuth } from "../middleware/laxAuth.ts";
 import { permit } from "../middleware/roles.ts";
 import { BlogController } from "../modules/blog/blog.controller.ts";
 import { createPostValidators } from "../modules/blog/blog.validators.ts";
@@ -11,7 +12,7 @@ const router = Router();
 
 // Posts
 router.post("/", auth, createPostValidators, BlogController.create);
-router.get("/", BlogController.list);
+router.get("/", laxAuth, BlogController.list);
 router.get("/:id", BlogController.getOne);
 router.patch("/:id", auth, BlogController.update);
 router.delete("/:id", auth, permit("ADMIN"), BlogController.remove);
@@ -23,6 +24,10 @@ router.post(
   upload.single("file"),
   BlogController.uploadMedia
 );
+
+// Translation
+router.post("/:id/translate", auth, BlogController.translate);
+router.post("/:id/like", auth, BlogController.toggleLike);
 
 
 // Comments

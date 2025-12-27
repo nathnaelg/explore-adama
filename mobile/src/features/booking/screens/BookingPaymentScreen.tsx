@@ -9,6 +9,7 @@ import { router } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
 import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
@@ -20,6 +21,7 @@ import {
 import { useBooking } from '../hooks/useBooking';
 
 export default function BookingPaymentScreen() {
+    const { t } = useTranslation();
     const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
     const { data: booking, isLoading } = useBooking(bookingId || '');
     const { user } = useAuth();
@@ -37,8 +39,8 @@ export default function BookingPaymentScreen() {
     const paymentMethods = [
         {
             id: 'chapa',
-            name: 'Chapa',
-            description: 'Fast & secure local payment',
+            name: t('payment.chapaName'),
+            description: t('payment.chapaDesc'),
             icon: 'card-outline',
             recommended: true,
         }
@@ -48,7 +50,7 @@ export default function BookingPaymentScreen() {
         if (!booking || !user) return;
 
         if (selectedMethod !== 'chapa') {
-            Alert.alert("Coming Soon", "Only Chapa payment is currently supported.");
+            Alert.alert(t('payment.comingSoon'), t('payment.onlyChapaSupported'));
             return;
         }
 
@@ -66,11 +68,11 @@ export default function BookingPaymentScreen() {
                 // When browser closes, automatically try to verify
                 await checkPaymentStatus(response.txRef || response.providerData?.tx_ref);
             } else {
-                Alert.alert("Error", "Could not generate payment link.");
+                Alert.alert(t('common.error'), t('payment.couldNotInit'));
             }
         } catch (error: any) {
             console.error("Payment Error:", error);
-            Alert.alert("Payment Failed", error?.message || "An error occurred initializing payment.");
+            Alert.alert(t('payment.paymentFailed'), error?.message || t('payment.couldNotInit'));
         } finally {
             setIsProcessing(false);
         }
@@ -78,7 +80,7 @@ export default function BookingPaymentScreen() {
 
     const checkPaymentStatus = async (txRef?: string) => {
         if (!txRef) {
-            Alert.alert("Verification", "Could not verify payment automatically. Please check your booking history.");
+            Alert.alert(t('payment.verification'), t('payment.verifyFailedMsg'));
             router.replace('/bookings');
             return;
         }
@@ -98,27 +100,27 @@ export default function BookingPaymentScreen() {
                 }
             } else {
                 Alert.alert(
-                    "Payment Not Verified",
-                    "We couldn't verify your payment yet. If you paid, it might take a moment.",
+                    t('payment.notVerified'),
+                    t('payment.notVerifiedMsg'),
                     [
-                        { text: "Try Again", onPress: () => checkPaymentStatus(txRef) },
-                        { text: "Later", onPress: () => router.replace('/bookings') }
+                        { text: t('payment.tryAgain'), onPress: () => checkPaymentStatus(txRef) },
+                        { text: t('payment.later'), onPress: () => router.replace('/bookings') }
                     ]
                 );
             }
         } catch (error) {
             console.error("Verify Error", error);
-            Alert.alert("Verification Failed", "Could not verify payment status.");
+            Alert.alert(t('payment.verification') + " " + t('common.error'), t('payment.verifyFailedMsg'));
         } finally {
             setIsProcessing(false);
         }
     };
 
     if (isLoading || !booking) {
-        return <LoadingScreen message="Loading booking details..." />;
+        return <LoadingScreen message={t('common.loading')} />;
     }
 
-    const tourName = booking.event?.title || 'Booking';
+    const tourName = booking.event?.title || t('profile.bookings');
     const date = booking.event?.date ? new Date(booking.event.date).toLocaleDateString() + ' • ' + new Date(booking.event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Date N/A';
     const price = booking.total || 0;
     const serviceFee = 0;
@@ -133,7 +135,7 @@ export default function BookingPaymentScreen() {
                         <Ionicons name="arrow-back" size={24} color={text} />
                     </TouchableOpacity>
                     <ThemedText type="title" style={styles.title}>
-                        Confirm Booking
+                        {t('payment.confirmBooking')}
                     </ThemedText>
                     <View style={{ width: 24 }} />
                 </View>
@@ -151,11 +153,11 @@ export default function BookingPaymentScreen() {
                 {/* Payment Summary */}
                 <View style={styles.section}>
                     <ThemedText type="subtitle" style={[styles.sectionTitle, { color: text }]}>
-                        Payment Summary
+                        {t('payment.paymentSummary')}
                     </ThemedText>
                     <View style={styles.summaryRow}>
                         <ThemedText type="default" style={[styles.summaryLabel, { color: muted }]}>
-                            Subtotal
+                            {t('payment.subtotal')}
                         </ThemedText>
                         <ThemedText type="default" style={[styles.summaryValue, { color: text }]}>
                             ETB {price.toLocaleString()}
@@ -163,7 +165,7 @@ export default function BookingPaymentScreen() {
                     </View>
                     <View style={styles.summaryRow}>
                         <ThemedText type="default" style={[styles.summaryLabel, { color: muted }]}>
-                            Service Fee
+                            {t('payment.serviceFee')}
                         </ThemedText>
                         <ThemedText type="default" style={[styles.summaryValue, { color: text }]}>
                             ETB {serviceFee}
@@ -172,7 +174,7 @@ export default function BookingPaymentScreen() {
                     <View style={[styles.divider, { backgroundColor: muted }]} />
                     <View style={[styles.summaryRow, styles.totalRow]}>
                         <ThemedText type="title" style={styles.totalLabel}>
-                            Total Amount
+                            {t('payment.totalAmount')}
                         </ThemedText>
                         <ThemedText type="title" style={[styles.totalValue, { color: primary }]}>
                             ETB {total.toLocaleString()}
@@ -183,7 +185,7 @@ export default function BookingPaymentScreen() {
                 {/* Payment Methods */}
                 <View style={styles.section}>
                     <ThemedText type="subtitle" style={[styles.sectionTitle, { color: text }]}>
-                        Payment Method
+                        {t('payment.paymentMethod')}
                     </ThemedText>
                     <View style={styles.methodsContainer}>
                         {paymentMethods.map((method) => (
@@ -231,7 +233,7 @@ export default function BookingPaymentScreen() {
                         <ActivityIndicator color="white" />
                     ) : (
                         <ThemedText type="default" style={styles.confirmButtonText}>
-                            Confirm Payment →
+                            {t('payment.confirmPayment')}
                         </ThemedText>
                     )}
                 </TouchableOpacity>

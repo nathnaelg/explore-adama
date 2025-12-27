@@ -9,6 +9,7 @@ import { FlashList as ShopifyFlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     StyleSheet,
     TouchableOpacity,
@@ -17,6 +18,7 @@ import {
 const FlashList = ShopifyFlashList as any;
 
 export default function ReviewListScreen() {
+    const { t } = useTranslation();
     const { itemId, itemType } = useLocalSearchParams<{ itemId: string, itemType: string }>();
     const { data: reviewsData, isLoading, error } = useReviews({
         itemId: itemId || '',
@@ -47,7 +49,7 @@ export default function ReviewListScreen() {
                     <>
                         <View style={styles.header}>
                             <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={24} color={text} /></TouchableOpacity>
-                            <ThemedText type="title">Reviews</ThemedText>
+                            <ThemedText type="title">{t('reviews.reviewsList')}</ThemedText>
                             <View style={{ width: 24 }} />
                         </View>
 
@@ -59,7 +61,7 @@ export default function ReviewListScreen() {
                                         <Ionicons key={s} name="star" size={20} color={s <= parseFloat(averageRating) ? '#FFD700' : muted} />
                                     ))}
                                 </View>
-                                <ThemedText style={{ color: muted }}>Based on {reviews.length} reviews</ThemedText>
+                                <ThemedText style={{ color: muted }}>{t('placeDetails.reviewsCount', { count: reviews.length })}</ThemedText>
                             </View>
                         </View>
                     </>
@@ -72,7 +74,7 @@ export default function ReviewListScreen() {
                                     <ThemedText style={{ color: 'white' }}>{item.user?.profile?.name?.[0] || 'U'}</ThemedText>
                                 </View>
                                 <View>
-                                    <ThemedText style={styles.userName}>{item.user?.profile?.name || 'Anonymous'}</ThemedText>
+                                    <ThemedText style={styles.userName}>{item.user?.profile?.name || t('placeDetails.anonymous')}</ThemedText>
                                     <ThemedText style={[styles.time, { color: muted }]}>{new Date(item.createdAt).toLocaleDateString()}</ThemedText>
                                 </View>
                             </View>
@@ -87,7 +89,7 @@ export default function ReviewListScreen() {
                 ListEmptyComponent={
                     <View style={{ alignItems: 'center', padding: 40 }}>
                         <Ionicons name="chatbubble-outline" size={48} color={muted} />
-                        <ThemedText style={{ color: muted, marginTop: 16 }}>No reviews yet</ThemedText>
+                        <ThemedText style={{ color: muted, marginTop: 16 }}>{t('placeDetails.noReviews')}</ThemedText>
                     </View>
                 }
                 ListFooterComponent={
@@ -95,7 +97,7 @@ export default function ReviewListScreen() {
                         style={[styles.writeButton, { backgroundColor: primary }]}
                         onPress={() => router.push({ pathname: '/reviews/add', params: { itemId, itemType } } as any)}
                     >
-                        <ThemedText style={{ color: 'white', fontWeight: 'bold' }}>Write a Review</ThemedText>
+                        <ThemedText style={{ color: 'white', fontWeight: 'bold' }}>{t('reviews.addReview')}</ThemedText>
                     </TouchableOpacity>
                 }
             />

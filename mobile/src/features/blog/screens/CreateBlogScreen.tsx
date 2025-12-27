@@ -8,6 +8,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
@@ -33,6 +34,7 @@ interface UploadImage {
 }
 
 export default function CreateBlogScreen() {
+    const { t } = useTranslation();
     const { mutate: createPost, isPending: submitting } = useCreateBlogPost();
 
     const bg = useThemeColor({}, 'bg');
@@ -89,11 +91,11 @@ export default function CreateBlogScreen() {
                         await blogService.uploadMedia(post.id, fd);
                     }
                 }
-                Alert.alert('Success', 'Post submitted for review');
+                Alert.alert(t('common.success'), t('blog.postSubmitted'));
                 router.back();
             },
             onError: (err: any) => {
-                Alert.alert('Error', err?.response?.data?.message || 'Failed to create post');
+                Alert.alert(t('common.error'), err?.response?.data?.message || t('blog.failedCreatePost'));
             }
         });
     };
@@ -112,9 +114,9 @@ export default function CreateBlogScreen() {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="close" size={28} color={text} />
                 </TouchableOpacity>
-                <ThemedText style={[styles.headerTitle, { color: text }]}>Create Blog</ThemedText>
-                <TouchableOpacity onPress={() => Alert.alert('Drafts', 'Drafts feature coming soon!')}>
-                    <ThemedText style={[styles.draftsText, { color: primary }]}>Drafts</ThemedText>
+                <ThemedText style={[styles.headerTitle, { color: text }]}>{t('blog.createBlog')}</ThemedText>
+                <TouchableOpacity onPress={() => Alert.alert(t('blog.drafts'), t('blog.draftsComingSoon'))}>
+                    <ThemedText style={[styles.draftsText, { color: primary }]}>{t('blog.drafts')}</ThemedText>
                 </TouchableOpacity>
             </View>
 
@@ -134,18 +136,18 @@ export default function CreateBlogScreen() {
                                     <Ionicons name="add" size={10} color="white" />
                                 </View>
                             </View>
-                            <ThemedText style={[styles.uploadTitle, { color: text }]}>Add Cover Photo</ThemedText>
-                            <ThemedText style={[styles.uploadSubtitle, { color: muted }]}>Tap to upload your travel memory</ThemedText>
+                            <ThemedText style={[styles.uploadTitle, { color: text }]}>{t('blog.addCoverPhoto')}</ThemedText>
+                            <ThemedText style={[styles.uploadSubtitle, { color: muted }]}>{t('blog.tapToUpload')}</ThemedText>
                         </View>
                     )}
                 </TouchableOpacity>
 
                 {/* Title Input */}
                 <View style={styles.inputGroup}>
-                    <ThemedText style={[styles.label, { color: text }]}>Title</ThemedText>
+                    <ThemedText style={[styles.label, { color: text }]}>{t('blog.title')}</ThemedText>
                     <TextInput
                         style={[styles.input, { backgroundColor: inputBg, borderColor: inputBorder, color: text }]}
-                        placeholder="My Trip to Adama..."
+                        placeholder={t('blog.titlePlaceholder')}
                         placeholderTextColor={placeholderColor}
                         value={formData.title}
                         onChangeText={v => setFormData(p => ({ ...p, title: v }))}
@@ -154,7 +156,7 @@ export default function CreateBlogScreen() {
 
                 {/* Category Selection */}
                 <View style={styles.inputGroup}>
-                    <ThemedText style={[styles.label, { color: text }]}>Category</ThemedText>
+                    <ThemedText style={[styles.label, { color: text }]}>{t('blog.category')}</ThemedText>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
                         {categories.map((cat) => {
                             const isSelected = formData.category === cat;
@@ -170,7 +172,7 @@ export default function CreateBlogScreen() {
                                     onPress={() => setFormData(p => ({ ...p, category: cat }))}
                                 >
                                     <ThemedText style={[styles.categoryText, isSelected ? { fontWeight: 'bold', color: 'white' } : { color: text }]}>
-                                        {cat}
+                                        {t(`blog.categories.${cat.toLowerCase()}`, { defaultValue: cat })}
                                     </ThemedText>
                                     {isSelected && <Ionicons name="checkmark" size={16} color="white" style={{ marginLeft: 4 }} />}
                                 </TouchableOpacity>
@@ -181,10 +183,10 @@ export default function CreateBlogScreen() {
 
                 {/* Description Input */}
                 <View style={styles.inputGroup}>
-                    <ThemedText style={[styles.label, { color: text }]}>Description</ThemedText>
+                    <ThemedText style={[styles.label, { color: text }]}>{t('blog.description')}</ThemedText>
                     <TextInput
                         style={[styles.textArea, { backgroundColor: inputBg, borderColor: inputBorder, color: text }]}
-                        placeholder="Share your experience here... What did you see? How was the food?"
+                        placeholder={t('blog.descriptionPlaceholder')}
                         placeholderTextColor={placeholderColor}
                         value={formData.body}
                         onChangeText={v => setFormData(p => ({ ...p, body: v }))}
@@ -203,7 +205,7 @@ export default function CreateBlogScreen() {
                         <ActivityIndicator color="white" />
                     ) : (
                         <>
-                            <ThemedText style={[styles.submitText, { color: 'white' }]}>Submit</ThemedText>
+                            <ThemedText style={[styles.submitText, { color: 'white' }]}>{t('blog.submit')}</ThemedText>
                             <Ionicons name="paper-plane" size={20} color="white" style={{ marginLeft: 8 }} />
                         </>
                     )}

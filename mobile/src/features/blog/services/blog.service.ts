@@ -108,4 +108,15 @@ export const blogService = {
       .slice(0, limit)
       .map(([tag]) => tag);
   },
+
+  // Translate blog post
+  async translatePost(id: string, targetLanguage: string): Promise<{ id: string, title: string, body: string, language: string }> {
+    const response = await apiClient.post(`/blog/${id}/translate`, { targetLanguage });
+    return response.data;
+  },
+
+  async toggleLike(id: string): Promise<{ liked: boolean }> {
+    const response = await apiClient.post(`/blog/${id}/like`);
+    return response.data;
+  }
 };

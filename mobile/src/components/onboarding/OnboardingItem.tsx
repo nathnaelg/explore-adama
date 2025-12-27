@@ -1,6 +1,7 @@
 // /home/natye/smart-tourism/components/OnboardingItem.tsx
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
+import { useTranslation } from 'react-i18next';
 import { Image, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 export type OnboardingItemType = {
@@ -18,10 +19,11 @@ type OnboardingItemProps = {
 };
 
 export function OnboardingItem({ item, screenWidth, screenHeight }: OnboardingItemProps) {
+  const { t } = useTranslation();
   const { width, height } = useWindowDimensions();
   const containerWidth = screenWidth || width;
   const containerHeight = screenHeight || height;
-  
+
   const primaryColor = useThemeColor({}, 'primary');
   const mutedColor = useThemeColor({}, 'muted');
 
@@ -29,7 +31,7 @@ export function OnboardingItem({ item, screenWidth, screenHeight }: OnboardingIt
   const isSmallScreen = containerWidth < 375;
   const isVerySmallScreen = containerWidth < 320; // iPhone 5/SE
   const isTablet = containerWidth > 768;
-  
+
   const getResponsiveImageSize = () => {
     if (isVerySmallScreen) return containerWidth * 0.65;
     if (isSmallScreen) return containerWidth * 0.75;
@@ -99,8 +101,8 @@ export function OnboardingItem({ item, screenWidth, screenHeight }: OnboardingIt
       color: primaryColor,
       width: '100%',
       paddingHorizontal: getResponsivePadding(8),
-      ...(Platform.OS === 'ios' ? { 
-        letterSpacing: -0.5 
+      ...(Platform.OS === 'ios' ? {
+        letterSpacing: -0.5
       } : {}),
     },
     description: {
@@ -124,24 +126,24 @@ export function OnboardingItem({ item, screenWidth, screenHeight }: OnboardingIt
         style={styles.image}
         resizeMode="contain"
       />
-      
+
       <View style={styles.textContainer}>
-        <ThemedText 
-          type="title" 
+        <ThemedText
+          type="title"
           style={styles.title}
           numberOfLines={isVerySmallScreen ? 2 : 3}
           ellipsizeMode="tail"
         >
-          {item.title}
+          {t(item.title)}
         </ThemedText>
-        
-        <ThemedText 
-          type="default" 
+
+        <ThemedText
+          type="default"
           style={styles.description}
           numberOfLines={isVerySmallScreen ? 3 : 4}
           ellipsizeMode="tail"
         >
-          {item.description}
+          {t(item.description)}
         </ThemedText>
       </View>
     </View>

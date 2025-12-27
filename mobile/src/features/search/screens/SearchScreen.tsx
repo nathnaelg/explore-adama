@@ -9,7 +9,9 @@ import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList as ShopifyFlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
-import React from 'react';
+import { useLocalSearchParams } from 'expo-router/build/hooks';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     StyleSheet,
     TextInput,
@@ -19,7 +21,10 @@ import {
 const FlashList = ShopifyFlashList as any;
 
 export default function SearchScreen() {
-    const { query, setQuery, debouncedQuery, data: searchResults, isLoading } = useDebouncedSearch('', 500);
+    const { t } = useTranslation();
+    const { q, type } = useLocalSearchParams<{ q: string; type: string }>();
+    const [query, setQuery] = useState(q || '');
+    const { debouncedQuery, data: searchResults, isLoading } = useDebouncedSearch(query, 500);
     const { isGuest } = useAuth();
     const { data: categoriesData } = useCategories();
     const categories = categoriesData || [];
@@ -32,6 +37,12 @@ export default function SearchScreen() {
     const chip = useThemeColor({}, 'chip');
     const tint = useThemeColor({}, 'tint');
 
+    useEffect(() => {
+        if (q) {
+            setQuery(q);
+        }
+    }, [q]);
+
     const handleResultPress = (result: any) => {
         if (result.type === 'place') {
             router.push(`/place/${result.id}`);
@@ -40,8 +51,8 @@ export default function SearchScreen() {
                 router.push({
                     pathname: '/(modals)/guest-prompt',
                     params: {
-                        title: 'Sign In Required',
-                        message: 'Please sign in to book tickets or tours found in your search.',
+                        title: t('auth.signInRequired'),
+                        message: t('auth.signInToBookTickets'),
                         icon: 'search-outline'
                     }
                 });
@@ -116,7 +127,7 @@ export default function SearchScreen() {
                     <Ionicons name="search" size={20} color={muted} />
                     <TextInput
                         style={[styles.searchInput, { color: text }]}
-                        placeholder="Search places, events, blogs..."
+                        placeholder={t('search.placeholder')}
                         placeholderTextColor={muted}
                         value={query}
                         onChangeText={setQuery}
@@ -129,7 +140,7 @@ export default function SearchScreen() {
                     )}
                 </View>
                 <TouchableOpacity onPress={() => router.back()}>
-                    <ThemedText type="link" style={{ color: primary }}>Cancel</ThemedText>
+                    <ThemedText style={{ color: primary, fontWeight: '600' }}>{t('common.cancel')}</ThemedText>
                 </TouchableOpacity>
             </View>
 
@@ -151,7 +162,7 @@ export default function SearchScreen() {
                                 {/* Popular Categories */}
                                 <View style={styles.section}>
                                     <ThemedText type="subtitle" style={[styles.sectionTitle, { color: text }]}>
-                                        Browse by Category
+                                        {t('search.browseByCategory')}
                                     </ThemedText>
                                     <View style={styles.categoriesGrid}>
                                         {categories.slice(0, 6).map((category: any) => (
@@ -174,19 +185,19 @@ export default function SearchScreen() {
                                 {/* Search Tips */}
                                 <View style={styles.section}>
                                     <ThemedText type="subtitle" style={[styles.sectionTitle, { color: text }]}>
-                                        Search Tips
+                                        {t('search.searchTips')}
                                     </ThemedText>
                                     <View style={{ gap: 12 }}>
                                         <View style={styles.tipItem}>
                                             <Ionicons name="search-outline" size={20} color={primary} />
                                             <ThemedText style={{ color: muted, flex: 1 }}>
-                                                Try searching for &quot;hotels&quot;, &quot;restaurants&quot;, or &quot;events&quot;
+                                                {t('search.tipHotels')}
                                             </ThemedText>
                                         </View>
                                         <View style={styles.tipItem}>
                                             <Ionicons name="location-outline" size={20} color={primary} />
                                             <ThemedText style={{ color: muted, flex: 1 }}>
-                                                Search by location or neighborhood
+                                                {t('search.tipLocation')}
                                             </ThemedText>
                                         </View>
                                     </View>
@@ -203,7 +214,7 @@ export default function SearchScreen() {
                                 {!isLoading && debouncedQuery === query && searchResults && searchResults.length > 0 && (
                                     <View style={[styles.section, { paddingBottom: 0 }]}>
                                         <ThemedText type="subtitle" style={[styles.sectionTitle, { color: text }]}>
-                                            Found {searchResults.length} results
+                                            {t('search.resultsCount', { count: searchResults.length })}
                                         </ThemedText>
                                     </View>
                                 )}
@@ -216,10 +227,10 @@ export default function SearchScreen() {
                         <View style={styles.noResultsContainer}>
                             <Ionicons name="search-outline" size={64} color={muted} />
                             <ThemedText type="default" style={[styles.noResultsText, { color: muted }]}>
-                                No results found for &quot;{query}&quot;
+                                {t('search.noResults', { query })}
                             </ThemedText>
                             <ThemedText style={{ color: muted, textAlign: 'center', marginTop: 8 }}>
-                                Try different keywords or browse categories
+                                {t('search.tryDifferent')}
                             </ThemedText>
                         </View>
                     ) : null

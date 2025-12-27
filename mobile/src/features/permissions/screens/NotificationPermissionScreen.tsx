@@ -2,9 +2,11 @@ import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { requestNotificationPermission } from '@/src/services/push.service';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function NotificationPermissionScreen() {
+    const { t } = useTranslation();
     const bg = useThemeColor({}, 'bg');
     const card = useThemeColor({}, 'card');
     const text = useThemeColor({}, 'text');
@@ -28,25 +30,25 @@ export default function NotificationPermissionScreen() {
                 </View>
 
                 <Text style={[styles.title, { color: text }]}>
-                    Don’t miss out on Adama!
+                    {t('permissions.notificationsTitle')}
                 </Text>
 
                 <Text style={[styles.subtitle, { color: muted }]}>
-                    Get booking updates, local events, and exclusive offers in real time.
+                    {t('permissions.notificationsSubtitle')}
                 </Text>
 
-                <Feature icon="calendar-outline" text="Instant booking updates" />
-                <Feature icon="pricetag-outline" text="Exclusive deals near you" />
+                <Feature icon="calendar-outline" text={t('permissions.instantBookingUpdates')} />
+                <Feature icon="pricetag-outline" text={t('permissions.exclusiveDeals')} />
 
                 <TouchableOpacity
                     style={[styles.cta, { backgroundColor: primary }]}
                     onPress={enableNotifications}
                 >
-                    <Text style={styles.ctaText}>Turn on Notifications</Text>
+                    <Text style={styles.ctaText}>{t('permissions.turnOnNotifications')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => router.replace('/notifications')}>
-                    <Text style={[styles.later, { color: muted }]}>Maybe later</Text>
+                    <Text style={[styles.later, { color: muted }]}>{t('permissions.maybeLater')}</Text>
                 </TouchableOpacity>
 
             </View>

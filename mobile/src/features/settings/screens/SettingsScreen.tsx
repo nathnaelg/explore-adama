@@ -6,6 +6,7 @@ import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Image,
@@ -20,6 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 export default function SettingsScreen() {
+    const { t, i18n } = useTranslation();
     const { user: authUser, logout, isAuthenticated } = useAuth();
     const { data: user, isLoading } = useProfile(authUser?.id, isAuthenticated);
     const insets = useSafeAreaInsets();
@@ -47,25 +49,25 @@ export default function SettingsScreen() {
     }> = [
             {
                 id: 1,
-                title: 'Privacy Policy',
+                title: t('settings.privacyPolicy'),
                 icon: 'shield-checkmark-outline',
                 screen: '/(public)/legal/privacy',
             },
             {
                 id: 2,
-                title: 'Terms of Service',
+                title: t('settings.termsOfService'),
                 icon: 'document-text-outline',
                 screen: '/(public)/legal/terms',
             },
             {
                 id: 3,
-                title: 'AI Transparency',
+                title: t('settings.aiTransparency'),
                 icon: 'information-circle-outline',
                 screen: '/(public)/legal/ai-transparency',
             },
             {
                 id: 4,
-                title: 'App Version',
+                title: t('settings.appVersion'),
                 icon: 'code-outline',
                 screen: '/(public)/meta/app-version',
             },
@@ -88,48 +90,6 @@ export default function SettingsScreen() {
         );
     }
 
-    const handleSeedData = async () => {
-        try {
-            // Seed 3 Places
-            const places = [
-                {
-                    name: "Kuriftu Resort & Spa Adama",
-                    description: "Luxury resort with water park and spa.",
-                    latitude: 8.5414,
-                    longitude: 39.2689,
-                    address: "Adama, Ethiopia",
-                },
-                {
-                    name: "Sodere Resort",
-                    description: "Famous for its natural hot springs and lush greenery.",
-                    latitude: 8.4000,
-                    longitude: 39.5167,
-                    address: "Sodere, Ethiopia",
-                },
-                {
-                    name: "Adama City Park",
-                    description: "A beautiful park in the heart of Adama.",
-                    latitude: 8.5500,
-                    longitude: 39.2700,
-                    address: "Kebele 04, Adama",
-                }
-            ];
-
-            // Use exploreService to create them
-            // We need to import exploreService at top (will add import in next step or use require if lazy)
-            // Ideally should use proper import. For now, assuming direct usage or quick import fix.
-            const { exploreService } = require('@/src/features/explore/services/explore.service');
-
-            for (const place of places) {
-                await exploreService.createPlace(place);
-            }
-
-            alert('Database seeded with 3 places! Refresh Home Screen.');
-        } catch (error) {
-            console.error('Seeding failed:', error);
-            alert('Failed to seed: ' + (error as any).message);
-        }
-    };
 
     return (
         <ThemedView style={styles.container}>
@@ -140,7 +100,7 @@ export default function SettingsScreen() {
                         <Ionicons name="arrow-back" size={24} color={text} />
                     </TouchableOpacity>
                     <ThemedText type="title" style={[styles.title, { color: text }]}>
-                        Settings
+                        {t('common.settings')}
                     </ThemedText>
                     <View style={{ width: 24 }} />
                 </View>
@@ -174,18 +134,21 @@ export default function SettingsScreen() {
                 {/* Preferences */}
                 <View style={[styles.section, { borderBottomColor: muted + '20' }]}>
                     <ThemedText type="subtitle" style={[styles.sectionTitle, { color: muted }]}>
-                        PREFERENCES
+                        {t('settings.preferences')}
                     </ThemedText>
 
                     {/* Language */}
-                    <TouchableOpacity style={styles.settingItem}>
+                    <TouchableOpacity
+                        style={styles.settingItem}
+                        onPress={() => router.push('/settings/language')}
+                    >
                         <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
-                            Language
+                            {t('common.language')}
                         </ThemedText>
                         <View style={styles.settingValue}>
                             <ThemedText type="default" style={[styles.settingValueText, { color: muted }]}>
-                                {user?.profile?.locale === 'am' ? 'Amharic' :
-                                    user?.profile?.locale === 'om' ? 'Afan Oromo' : 'English'}
+                                {i18n.language === 'am' ? 'Amharic' :
+                                    i18n.language === 'om' ? 'Afan Oromo' : 'English'}
                             </ThemedText>
                             <Ionicons name="chevron-forward" size={20} color={muted} />
                         </View>
@@ -194,7 +157,7 @@ export default function SettingsScreen() {
                     {/* Country */}
                     <TouchableOpacity style={styles.settingItem}>
                         <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
-                            Country
+                            {t('common.country')}
                         </ThemedText>
                         <View style={styles.settingValue}>
                             <ThemedText type="default" style={[styles.settingValueText, { color: muted }]}>
@@ -208,12 +171,12 @@ export default function SettingsScreen() {
                 {/* Notifications */}
                 <View style={[styles.section, { borderBottomColor: muted + '20' }]}>
                     <ThemedText type="subtitle" style={[styles.sectionTitle, { color: muted }]}>
-                        NOTIFICATIONS
+                        {t('common.notifications')}
                     </ThemedText>
 
                     <View style={styles.settingItem}>
                         <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
-                            Booking Updates
+                            {t('settings.notifUpdates')}
                         </ThemedText>
                         <Switch
                             value={notifications.bookingUpdates}
@@ -227,7 +190,7 @@ export default function SettingsScreen() {
 
                     <View style={styles.settingItem}>
                         <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
-                            Promotions & Offers
+                            {t('settings.notifPromos')}
                         </ThemedText>
                         <Switch
                             value={notifications.promotions}
@@ -241,7 +204,7 @@ export default function SettingsScreen() {
 
                     <View style={styles.settingItem}>
                         <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
-                            Nearby Attractions
+                            {t('settings.notifNearby')}
                         </ThemedText>
                         <Switch
                             value={notifications.nearbyAttractions}
@@ -257,7 +220,7 @@ export default function SettingsScreen() {
                 {/* Support & Legal */}
                 <View style={[styles.section, { borderBottomColor: muted + '20' }]}>
                     <ThemedText type="subtitle" style={[styles.sectionTitle, { color: muted }]}>
-                        SUPPORT & LEGAL
+                        {t('settings.supportLegal')}
                     </ThemedText>
 
                     {settingsItems.map((item) => (
@@ -277,16 +240,6 @@ export default function SettingsScreen() {
                     ))}
                 </View>
 
-                {/* DEBUG: SEED DATA BUTTON */}
-                <TouchableOpacity
-                    style={[styles.logoutButton, { backgroundColor: '#E0F2FE', marginBottom: 0 }]}
-                    onPress={handleSeedData}
-                >
-                    <Ionicons name="construct" size={20} color="#0284C7" />
-                    <ThemedText type="default" style={[styles.logoutText, { color: '#0284C7' }]}>
-                        Seed Demo Data
-                    </ThemedText>
-                </TouchableOpacity>
 
                 {/* Log Out */}
                 <TouchableOpacity
@@ -295,7 +248,7 @@ export default function SettingsScreen() {
                 >
                     <Ionicons name="log-out-outline" size={20} color={error} />
                     <ThemedText type="default" style={[styles.logoutText, { color: error }]}>
-                        Log Out
+                        {t('common.logout')}
                     </ThemedText>
                 </TouchableOpacity>
 
@@ -305,7 +258,7 @@ export default function SettingsScreen() {
                         Adama Smart Tourism v2.4.0
                     </ThemedText>
                     <ThemedText type="default" style={[styles.copyrightText, { color: muted }]}>
-                        Made with ❤️ for Adama
+                        {t('settings.madeWithLove')}
                     </ThemedText>
                 </View>
             </ScrollView>

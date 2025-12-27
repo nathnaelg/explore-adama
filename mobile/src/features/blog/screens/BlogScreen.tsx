@@ -4,12 +4,13 @@ import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useAuth } from '@/src/features/auth/contexts/AuthContext';
 import { BlogPostCard } from '@/src/features/blog/components/BlogPostCard';
 import { BlogSkeleton } from '@/src/features/blog/components/BlogSkeleton';
-import { useBlogPosts } from '@/src/features/blog/hooks/useBlog';
+import { useBlogPosts, useToggleLike } from '@/src/features/blog/hooks/useBlog';
 import { blogService } from '@/src/features/blog/services/blog.service';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     RefreshControl,
     ScrollView,
@@ -20,6 +21,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function BlogScreen() {
+    const { t } = useTranslation();
     const { user, isGuest } = useAuth();
     const bg = useThemeColor({}, 'bg');
     const card = useThemeColor({}, 'card');
@@ -37,6 +39,8 @@ export default function BlogScreen() {
         limit: 20,
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
     });
+
+    const { mutate: toggleLike } = useToggleLike();
 
     const blogPosts = data?.items || [];
     const total = data?.total || 0;
@@ -61,8 +65,8 @@ export default function BlogScreen() {
             router.push({
                 pathname: '/(modals)/guest-prompt',
                 params: {
-                    title: 'Sign In Required',
-                    message: 'Please sign in to share your stories with the community.',
+                    title: t('common.signInRequired'),
+                    message: t('blog.signInToShare'),
                     icon: 'megaphone-outline'
                 }
             });
@@ -71,14 +75,29 @@ export default function BlogScreen() {
         router.push('/blog/new');
     };
 
+    const handleLike = (postId: string) => {
+        if (isGuest) {
+            router.push({
+                pathname: '/(modals)/guest-prompt',
+                params: {
+                    title: t('common.signInRequired'),
+                    message: t('blog.signInToLike'),
+                    icon: 'heart-outline'
+                }
+            });
+            return;
+        }
+        toggleLike(postId);
+    };
+
     const renderHeader = () => (
         <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
             <View style={{ flex: 1 }}>
                 <ThemedText type="title" style={styles.title}>
-                    Community Feed
+                    {t('blog.communityFeed')}
                 </ThemedText>
                 <ThemedText type="default" style={[styles.subtitle, { color: muted }]}>
-                    Discover stories from locals
+                    {t('blog.discoverStories')}
                 </ThemedText>
             </View>
 
@@ -125,7 +144,7 @@ export default function BlogScreen() {
                             { color: selectedCategory === category ? 'white' : text }
                         ]}
                     >
-                        {category === 'all' ? 'All' : category}
+                        {category === 'all' ? t('explore.all') : t(`blog.categories.${category.toLowerCase()}`, { defaultValue: category })}
                     </ThemedText>
                 </TouchableOpacity>
             ))}
@@ -152,10 +171,10 @@ export default function BlogScreen() {
                     <View style={styles.emptyState}>
                         <Ionicons name="newspaper-outline" size={64} color={muted} />
                         <ThemedText type="title" style={[styles.emptyTitle, { color: text }]}>
-                            No blog posts yet
+                            {t('blog.noPostsYet')}
                         </ThemedText>
                         <ThemedText type="default" style={[styles.emptyDescription, { color: muted }]}>
-                            Be the first to share your travel story!
+                            {t('blog.beFirstToShare')}
                         </ThemedText>
                         {user && (
                             <TouchableOpacity
@@ -164,7 +183,7 @@ export default function BlogScreen() {
                             >
                                 <Ionicons name="add" size={20} color="#fff" />
                                 <ThemedText type="default" style={[styles.createButtonText, { color: '#fff' }]}>
-                                    Create Your First Post
+                                    {t('blog.createFirstPost')}
                                 </ThemedText>
                             </TouchableOpacity>
                         )}
@@ -173,10 +192,10 @@ export default function BlogScreen() {
                     <>
                         <View style={styles.sectionHeader}>
                             <ThemedText type="title" style={styles.sectionTitle}>
-                                {selectedCategory === 'all' ? 'Recent Posts' : selectedCategory}
+                                {selectedCategory === 'all' ? t('blog.recentPosts') : t(`blog.categories.${selectedCategory.toLowerCase()}`, { defaultValue: selectedCategory })}
                             </ThemedText>
                             <ThemedText type="default" style={{ color: muted }}>
-                                {total} posts
+                                {t('blog.postsCount', { count: total })}
                             </ThemedText>
                         </View>
 
@@ -186,6 +205,8 @@ export default function BlogScreen() {
                                     key={post.id}
                                     post={post}
                                     onPress={() => router.push(`/blog/${post.id}`)}
+                                    onLike={() => handleLike(post.id)}
+                                    onComment={() => router.push(`/blog/${post.id}`)}
                                 />
                             ))}
                         </View>

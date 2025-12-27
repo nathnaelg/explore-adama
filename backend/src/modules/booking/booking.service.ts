@@ -2,6 +2,7 @@
 // (No changes needed here, but confirming for completeness)
 import crypto from "crypto";
 import { prisma } from "../../config/db.ts";
+import { NotificationService } from "../notifications/notification.service.ts";
 
 export class BookingService {
   static async createBooking(data: {
@@ -13,7 +14,7 @@ export class BookingService {
     fees: number;
     total: number;
   }) {
-    return prisma.booking.create({
+    const booking = await prisma.booking.create({
       data: {
         userId: data.userId,
         eventId: data.eventId,
@@ -23,8 +24,23 @@ export class BookingService {
         fees: data.fees,
         total: data.total,
         status: "PENDING"
-      }
+      },
+      include: { event: true } // Include event to get title for notification
     });
+
+    try {
+      await NotificationService.createNotification({
+        userId: data.userId,
+        type: "BOOKING",
+        title: "Booking Initiated",
+        message: `Your booking for ${booking.event.title} is pending payment.`,
+        data: { bookingId: booking.id, eventId: booking.eventId }
+      });
+    } catch (e) {
+      console.error("Failed to send pending booking notification", e);
+    }
+
+    return booking;
   }
 
   static async findById(id: string) {
@@ -72,9 +88,9 @@ export class BookingService {
         }
       });
 
-      const tickets = [];
-      for (let i = 0; i < booking.quantity; i++) {
-        const t = await tx.ticket.create({
+      // Optimize ticket creation with Promise.all
+      const ticketPromises = Array.from({ length: booking.quantity }).map(() =>
+        tx.ticket.create({
           data: {
             bookingId,
             eventId: booking.eventId,
@@ -82,9 +98,10 @@ export class BookingService {
             status: "CONFIRMED",
             qrToken: crypto.randomUUID()
           }
-        });
-        tickets.push(t);
-      }
+        })
+      );
+
+      const tickets = await Promise.all(ticketPromises);
 
       await tx.event.update({
         where: { id: booking.eventId },
@@ -96,7 +113,25 @@ export class BookingService {
         where: { id: bookingId },
         include: { tickets: true, event: true, user: true }
       });
+    }, {
+      timeout: 20000 // Increase timeout to 20s
     });
+
+
+
+    if (created && created.status === "CONFIRMED") {
+      try {
+        await NotificationService.createNotification({
+          userId: created.userId,
+          type: "BOOKING",
+          title: "Booking Confirmed",
+          message: `Your booking for ${created.event.title} has been confirmed!`,
+          data: { bookingId: created.id, eventId: created.event.id }
+        });
+      } catch (e) {
+        console.error("Failed to send booking notification", e);
+      }
+    }
 
     return created;
   }

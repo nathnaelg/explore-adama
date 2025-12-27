@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Keyboard,
@@ -25,6 +26,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const SESSION_KEY = '@chat_session_id';
 
 export default function ChatScreen() {
+    const { t } = useTranslation();
     const [message, setMessage] = useState('');
     const [sessionId, setSessionId] = useState<string | undefined>();
     const { isGuest } = useAuth();
@@ -84,8 +86,8 @@ export default function ChatScreen() {
             router.push({
                 pathname: '/(modals)/guest-prompt',
                 params: {
-                    title: 'Sign In Required',
-                    message: 'Please sign in to chat with our AI Travel Assistant and get personalized recommendations.',
+                    title: t('chat.signInRequired'),
+                    message: t('chat.guestMsg'),
                     icon: 'chatbubbles-outline'
                 }
             });
@@ -124,10 +126,10 @@ export default function ChatScreen() {
                         <Ionicons name="sparkles" size={20} color="#fff" />
                     </View>
                     <View>
-                        <ThemedText style={[styles.title, { color: text }]}>AI Travel Assistant</ThemedText>
+                        <ThemedText style={[styles.title, { color: text }]}>{t('chat.assistantTitle')}</ThemedText>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                             <View style={[styles.onlineDot, { backgroundColor: '#10B981' }]} />
-                            <ThemedText style={[styles.status, { color: muted }]}>Online</ThemedText>
+                            <ThemedText style={[styles.status, { color: muted }]}>{t('chat.online')}</ThemedText>
                         </View>
                     </View>
                 </View>
@@ -149,7 +151,7 @@ export default function ChatScreen() {
                     {isLoading && (
                         <View style={{ alignItems: 'center', paddingVertical: 20 }}>
                             <ActivityIndicator size="large" color={primary} />
-                            <ThemedText style={{ color: muted, marginTop: 12 }}>Loading...</ThemedText>
+                            <ThemedText style={{ color: muted, marginTop: 12 }}>{t('chat.loading')}</ThemedText>
                         </View>
                     )}
 
@@ -157,10 +159,10 @@ export default function ChatScreen() {
                         <View style={{ alignItems: 'center', paddingVertical: 30, paddingHorizontal: 20 }}>
                             <Ionicons name="chatbubbles-outline" size={48} color={muted} />
                             <ThemedText style={{ color: text, fontSize: 16, fontWeight: 'bold', marginTop: 12, textAlign: 'center' }}>
-                                Start a Conversation
+                                {t('chat.startConversation')}
                             </ThemedText>
                             <ThemedText style={{ color: muted, marginTop: 6, textAlign: 'center', fontSize: 13 }}>
-                                Ask me about places, restaurants, events, and more!
+                                {t('chat.askMeAnything')}
                             </ThemedText>
                         </View>
                     )}
@@ -225,7 +227,7 @@ export default function ChatScreen() {
                     <TextInput
                         value={message}
                         onChangeText={setMessage}
-                        placeholder="Ask me anything..."
+                        placeholder={t('chat.inputPlaceholder')}
                         placeholderTextColor={muted}
                         style={[styles.input, {
                             backgroundColor: bg,

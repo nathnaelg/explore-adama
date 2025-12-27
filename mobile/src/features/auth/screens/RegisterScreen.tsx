@@ -6,6 +6,7 @@ import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   ScrollView,
@@ -18,6 +19,7 @@ import {
 import { SocialLoginButtons } from '../components/SocialLoginButtons';
 
 export default function RegisterScreen() {
+  const { t } = useTranslation();
   // Theme colors
   const bg = useThemeColor({}, 'bg');
   const card = useThemeColor({}, 'card');
@@ -40,17 +42,17 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!user.name.trim() || !user.email.trim() || !user.password.trim()) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      Alert.alert(t('common.error'), t('auth.fillRequired'));
       return;
     }
 
     if (!user.acceptTerms) {
-      Alert.alert('Error', 'You must accept the terms and conditions');
+      Alert.alert(t('common.error'), t('auth.acceptTermsError'));
       return;
     }
 
     if (user.password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
+      Alert.alert(t('common.error'), t('auth.passwordShort'));
       return;
     }
 
@@ -59,9 +61,9 @@ export default function RegisterScreen() {
       const { acceptTerms, ...registerData } = user;
       await register(registerData);
       Alert.alert(
-        'Registration Successful',
-        'Welcome to Adama Tourism!',
-        [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+        t('auth.registrationSuccessful'),
+        t('auth.welcomeAdama'),
+        [{ text: t('common.ok'), onPress: () => router.replace('/(tabs)') }]
       );
     } catch (error: any) {
       const backendMessage = error.response?.data?.message;
@@ -70,8 +72,8 @@ export default function RegisterScreen() {
         : backendMessage;
 
       Alert.alert(
-        'Registration Failed',
-        errorMessage || error.message || 'An error occurred. Please try again.'
+        t('auth.registrationFailed'),
+        errorMessage || error.message || t('common.error')
       );
     } finally {
       setIsLoading(false);
@@ -89,19 +91,19 @@ export default function RegisterScreen() {
             <Ionicons name="arrow-back" size={24} color={muted} />
           </TouchableOpacity>
           <ThemedText type="title" style={[styles.title, { color: text }]}>
-            Join Adama Tourism
+            {t('auth.registerTitle')}
           </ThemedText>
           <View style={{ width: 24 }} />
         </View>
 
         <ThemedText type="default" style={[styles.heroText, { color: muted }]}>
-          Discover the best hotels, parks, and culture in the heart of Oromia.
+          {t('auth.registerHero')}
         </ThemedText>
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
             <ThemedText type="default" style={[styles.inputLabel, { color: muted }]}>
-              Full Name *
+              {t('auth.fullName')} *
             </ThemedText>
             <TextInput
               style={[styles.input, {
@@ -109,7 +111,7 @@ export default function RegisterScreen() {
                 borderColor: chip,
                 color: text
               }]}
-              placeholder="Enter your name"
+              placeholder={t('auth.enterName')}
               placeholderTextColor={muted}
               value={user.name}
               onChangeText={(text) => setUser({ ...user, name: text })}
@@ -119,7 +121,7 @@ export default function RegisterScreen() {
 
           <View style={styles.inputContainer}>
             <ThemedText type="default" style={[styles.inputLabel, { color: muted }]}>
-              Email *
+              {t('auth.email')} *
             </ThemedText>
             <TextInput
               style={[styles.input, {
@@ -139,7 +141,7 @@ export default function RegisterScreen() {
 
           <View style={styles.inputContainer}>
             <ThemedText type="default" style={[styles.inputLabel, { color: muted }]}>
-              Password * (min. 6 characters)
+              {t('auth.passwordMin')}
             </ThemedText>
             <TextInput
               style={[styles.input, {
@@ -147,7 +149,7 @@ export default function RegisterScreen() {
                 borderColor: chip,
                 color: text
               }]}
-              placeholder="Create a password"
+              placeholder={t('auth.enterPassword')}
               placeholderTextColor={muted}
               value={user.password}
               onChangeText={(text) => setUser({ ...user, password: text })}
@@ -165,23 +167,23 @@ export default function RegisterScreen() {
               disabled={isLoading}
             />
             <ThemedText type="default" style={[styles.termsText, { color: muted }]}>
-              I agree to the{' '}
+              {t('auth.agreeTerms')}{' '}
               <ThemedText
                 type="link"
                 onPress={() => router.push('/(public)/legal/terms')}
                 lightColor={primary}
                 darkColor={primary}
               >
-                Terms & Conditions
+                {t('auth.termsAndConditions')}
               </ThemedText>{' '}
-              and{' '}
+              {t('auth.and')}{' '}
               <ThemedText
                 type="link"
                 onPress={() => router.push('/(public)/legal/privacy-policy')}
                 lightColor={primary}
                 darkColor={primary}
               >
-                Privacy Policy
+                {t('settings.privacyPolicy')}
               </ThemedText>
             </ThemedText>
           </View>
@@ -198,7 +200,7 @@ export default function RegisterScreen() {
               styles.registerButtonText,
               { color: isFormValid && !isLoading ? '#FFFFFF' : muted }
             ]}>
-              {isLoading ? 'Creating Account...' : 'Register Now'}
+              {isLoading ? t('auth.creatingAccount') : t('auth.registerNow')}
             </ThemedText>
           </TouchableOpacity>
 
@@ -206,7 +208,7 @@ export default function RegisterScreen() {
             <View style={styles.divider}>
               <View style={[styles.dividerLine, { backgroundColor: chip }]} />
               <ThemedText type="default" style={[styles.dividerText, { color: muted }]}>
-                OR REGISTER WITH
+                {t('auth.orRegister')}
               </ThemedText>
               <View style={[styles.dividerLine, { backgroundColor: chip }]} />
             </View>
@@ -214,7 +216,7 @@ export default function RegisterScreen() {
             <View style={styles.socialButtons}>
               <SocialLoginButtons
                 onSuccess={() => router.replace('/(tabs)')}
-                onError={(err: string) => Alert.alert('Registration Failed', err)}
+                onError={(err: string) => Alert.alert(t('auth.registrationFailed'), err)}
               />
             </View>
           </View>
@@ -225,13 +227,13 @@ export default function RegisterScreen() {
             disabled={isLoading}
           >
             <ThemedText type="default" style={{ color: muted }}>
-              Already have an account?{' '}
+              {t('auth.alreadyHaveAccount')}{' '}
               <ThemedText
                 type="link"
                 lightColor={primary}
                 darkColor={primary}
               >
-                Login
+                {t('auth.login')}
               </ThemedText>
             </ThemedText>
           </TouchableOpacity>

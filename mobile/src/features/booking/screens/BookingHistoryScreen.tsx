@@ -6,6 +6,7 @@ import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ScrollView,
     StyleSheet,
@@ -15,6 +16,7 @@ import {
 import { BookingHistorySkeleton } from '../components/BookingSkeleton';
 
 export default function BookingHistoryScreen() {
+    const { t } = useTranslation();
     const [selectedFilter, setSelectedFilter] = useState('all');
 
     const { data: bookingsData, isLoading, error, refetch } = useMyBookings();
@@ -27,11 +29,11 @@ export default function BookingHistoryScreen() {
     const primary = useThemeColor({}, 'primary');
 
     const filters = [
-        { id: 'all', label: 'All' },
-        { id: 'PENDING', label: 'Pending' },
-        { id: 'CONFIRMED', label: 'Confirmed' },
-        { id: 'COMPLETED', label: 'Completed' },
-        { id: 'CANCELLED', label: 'Cancelled' },
+        { id: 'all', label: t('booking.all') },
+        { id: 'PENDING', label: t('booking.pending') },
+        { id: 'CONFIRMED', label: t('booking.confirmed') },
+        { id: 'COMPLETED', label: t('booking.completed') },
+        { id: 'CANCELLED', label: t('booking.cancelled') },
     ];
 
     const bookings = useMemo(() => bookingsData?.data || [], [bookingsData]);
@@ -63,10 +65,10 @@ export default function BookingHistoryScreen() {
 
     const getStatusText = (status: string) => {
         switch (status) {
-            case 'CONFIRMED': return 'Confirmed';
-            case 'PENDING': return 'Pending';
-            case 'COMPLETED': return 'Completed';
-            case 'CANCELLED': return 'Cancelled';
+            case 'CONFIRMED': return t('booking.confirmed');
+            case 'PENDING': return t('booking.pending');
+            case 'COMPLETED': return t('booking.completed');
+            case 'CANCELLED': return t('booking.cancelled');
             default: return status;
         }
     };
@@ -86,15 +88,15 @@ export default function BookingHistoryScreen() {
                     <View style={[styles.guestIconCircle, { backgroundColor: primary + '15' }]}>
                         <Ionicons name="calendar-outline" size={60} color={primary} />
                     </View>
-                    <ThemedText type="title" style={styles.guestTitle}>Your Bookings</ThemedText>
+                    <ThemedText type="title" style={styles.guestTitle}>{t('booking.yourBookings')}</ThemedText>
                     <ThemedText style={[styles.guestSubtitle, { color: muted }]}>
-                        Sign in to manage your bookings, view tickets, and revisit your travel history.
+                        {t('booking.guestSubtitle')}
                     </ThemedText>
                     <TouchableOpacity
                         style={[styles.signInButton, { backgroundColor: primary }]}
                         onPress={() => router.push('/(auth)/login')}
                     >
-                        <ThemedText style={styles.signInButtonText}>Sign In / Register</ThemedText>
+                        <ThemedText style={styles.signInButtonText}>{t('profile.signInRegister')}</ThemedText>
                     </TouchableOpacity>
                 </View>
             </ThemedView>
@@ -109,12 +111,12 @@ export default function BookingHistoryScreen() {
         return (
             <ThemedView style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: bg }]}>
                 <Ionicons name="alert-circle-outline" size={60} color="#FF3B30" />
-                <ThemedText type="title" style={{ marginTop: 16 }}>Something went wrong</ThemedText>
+                <ThemedText type="title" style={{ marginTop: 16 }}>{t('booking.somethingWentWrong')}</ThemedText>
                 <ThemedText style={{ textAlign: 'center', marginTop: 8, color: muted }}>
-                    {(error as any)?.response?.data?.message || error.message || 'Failed to fetch bookings.'}
+                    {(error as any)?.response?.data?.message || error.message || t('booking.failedFetchBookings')}
                 </ThemedText>
                 <TouchableOpacity style={[styles.filterButton, { marginTop: 20, backgroundColor: primary }]} onPress={() => refetch()}>
-                    <ThemedText style={{ color: 'white' }}>Retry</ThemedText>
+                    <ThemedText style={{ color: 'white' }}>{t('profile.retry')}</ThemedText>
                 </TouchableOpacity>
             </ThemedView>
         );
@@ -129,7 +131,7 @@ export default function BookingHistoryScreen() {
                         <Ionicons name="arrow-back" size={24} color={text} />
                     </TouchableOpacity>
                     <ThemedText type="title" style={styles.title}>
-                        Booking History
+                        {t('booking.bookingHistory')}
                     </ThemedText>
                     <View style={{ width: 24 }} />
                 </View>
@@ -173,7 +175,7 @@ export default function BookingHistoryScreen() {
                             {stats.total}
                         </ThemedText>
                         <ThemedText type="default" style={[styles.statLabel, { color: muted }]}>
-                            Total Bookings
+                            {t('booking.totalBookings')}
                         </ThemedText>
                     </View>
                     <View style={styles.statItem}>
@@ -181,15 +183,15 @@ export default function BookingHistoryScreen() {
                             {stats.upcoming}
                         </ThemedText>
                         <ThemedText type="default" style={[styles.statLabel, { color: muted }]}>
-                            Upcoming
+                            {t('booking.upcoming')}
                         </ThemedText>
                     </View>
                     <View style={styles.statItem}>
                         <ThemedText type="title" style={[styles.statNumber, { fontSize: 16, color: text }]}>
-                            ETB {stats.spent.toLocaleString()}
+                            {t('booking.etb', { amount: stats.spent.toLocaleString() })}
                         </ThemedText>
                         <ThemedText type="default" style={[styles.statLabel, { color: muted }]}>
-                            Total Spent
+                            {t('booking.totalSpent')}
                         </ThemedText>
                     </View>
                 </View>
@@ -198,7 +200,7 @@ export default function BookingHistoryScreen() {
                 <View style={styles.bookingsList}>
                     {filteredBookings.length === 0 ? (
                         <ThemedText style={{ textAlign: 'center', marginTop: 40, color: muted }}>
-                            No bookings found.
+                            {t('booking.noBookingsFound')}
                         </ThemedText>
                     ) : (
                         filteredBookings.map((booking) => (
@@ -213,7 +215,7 @@ export default function BookingHistoryScreen() {
                                     </View>
                                     <View style={styles.bookingInfo}>
                                         <ThemedText type="default" style={styles.bookingTitle} numberOfLines={1}>
-                                            {booking.event?.title || 'Unknown Event'}
+                                            {booking.event?.title || t('booking.unknownEvent')}
                                         </ThemedText>
                                         <View style={styles.bookingMeta}>
                                             <Ionicons name="calendar-outline" size={14} color={muted} />
@@ -232,17 +234,17 @@ export default function BookingHistoryScreen() {
                                 <View style={styles.bookingFooter}>
                                     <View style={styles.priceContainer}>
                                         <ThemedText type="default" style={[styles.priceLabel, { color: muted }]}>
-                                            Total Price
+                                            {t('booking.totalPrice')}
                                         </ThemedText>
                                         <ThemedText type="title" style={[styles.price, { color: primary }]}>
-                                            ETB {booking.total?.toLocaleString()}
+                                            {t('booking.etb', { amount: booking.total?.toLocaleString() })}
                                         </ThemedText>
                                     </View>
                                     <View style={styles.detailsContainer}>
                                         <View style={styles.detailItem}>
                                             <Ionicons name="ticket-outline" size={16} color={muted} />
                                             <ThemedText type="default" style={[styles.detailText, { color: muted }]}>
-                                                {booking.quantity} tickets
+                                                {t('booking.ticketsCount', { count: booking.quantity })}
                                             </ThemedText>
                                         </View>
                                     </View>
@@ -257,7 +259,7 @@ export default function BookingHistoryScreen() {
                                                 onPress={() => router.push(`/bookings/${booking.id}` as any)}
                                             >
                                                 <ThemedText type="default" style={[styles.viewButtonText, { color: primary }]}>
-                                                    View Details
+                                                    {t('booking.viewDetails')}
                                                 </ThemedText>
                                             </TouchableOpacity>
                                             <TouchableOpacity
@@ -265,7 +267,7 @@ export default function BookingHistoryScreen() {
                                                 onPress={() => cancelBooking(booking.id)}
                                             >
                                                 <ThemedText type="default" style={styles.cancelButtonText}>
-                                                    Cancel
+                                                    {t('booking.cancel')}
                                                 </ThemedText>
                                             </TouchableOpacity>
                                         </>
@@ -277,7 +279,7 @@ export default function BookingHistoryScreen() {
                                         >
                                             <Ionicons name="star-outline" size={16} color="#FFD700" />
                                             <ThemedText type="default" style={styles.reviewButtonText}>
-                                                Write Review
+                                                {t('placeDetails.writeReview')}
                                             </ThemedText>
                                         </TouchableOpacity>
                                     )}

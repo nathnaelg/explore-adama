@@ -6,6 +6,7 @@ import crypto from "crypto";
 import { prisma } from "../../config/db.ts";
 import { env } from "../../config/env.ts";
 import { BookingService } from "../booking/booking.service.ts";
+import { NotificationService } from "../notifications/notification.service.ts";
 import { TicketService } from "../tickets/ticket.service.ts";
 
 /**
@@ -255,6 +256,29 @@ export class PaymentService {
           console.error("Webhook confirmBooking error", e);
         }
       }
+    }
+
+    // Send Notification
+    try {
+      if (success) {
+        await NotificationService.createNotification({
+          userId: payment.userId,
+          type: "PAYMENT",
+          title: "Payment Successful",
+          message: `Your payment of ${payment.amount} ${payment.currency} was successful.`,
+          data: { paymentId: payment.id, amount: payment.amount, currency: payment.currency }
+        });
+      } else {
+        await NotificationService.createNotification({
+          userId: payment.userId,
+          type: "PAYMENT",
+          title: "Payment Failed",
+          message: `Your payment transaction failed. Please try again.`,
+          data: { paymentId: payment.id, error: payment.metadata }
+        });
+      }
+    } catch (e) {
+      console.error("Failed to send payment notification", e);
     }
 
     return { ok: true, paymentId: payment.id, status: success ? "SUCCESS" : "FAILED" };

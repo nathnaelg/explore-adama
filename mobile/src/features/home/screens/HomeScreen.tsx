@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     ScrollView,
@@ -34,6 +35,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 };
 
 export default function HomeScreen() {
+    const { t } = useTranslation();
     const bg = useThemeColor({}, 'bg');
     const card = useThemeColor({}, 'card');
     const text = useThemeColor({}, 'text');
@@ -62,7 +64,7 @@ export default function HomeScreen() {
     };
 
     const { data: userProfile } = useProfile(authUser?.id, !!authUser);
-    const userName = userProfile?.profile?.name?.split(' ')[0] || authUser?.email?.split('@')[0] || 'Traveler';
+    const userName = userProfile?.profile?.name?.split(' ')[0] || authUser?.email?.split('@')[0] || t('common.traveler');
 
     const isLoading = recommendationsLoading || categoriesLoading || nearbyLoading;
 
@@ -78,9 +80,9 @@ export default function HomeScreen() {
                 <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
                     <View>
                         <Text style={[styles.title, { color: text }]}>
-                            Hello, {userName} 👋
+                            {t('common.hello')}, {userName} 👋
                         </Text>
-                        <Text style={{ color: muted }}>Adama, Ethiopia</Text>
+                        <Text style={{ color: muted }}>{t('home.adamaEthiopia')}</Text>
                     </View>
 
                     <View style={styles.headerIcons}>
@@ -114,7 +116,7 @@ export default function HomeScreen() {
 
                 {/* ================= CATEGORIES ================= */}
                 <View style={[styles.sectionHeader, { marginTop: 0 }]}>
-                    <Text style={[styles.sectionTitle, { color: text }]}>Categories</Text>
+                    <Text style={[styles.sectionTitle, { color: text }]}>{t('home.categories')}</Text>
                 </View>
 
                 <View style={styles.categories}>
@@ -133,7 +135,7 @@ export default function HomeScreen() {
                                     color={primary}
                                 />
                                 <Text style={{ color: text, fontSize: 12 }} numberOfLines={1}>
-                                    {cat.name}
+                                    {t(`explore.categories.${cat.key || cat.name.toLowerCase().replace(/[^a-z]/g, '')}`, { defaultValue: cat.name })}
                                 </Text>
                             </TouchableOpacity>
                         ))
@@ -147,8 +149,8 @@ export default function HomeScreen() {
 
                 {/* ================= POPULAR PLACES ================= */}
                 <Section
-                    title="Popular Places"
-                    action="See all"
+                    title={t('home.popularPlaces')}
+                    action={t('home.seeAll')}
                     text={text}
                     primary={primary}
                 />
@@ -182,8 +184,8 @@ export default function HomeScreen() {
 
                 {/* ================= NEARBY ================= */}
                 <Section
-                    title="Nearby Places"
-                    action="View Map"
+                    title={t('home.nearbyPlaces')}
+                    action={t('home.viewMap')}
                     text={text}
                     primary={primary}
                 />
@@ -195,7 +197,7 @@ export default function HomeScreen() {
                         <TouchableOpacity
                             key={place.id}
                             style={[styles.nearby, { backgroundColor: card }]}
-                            onPress={() => router.push(`/ place / ${place.id} `)}
+                            onPress={() => router.push(`/place/${place.id}`)}
                         >
                             <OptimizedImage
                                 source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1501117716987-c8e1ecb210d1' }}
@@ -207,8 +209,8 @@ export default function HomeScreen() {
                                 <Text style={{ color: text, fontWeight: '700' }}>
                                     {place.name}
                                 </Text>
-                                <Text style={{ color: muted }}>{place.address || 'Adama'}</Text>
-                                <Text style={{ color: primary }}>⭐ {place.avgRating || 'New'}</Text>
+                                <Text style={{ color: muted }}>{place.address || t('home.adamaEthiopia')}</Text>
+                                <Text style={{ color: primary }}>⭐ {place.avgRating || t('explore.new')}</Text>
                             </View>
                         </TouchableOpacity>
                     ))
@@ -238,12 +240,13 @@ function Section({ title, action, text, primary }: any) {
 }
 
 function HotelCard({ place, card, text, muted, primary, accent }: any) {
+    const { t } = useTranslation();
     if (!place) return null;
 
     return (
         <TouchableOpacity
             style={[styles.hotelCard, { backgroundColor: card }]}
-            onPress={() => router.push(`/ place / ${place.id} `)}
+            onPress={() => router.push(`/place/${place.id}`)}
         >
             <OptimizedImage
                 source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1501117716987-c8e1ecb210d1' }}
@@ -255,14 +258,14 @@ function HotelCard({ place, card, text, muted, primary, accent }: any) {
                 {place.name}
             </Text>
             <Text style={{ color: muted }} numberOfLines={1}>
-                {place.description || 'Premium experience'}
+                {place.description || t('home.premiumExperience')}
             </Text>
             <View style={styles.hotelFooter}>
                 <Text style={{ color: primary, fontWeight: '700' }}>
-                    ⭐ {place.avgRating || 'New'}
+                    ⭐ {place.avgRating || t('explore.new')}
                 </Text>
                 <View style={[styles.bookBtn, { backgroundColor: accent }]}>
-                    <Text style={{ color: '#fff' }}>View</Text>
+                    <Text style={{ color: '#fff' }}>{t('common.view')}</Text>
                 </View>
             </View>
         </TouchableOpacity>

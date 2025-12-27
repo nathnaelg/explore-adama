@@ -7,8 +7,10 @@ import { blogService } from '@/src/features/blog/services/blog.service';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
+import { router } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
@@ -23,6 +25,7 @@ import {
 import Markdown from 'react-native-markdown-display';
 
 export default function BlogDetailScreen() {
+    const { t, i18n } = useTranslation();
     const { id } = useLocalSearchParams<{ id: string }>();
     const { user, isGuest } = useAuth();
 
@@ -43,6 +46,9 @@ export default function BlogDetailScreen() {
     const [commentText, setCommentText] = useState('');
     const [liked, setLiked] = useState(false);
     const [showAllComments, setShowAllComments] = useState(false);
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [translatedContent, setTranslatedContent] = useState<{ title: string; body: string } | null>(null);
+    const [showOriginal, setShowOriginal] = useState(true);
 
     const isAuthor = user?.id === post?.authorId;
     const isAdmin = user?.role === 'ADMIN';
@@ -52,20 +58,36 @@ export default function BlogDetailScreen() {
         refetchComments();
     };
 
-    const handleLike = () => {
+    React.useEffect(() => {
+        if (post) {
+            setLiked(post.isLiked || false);
+        }
+    }, [post]);
+
+    const handleLike = async () => {
         if (isGuest) {
             router.push({
                 pathname: '/(modals)/guest-prompt',
                 params: {
-                    title: 'Sign In Required',
-                    message: 'Sign in to like this story and let the author know you enjoyed it!',
+                    title: t('common.signInRequired'),
+                    message: t('blog.signInToLike'),
                     icon: 'heart-outline'
                 }
             });
             return;
         }
+
+        // Optimistic update
+        const previousLiked = liked;
         setLiked(!liked);
-        // Backend doesn't support like yet, so we just toggle local state UI-wise
+
+        try {
+            await blogService.toggleLike(id || '');
+            refetchPost();
+        } catch (e) {
+            setLiked(previousLiked);
+            // Alert.alert(t('common.error'), t('blog.failedToLike'));
+        }
     };
 
     const handleAddComment = () => {
@@ -73,8 +95,8 @@ export default function BlogDetailScreen() {
             router.push({
                 pathname: '/(modals)/guest-prompt',
                 params: {
-                    title: 'Sign In Required',
-                    message: 'Please sign in to join the conversation.',
+                    title: t('common.signInRequired'),
+                    message: t('blog.signInToJoinConversation'),
                     icon: 'chatbubble-outline'
                 }
             });
@@ -85,22 +107,22 @@ export default function BlogDetailScreen() {
         addComment({ content: commentText }, {
             onSuccess: () => {
                 setCommentText('');
-                Alert.alert('Success', 'Comment added');
+                Alert.alert(t('common.success'), t('blog.commentAdded'));
             },
             onError: (err: any) => {
-                Alert.alert('Error', err?.response?.data?.message || 'Failed to add comment');
+                Alert.alert(t('common.error'), err?.response?.data?.message || t('blog.failedAddComment'));
             }
         });
     };
 
     const handleModeratePost = () => {
         Alert.alert(
-            'Moderate Post',
-            'Select moderation action:',
+            t('blog.moderatePost'),
+            t('blog.selectModerationAction'),
             [
-                { text: 'Approve', onPress: () => moderatePost('APPROVE'), style: 'default' },
-                { text: 'Reject', onPress: () => moderatePost('REJECT'), style: 'destructive' },
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('blog.approve'), onPress: () => moderatePost('APPROVE'), style: 'default' },
+                { text: t('blog.reject'), onPress: () => moderatePost('REJECT'), style: 'destructive' },
+                { text: t('common.cancel'), style: 'cancel' },
             ]
         );
     };
@@ -110,9 +132,33 @@ export default function BlogDetailScreen() {
             const reason = action === 'REJECT' ? 'Inappropriate content' : undefined;
             await blogService.moderateBlogPost(id || '', { action, reason });
             onRefresh();
-            Alert.alert('Success', `Post ${action.toLowerCase()}d`);
+            Alert.alert(t('common.success'), action === 'APPROVE' ? t('blog.postApproved') : t('blog.postRejected'));
         } catch (error) {
-            Alert.alert('Error', 'Failed to moderate post');
+            Alert.alert(t('common.error'), t('common.error'));
+        }
+    };
+
+    const handleTranslate = async () => {
+        if (!showOriginal) {
+            setShowOriginal(true);
+            return;
+        }
+
+        if (translatedContent) {
+            setShowOriginal(false);
+            return;
+        }
+
+        try {
+            setIsTranslating(true);
+            const targetLang = i18n.language; // Use current app language
+            const result = await blogService.translatePost(id || '', targetLang);
+            setTranslatedContent({ title: result.title, body: result.body });
+            setShowOriginal(false);
+        } catch (error: any) {
+            Alert.alert(t('common.error'), t('blog.translationFailed'));
+        } finally {
+            setIsTranslating(false);
         }
     };
 
@@ -128,9 +174,9 @@ export default function BlogDetailScreen() {
         return (
             <ThemedView style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
                 <Ionicons name="alert-circle-outline" size={60} color={error} />
-                <ThemedText style={{ marginTop: 16 }}>Post not found</ThemedText>
+                <ThemedText style={{ marginTop: 16 }}>{t('blog.postNotFound')}</ThemedText>
                 <TouchableOpacity onPress={() => router.back()}>
-                    <ThemedText style={{ color: primary, marginTop: 16 }}>Go Back</ThemedText>
+                    <ThemedText style={{ color: primary, marginTop: 16 }}>{t('common.back')}</ThemedText>
                 </TouchableOpacity>
             </ThemedView>
         );
@@ -151,8 +197,19 @@ export default function BlogDetailScreen() {
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color={text} />
                     </TouchableOpacity>
-                    <ThemedText style={[styles.headerTitle, { color: text }]}>Blog Post</ThemedText>
+                    <ThemedText style={[styles.headerTitle, { color: text }]}>{t('blog.blogPost')}</ThemedText>
                     <View style={styles.headerActions}>
+                        <TouchableOpacity onPress={handleTranslate} style={styles.headerAction} disabled={isTranslating}>
+                            {isTranslating ? (
+                                <ActivityIndicator size="small" color={primary} />
+                            ) : (
+                                <Ionicons
+                                    name={showOriginal ? "language-outline" : "document-text-outline"}
+                                    size={22}
+                                    color={primary}
+                                />
+                            )}
+                        </TouchableOpacity>
                         {(isAuthor || isAdmin) && (
                             <TouchableOpacity onPress={() => router.push(`/blog/${id}/edit`)} style={styles.headerAction}>
                                 <Ionicons name="create-outline" size={22} color={primary} />
@@ -180,19 +237,21 @@ export default function BlogDetailScreen() {
                     <View style={styles.metaContainer}>
                         <View style={[styles.categoryBadge, { backgroundColor: `${primary}20` }]}>
                             <ThemedText style={[styles.categoryText, { color: primary }]}>
-                                {post.category || 'Uncategorized'}
+                                {post.category ? t(`blog.categories.${post.category.toLowerCase()}`, { defaultValue: post.category }) : t('blog.uncategorized')}
                             </ThemedText>
                         </View>
                         {post.status !== 'APPROVED' && (
                             <View style={[styles.statusBadge, { backgroundColor: post.status === 'PENDING' ? warning + '20' : error + '20' }]}>
                                 <ThemedText style={[styles.statusText, { color: post.status === 'PENDING' ? warning : error }]}>
-                                    {post.status}
+                                    {post.status === 'PENDING' ? t('blog.pending') : t('blog.rejected')}
                                 </ThemedText>
                             </View>
                         )}
                     </View>
 
-                    <ThemedText style={[styles.title, { color: text }]}>{post.title}</ThemedText>
+                    <ThemedText style={[styles.title, { color: text }]}>
+                        {showOriginal ? post.title : translatedContent?.title}
+                    </ThemedText>
 
                     {/* Author */}
                     <View style={styles.authorInfo}>
@@ -204,31 +263,67 @@ export default function BlogDetailScreen() {
                             )}
                         </View>
                         <View>
-                            <ThemedText style={styles.authorName}>{post.author?.profile?.name || 'Anonymous'}</ThemedText>
+                            <ThemedText style={styles.authorName}>{post.author?.profile?.name || t('blog.anonymous')}</ThemedText>
                             <ThemedText style={[styles.date, { color: muted }]}>
-                                {format(new Date(post.createdAt), 'MMM d, yyyy')}
+                                {format(new Date(post.createdAt), 'MMM d, yyyy')} • {post.viewCount || 0} views
                             </ThemedText>
                         </View>
                     </View>
 
+                    {/* Interactions Bar */}
+                    <View style={[styles.interactionsBar, { borderColor: muted + '40' }]}>
+                        <TouchableOpacity
+                            style={styles.interactionButton}
+                            onPress={handleLike}
+                        >
+                            <Ionicons
+                                name={liked ? "heart" : "heart-outline"}
+                                size={24}
+                                color={liked ? error : text}
+                            />
+                            <ThemedText style={[styles.interactionText, { color: text }]}>
+                                {post.likesCount || 0} {liked ? '' : ''}
+                            </ThemedText>
+                        </TouchableOpacity>
+
+                        <View style={styles.interactionButton}>
+                            <Ionicons name="chatbubble-outline" size={22} color={text} />
+                            <ThemedText style={[styles.interactionText, { color: text }]}>
+                                {comments.length}
+                            </ThemedText>
+                        </View>
+
+                        <TouchableOpacity style={styles.interactionButton}>
+                            <Ionicons name="share-social-outline" size={22} color={text} />
+                        </TouchableOpacity>
+                    </View>
+
                     {/* Body */}
                     <View style={styles.bodyContainer}>
+                        {!showOriginal && (
+                            <View style={[styles.translationLabel, { backgroundColor: primary + '10' }]}>
+                                <Ionicons name="sparkles" size={14} color={primary} />
+                                <ThemedText style={[styles.translationLabelText, { color: primary }]}>
+                                    {t('blog.translatedByAi')}
+                                </ThemedText>
+                            </View>
+                        )}
                         <Markdown style={{
                             body: { color: text, fontSize: 16, lineHeight: 24 },
                             paragraph: { marginVertical: 8 },
                         }}>
-                            {post.body}
+                            {showOriginal ? post.body : (translatedContent?.body || post.body)}
                         </Markdown>
                     </View>
 
                     {/* Comments */}
                     <View style={styles.commentsContainer}>
-                        <ThemedText type="subtitle" style={styles.commentsTitle}>Comments ({comments.length})</ThemedText>
+                        <ThemedText type="subtitle" style={styles.commentsTitle}>{t('blog.commentsCount', { count: comments.length })}</ThemedText>
 
                         <View style={[styles.addCommentContainer, { backgroundColor: card }]}>
                             <TextInput
                                 style={[styles.commentInput, { color: text }]}
-                                placeholder="Add a comment..."
+                                placeholder={t('blog.addComment')}
                                 placeholderTextColor={muted}
                                 value={commentText}
                                 onChangeText={setCommentText}
@@ -255,7 +350,7 @@ export default function BlogDetailScreen() {
 
                         {comments.length > 3 && !showAllComments && (
                             <TouchableOpacity onPress={() => setShowAllComments(true)}>
-                                <ThemedText style={{ color: primary, textAlign: 'center', marginTop: 12 }}>Show more comments</ThemedText>
+                                <ThemedText style={{ color: primary, textAlign: 'center', marginTop: 12 }}>{t('blog.showMoreComments')}</ThemedText>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -298,4 +393,36 @@ const styles = StyleSheet.create({
     commentAuthor: { fontWeight: '600', fontSize: 14 },
     commentDate: { fontSize: 12 },
     commentContent: { fontSize: 14, lineHeight: 20 },
+    translationLabel: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4,
+        alignSelf: 'flex-start',
+        marginBottom: 8,
+    },
+    translationLabelText: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    interactionsBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+        marginBottom: 24,
+        gap: 24
+    },
+    interactionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6
+    },
+    interactionText: {
+        fontSize: 14,
+        fontWeight: '500'
+    }
 });

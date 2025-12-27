@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Alert,
@@ -18,6 +19,7 @@ import {
 } from 'react-native';
 
 export default function EditBlogScreen() {
+    const { t } = useTranslation();
     const { id } = useLocalSearchParams<{ id: string }>();
     const { user } = useAuth();
 
@@ -48,11 +50,11 @@ export default function EditBlogScreen() {
         if (!id) return;
         updatePost({ id, data: formData }, {
             onSuccess: () => {
-                Alert.alert('Success', 'Post updated');
+                Alert.alert(t('common.success'), t('blog.updateSuccess'));
                 router.back();
             },
             onError: (err: any) => {
-                Alert.alert('Error', err?.response?.data?.message || 'Update failed');
+                Alert.alert(t('common.error'), err?.response?.data?.message || t('common.error'));
             }
         });
     };
@@ -72,9 +74,9 @@ export default function EditBlogScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={[styles.header, { backgroundColor: card }]}>
                     <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={24} color={text} /></TouchableOpacity>
-                    <ThemedText style={styles.title}>Edit Story</ThemedText>
+                    <ThemedText style={styles.title}>{t('blog.editStory')}</ThemedText>
                     <TouchableOpacity onPress={handleSave} disabled={!isFormValid || saving}>
-                        {saving ? <ActivityIndicator size="small" color={primary} /> : <ThemedText style={{ color: primary, fontWeight: 'bold' }}>Save</ThemedText>}
+                        {saving ? <ActivityIndicator size="small" color={primary} /> : <ThemedText style={{ color: primary, fontWeight: 'bold' }}>{t('common.save')}</ThemedText>}
                     </TouchableOpacity>
                 </View>
 
@@ -83,7 +85,7 @@ export default function EditBlogScreen() {
                         style={[styles.titleInput, { color: text, borderBottomColor: muted + '30' }]}
                         value={formData.title}
                         onChangeText={v => setFormData(p => ({ ...p, title: v }))}
-                        placeholder="Title"
+                        placeholder={t('blog.title')}
                         placeholderTextColor={muted}
                     />
 
@@ -92,7 +94,7 @@ export default function EditBlogScreen() {
                         value={formData.body}
                         onChangeText={v => setFormData(p => ({ ...p, body: v }))}
                         multiline
-                        placeholder="Content"
+                        placeholder={t('common.content')}
                         placeholderTextColor={muted}
                     />
                 </View>

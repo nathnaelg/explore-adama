@@ -3,6 +3,7 @@ import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import {
     Image,
     ScrollView,
@@ -73,6 +74,7 @@ function MenuItem({
 
 /* ================= MAIN COMPONENT ================= */
 export default function ProfileScreen() {
+    const { t } = useTranslation();
     const bg = useThemeColor({}, 'bg');
     const card = useThemeColor({}, 'card');
     const text = useThemeColor({}, 'text');
@@ -108,30 +110,30 @@ export default function ProfileScreen() {
                     <View style={[styles.guestIconCircle, { backgroundColor: primary + '15' }]}>
                         <Ionicons name="person-outline" size={60} color={primary} />
                     </View>
-                    <Text style={[styles.guestTitle, { color: text }]}>Explore More Features</Text>
+                    <Text style={[styles.guestTitle, { color: text }]}>{t('profile.exploreFeatures')}</Text>
                     <Text style={[styles.guestSubtitle, { color: muted }]}>
-                        Sign in to save your favorite places, book visits, and share your travel experiences.
+                        {t('profile.guestSubtitle')}
                     </Text>
 
                     <TouchableOpacity
                         style={[styles.signInButton, { backgroundColor: primary }]}
                         onPress={() => router.replace('/(auth)/login')}
                     >
-                        <Text style={styles.signInButtonText}>Sign In / Register</Text>
+                        <Text style={styles.signInButtonText}>{t('profile.signInRegister')}</Text>
                     </TouchableOpacity>
 
                     <View style={styles.guestFeatures}>
                         <View style={styles.guestFeatureItem}>
                             <Ionicons name="heart" size={20} color={primary} />
-                            <Text style={[styles.guestFeatureText, { color: text }]}>Save Places</Text>
+                            <Text style={[styles.guestFeatureText, { color: text }]}>{t('profile.savePlaces')}</Text>
                         </View>
                         <View style={styles.guestFeatureItem}>
                             <Ionicons name="calendar" size={20} color={primary} />
-                            <Text style={[styles.guestFeatureText, { color: text }]}>Make Bookings</Text>
+                            <Text style={[styles.guestFeatureText, { color: text }]}>{t('profile.makeBookings')}</Text>
                         </View>
                         <View style={styles.guestFeatureItem}>
                             <Ionicons name="megaphone" size={20} color={primary} />
-                            <Text style={[styles.guestFeatureText, { color: text }]}>Share Stories</Text>
+                            <Text style={[styles.guestFeatureText, { color: text }]}>{t('profile.shareStories')}</Text>
                         </View>
                     </View>
                 </View>
@@ -140,12 +142,12 @@ export default function ProfileScreen() {
                 <View style={styles.guestSettingsContainer}>
                     <MenuItem
                         icon="settings-outline"
-                        title="Settings"
+                        title={t('common.settings')}
                         onPress={() => router.push('/settings')}
                     />
                     <MenuItem
                         icon="help-circle-outline"
-                        title="Help & Support"
+                        title={t('profile.helpSupport')}
                         onPress={() => { }}
                     />
                 </View>
@@ -158,16 +160,16 @@ export default function ProfileScreen() {
             <View style={[styles.container, { backgroundColor: bg, justifyContent: 'center', alignItems: 'center' }]}>
                 <Ionicons name="person-circle-outline" size={80} color={muted} />
                 <Text style={[styles.screenTitle, { color: text, marginBottom: 16 }]}>
-                    Please Log In
+                    {t('profile.pleaseLogin')}
                 </Text>
                 <Text style={{ color: muted, textAlign: 'center', marginHorizontal: 40, marginBottom: 32 }}>
-                    You need to log in to view your profile
+                    {t('profile.needLoginToProfile')}
                 </Text>
                 <TouchableOpacity
                     style={[styles.editBtn, { borderColor: primary, backgroundColor: primary }]}
                     onPress={() => router.push('/(auth)/login')}
                 >
-                    <Text style={[styles.editText, { color: 'white' }]}>Log In</Text>
+                    <Text style={[styles.editText, { color: 'white' }]}>{t('auth.login')}</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -177,21 +179,21 @@ export default function ProfileScreen() {
         return (
             <View style={[styles.container, { backgroundColor: bg, justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
                 <Ionicons name="alert-circle-outline" size={60} color={errorColor} />
-                <Text style={[styles.screenTitle, { color: text }]}>Profile Error</Text>
+                <Text style={[styles.screenTitle, { color: text }]}>{t('profile.profileError')}</Text>
                 <Text style={{ color: muted, textAlign: 'center', marginBottom: 20 }}>
-                    {(error as any)?.response?.data?.message || (error as any)?.message || 'Failed to load profile data.'}
+                    {(error as any)?.response?.data?.message || (error as any)?.message || t('profile.failedLoadProfile')}
                 </Text>
                 <TouchableOpacity
                     style={[styles.editBtn, { borderColor: primary }]}
                     onPress={() => refetch()}
                 >
-                    <Text style={[styles.editText, { color: primary }]}>Retry</Text>
+                    <Text style={[styles.editText, { color: primary }]}>{t('profile.retry')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={{ marginTop: 20 }}
                     onPress={handleLogout}
                 >
-                    <Text style={{ color: muted }}>Log out & try again</Text>
+                    <Text style={{ color: muted }}>{t('profile.logoutRetry')}</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -202,7 +204,7 @@ export default function ProfileScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* ===== HEADER ===== */}
                 <Text style={[styles.screenTitle, { color: text, marginTop: insets.top + 20 }]}>
-                    Profile
+                    {t('common.profile')}
                 </Text>
 
                 {/* ===== PROFILE CARD ===== */}
@@ -239,7 +241,7 @@ export default function ProfileScreen() {
                         style={[styles.editBtn, { borderColor: primary }]}
                         onPress={() => router.push('/profile/edit')}
                     >
-                        <Text style={[styles.editText, { color: primary }]}>Edit Profile</Text>
+                        <Text style={[styles.editText, { color: primary }]}>{t('profile.editProfile')}</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -248,85 +250,85 @@ export default function ProfileScreen() {
                     <View style={styles.statItem}>
                         <Text style={[styles.statNumber, { color: text }]}>{stats?.bookings || 0}</Text>
                         <Text style={[styles.statLabel, { color: muted }]}>
-                            Bookings
+                            {t('profile.bookings')}
                         </Text>
                     </View>
                     <View style={styles.statDivider} />
                     <View style={styles.statItem}>
                         <Text style={[styles.statNumber, { color: text }]}>{stats?.reviews || 0}</Text>
                         <Text style={[styles.statLabel, { color: muted }]}>
-                            Reviews
+                            {t('profile.reviews')}
                         </Text>
                     </View>
                     <View style={[styles.statDivider, { backgroundColor: chip }]} />
                     <View style={styles.statItem}>
                         <Text style={[styles.statNumber, { color: text }]}>{stats?.favorites || 0}</Text>
                         <Text style={[styles.statLabel, { color: muted }]}>
-                            Favorites
+                            {t('profile.favorites')}
                         </Text>
                     </View>
                 </View>
 
                 {/* ===== MY ACTIVITY ===== */}
-                <Section title="MY ACTIVITY" />
+                <Section title={t('profile.myActivity')} />
 
                 <Card>
                     <MenuItem
                         icon="time-outline"
-                        title="Booking History"
+                        title={t('profile.bookingHistory')}
                         onPress={() => router.push('/bookings/history')}
                     />
                     <Divider />
                     <MenuItem
                         icon="bookmark-outline"
-                        title="Saved Places"
+                        title={t('profile.savedPlaces')}
                         onPress={() => router.push('/profile/my-activity')}
                     />
                     <Divider />
                     <MenuItem
                         icon="star-outline"
-                        title="My Reviews"
+                        title={t('profile.myReviews')}
                         onPress={() => router.push('/reviews')}
                     />
                 </Card>
 
                 {/* ===== SETTINGS ===== */}
-                <Section title="SETTINGS" />
+                <Section title={t('common.settings').toUpperCase()} />
 
                 <Card>
                     <MenuItem
                         icon="settings-outline"
-                        title="Settings"
+                        title={t('common.settings')}
                         onPress={() => router.push('/settings')}
                     />
                     <Divider />
                     <MenuItem
                         icon="shield-checkmark-outline"
-                        title="Change Password"
+                        title={t('profile.changePassword')}
                         onPress={() => router.push('/profile/change-password')}
                     />
                     <Divider />
                     <MenuItem
                         icon="notifications-outline"
-                        title="Notifications"
+                        title={t('common.notifications')}
                         onPress={() => router.push('/notifications')}
                     />
                     <Divider />
                     <MenuItem
                         icon="help-circle-outline"
-                        title="Help & Support"
+                        title={t('profile.helpSupport')}
                         onPress={() => router.push('/support/help')}
                     />
                     <Divider />
                     <MenuItem
                         icon="document-text-outline"
-                        title="Terms & Conditions"
+                        title={t('settings.termsOfService')}
                         onPress={() => router.push('/legal/terms')}
                     />
                     <Divider />
                     <MenuItem
                         icon="log-out-outline"
-                        title="Log Out"
+                        title={t('common.logout')}
                         danger
                         onPress={handleLogout}
                     />

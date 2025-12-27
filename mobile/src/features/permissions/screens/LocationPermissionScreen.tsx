@@ -4,11 +4,13 @@ import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function LocationPermissionScreen() {
     const [locationEnabled, setLocationEnabled] = useState(false);
 
+    const { t } = useTranslation();
     const bg = useThemeColor({}, 'bg');
     const card = useThemeColor({}, 'card');
     const text = useThemeColor({}, 'text');
@@ -18,20 +20,20 @@ export default function LocationPermissionScreen() {
     const benefits = [
         {
             id: 1,
-            title: 'Nearby Attractions',
-            description: 'Discover places close to your current location',
+            title: t('permissions.nearbyAttractions'),
+            description: t('permissions.nearbyAttractionsDesc'),
             icon: 'location-outline',
         },
         {
             id: 2,
-            title: 'Easy Navigation',
-            description: 'Get turn-by-turn directions to your destination',
+            title: t('permissions.easyNavigation'),
+            description: t('permissions.easyNavigationDesc'),
             icon: 'navigate-outline',
         },
         {
             id: 3,
-            title: 'Personalized Recommendations',
-            description: 'Receive suggestions based on where you are',
+            title: t('permissions.personalizedRecs'),
+            description: t('permissions.personalizedRecsDesc'),
             icon: 'star-outline',
         },
     ];
@@ -50,12 +52,12 @@ export default function LocationPermissionScreen() {
 
                 {/* Title */}
                 <ThemedText type="title" style={styles.title}>
-                    Turn on Location?
+                    {t('permissions.locationTitle')}
                 </ThemedText>
 
                 {/* Description */}
                 <ThemedText type="default" style={[styles.description, { color: muted }]}>
-                    Get the full Adama Smart Tourism experience. Enable location access to see nearby attractions, book hotels around you, and navigate the city easily.
+                    {t('permissions.locationSubtitle')}
                 </ThemedText>
 
                 {/* Benefits */}
@@ -86,10 +88,10 @@ export default function LocationPermissionScreen() {
                         <Ionicons name="location" size={24} color={locationEnabled ? primary : muted} />
                         <View style={styles.toggleTexts}>
                             <ThemedText type="default" style={styles.toggleTitle}>
-                                Allow Location Access
+                                {t('permissions.allowLocation')}
                             </ThemedText>
                             <ThemedText type="default" style={[styles.toggleDescription, { color: muted }]}>
-                                {locationEnabled ? 'Location access enabled' : 'Tap to enable location access'}
+                                {locationEnabled ? t('permissions.locationEnabled') : t('permissions.tapToEnableLocation')}
                             </ThemedText>
                         </View>
                     </View>
@@ -104,7 +106,7 @@ export default function LocationPermissionScreen() {
                 <View style={styles.privacyNote}>
                     <Ionicons name="shield-checkmark-outline" size={16} color={muted} />
                     <ThemedText type="default" style={[styles.privacyText, { color: muted }]}>
-                        We only use this to improve your experience. You can change this anytime in settings.
+                        {t('permissions.privacyNote')}
                     </ThemedText>
                 </View>
 
@@ -116,7 +118,7 @@ export default function LocationPermissionScreen() {
                             onPress={() => router.back()}
                         >
                             <ThemedText type="default" style={styles.continueButtonText}>
-                                Continue
+                                {t('permissions.continue')}
                             </ThemedText>
                         </TouchableOpacity>
                     ) : (
@@ -125,7 +127,7 @@ export default function LocationPermissionScreen() {
                             onPress={() => router.back()}
                         >
                             <ThemedText type="default" style={[styles.notNowButtonText, { color: muted }]}>
-                                Not Now
+                                {t('permissions.notNow')}
                             </ThemedText>
                         </TouchableOpacity>
                     )}

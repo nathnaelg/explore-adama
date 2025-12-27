@@ -9,6 +9,7 @@ import { useThemeColor } from '@/src/hooks/use-theme-color';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Animated,
     FlatList,
@@ -19,6 +20,7 @@ import {
 } from 'react-native';
 
 export default function OnboardingScreen() {
+    const { t } = useTranslation();
     const { width, height } = useWindowDimensions();
     const [currentIndex, setCurrentIndex] = useState(0);
     const scrollX = useRef(new Animated.Value(0)).current;
@@ -136,7 +138,7 @@ export default function OnboardingScreen() {
                     type="subtitle"
                     style={styles.skipText}
                 >
-                    Skip
+                    {t('onboarding.skip')}
                 </ThemedText>
             </TouchableOpacity>
 
@@ -173,7 +175,7 @@ export default function OnboardingScreen() {
                 />
 
                 <NextButton
-                    title={onboardingData[currentIndex].action || 'Next'}
+                    title={t(onboardingData[currentIndex].action || 'onboarding.next')}
                     onPress={handleNext}
                     isLast={isLastSlide}
                     fontSize={getResponsiveFontSize(16)}

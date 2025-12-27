@@ -4,6 +4,7 @@ import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dimensions, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -14,6 +15,7 @@ interface FeaturedCarouselProps {
 }
 
 export function FeaturedCarousel({ places }: FeaturedCarouselProps) {
+    const { t } = useTranslation();
     const primary = useThemeColor({}, 'primary');
     const muted = useThemeColor({}, 'muted');
     const [activeIndex, setActiveIndex] = useState(0);
@@ -32,7 +34,7 @@ export function FeaturedCarousel({ places }: FeaturedCarouselProps) {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <ThemedText type="subtitle" style={styles.title}>Hidden Gems</ThemedText>
+                <ThemedText type="subtitle" style={styles.title}>{t('home.hiddenGems')}</ThemedText>
             </View>
 
             <ScrollView
@@ -59,13 +61,13 @@ export function FeaturedCarousel({ places }: FeaturedCarouselProps) {
                         <View style={styles.overlay}>
                             <View style={[styles.ratingTag, { backgroundColor: primary }]}>
                                 <Ionicons name="star" size={12} color="white" />
-                                <ThemedText style={styles.ratingText}>{place.avgRating || 'New'}</ThemedText>
+                                <ThemedText style={styles.ratingText}>{place.avgRating || t('explore.new')}</ThemedText>
                             </View>
                             <View style={styles.textContainer}>
                                 <ThemedText style={styles.placeName} numberOfLines={1}>{place.name}</ThemedText>
                                 <View style={styles.locationRow}>
                                     <Ionicons name="location" size={14} color="#E5E7EB" />
-                                    <ThemedText style={styles.placeAddress} numberOfLines={1}>{place.address || 'Adama, Ethiopia'}</ThemedText>
+                                    <ThemedText style={styles.placeAddress} numberOfLines={1}>{place.address || t('home.adamaEthiopia')}</ThemedText>
                                 </View>
                             </View>
                         </View>

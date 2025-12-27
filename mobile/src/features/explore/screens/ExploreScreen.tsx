@@ -2,6 +2,7 @@ import { OptimizedImage } from '@/src/components/common/OptimizedImage';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     ScrollView,
@@ -18,6 +19,7 @@ import { useCategories, usePlaces } from '@/src/features/explore/hooks/useExplor
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 
 export default function ExploreScreen() {
+    const { t } = useTranslation();
     /* ---------------- theme ---------------- */
     const bg = useThemeColor({}, 'bg');
     const card = useThemeColor({}, 'card');
@@ -38,10 +40,10 @@ export default function ExploreScreen() {
         perPage: 20
     });
 
-    const filters = ['Distance', 'Rating', 'Price'];
+    const filters = [t('explore.distance'), t('explore.rating'), t('explore.price')];
     const places = placesData?.data || [];
 
-    const displayCategories = categories ? [{ id: 'all', name: 'All' }, ...categories] : [];
+    const displayCategories = categories ? [{ id: 'all', name: t('explore.all') }, ...categories] : [];
 
     if (placesLoading && !placesData) {
         return <ExploreSkeleton />;
@@ -53,7 +55,7 @@ export default function ExploreScreen() {
                 {/* ================= Header ================= */}
                 <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
                     <ThemedText style={[styles.title, { color: text }]}>
-                        Explore Adama
+                        {t('explore.exploreAdama')}
                     </ThemedText>
 
                     <TouchableOpacity
@@ -88,7 +90,7 @@ export default function ExploreScreen() {
                                         fontWeight: '600',
                                     }}
                                 >
-                                    {cat.name}
+                                    {cat.id === 'all' ? t('explore.all') : t(`explore.categories.${(cat as any).key || (cat as any).name.toLowerCase().replace(/[^a-z]/g, '')}`, { defaultValue: cat.name })}
                                 </ThemedText>
                             </TouchableOpacity>
                         );
@@ -120,7 +122,7 @@ export default function ExploreScreen() {
                         <ActivityIndicator size="large" color={primary} style={{ marginTop: 50 }} />
                     ) : places.length === 0 ? (
                         <ThemedText style={{ color: muted, textAlign: 'center', marginTop: 50 }}>
-                            No places found in this category.
+                            {t('explore.noPlacesFound')}
                         </ThemedText>
                     ) : (
                         places.map((place) => (
@@ -146,7 +148,7 @@ export default function ExploreScreen() {
                                         <ThemedText
                                             style={{ color: text, fontWeight: '700' }}
                                         >
-                                            {place.avgRating || 'New'}
+                                            {place.avgRating || t('explore.new')}
                                         </ThemedText>
                                     </View>
                                 </View>
@@ -162,12 +164,12 @@ export default function ExploreScreen() {
                                     <ThemedText
                                         style={[styles.cardSubtitle, { color: muted }]}
                                     >
-                                        {place.address || 'Adama, Ethiopia'}
+                                        {place.address || t('home.adamaEthiopia')}
                                     </ThemedText>
 
                                     {place.viewCount !== undefined && (
                                         <ThemedText style={{ color: muted, fontSize: 13 }}>
-                                            {place.viewCount} views
+                                            {t('explore.views', { count: place.viewCount })}
                                         </ThemedText>
                                     )}
 
@@ -181,7 +183,7 @@ export default function ExploreScreen() {
                                         <ThemedText
                                             style={{ color: accent, fontWeight: '700' }}
                                         >
-                                            View
+                                            {t('common.view')}
                                         </ThemedText>
                                     </TouchableOpacity>
                                 </View>

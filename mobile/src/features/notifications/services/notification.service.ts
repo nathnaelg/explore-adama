@@ -1,32 +1,31 @@
+import { apiClient } from '@/src/core/api/client';
 import { Notification, NotificationStats } from '../types';
 
 export const notificationService = {
     // Get all notifications
     async getNotifications(page = 1, limit = 20): Promise<{ data: Notification[], total: number, page: number, totalPages: number }> {
-        // API Endpoint Missing. Returning empty list.
-        console.warn('Notifications API not implemented in backend.');
-        return { data: [], total: 0, page: 1, totalPages: 1 };
+        const response = await apiClient.get('/notifications', { params: { page, limit } });
+        return response.data;
     },
 
     // Get notification stats (unread count)
-    // Get notification stats (unread count)
     async getStats(): Promise<NotificationStats> {
-        // Stubbed response
-        return { unreadCount: 0, totalCount: 0 };
+        const response = await apiClient.get('/notifications/stats');
+        return response.data;
     },
 
     // Mark single notification as read
     async markAsRead(id: string): Promise<void> {
-        // no-op
+        await apiClient.put(`/notifications/${id}/read`);
     },
 
     // Mark all as read
     async markAllAsRead(): Promise<void> {
-        // no-op
+        await apiClient.put('/notifications/read-all');
     },
 
     // Delete a notification
     async deleteNotification(id: string): Promise<void> {
-        // no-op
+        await apiClient.delete(`/notifications/${id}`);
     }
 };

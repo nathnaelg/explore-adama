@@ -3,9 +3,11 @@ import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function ReviewSuccessScreen() {
+    const { t } = useTranslation();
     const bg = useThemeColor({}, 'bg');
     const card = useThemeColor({}, 'card');
     const text = useThemeColor({}, 'text');
@@ -20,11 +22,11 @@ export default function ReviewSuccessScreen() {
                 </View>
 
                 <ThemedText type="title" style={styles.title}>
-                    Review Submitted!
+                    {t('reviews.reviewSubmitted')}
                 </ThemedText>
 
                 <ThemedText type="default" style={[styles.description, { color: muted }]}>
-                    Thanks for sharing your experience in Adama. Your review is now visible to the community and helps others explore.
+                    {t('reviews.reviewSuccessDesc')}
                 </ThemedText>
 
                 <View style={styles.buttonsContainer}>
@@ -33,7 +35,7 @@ export default function ReviewSuccessScreen() {
                         onPress={() => router.push('/(tabs)')}
                     >
                         <ThemedText type="default" style={styles.primaryButtonText}>
-                            Done
+                            {t('reviews.done')}
                         </ThemedText>
                     </TouchableOpacity>
 
@@ -42,7 +44,7 @@ export default function ReviewSuccessScreen() {
                         onPress={() => router.push('/reviews')}
                     >
                         <ThemedText type="default" style={[styles.secondaryButtonText, { color: muted }]}>
-                            View My Review
+                            {t('reviews.viewMyReview')}
                         </ThemedText>
                     </TouchableOpacity>
                 </View>

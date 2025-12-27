@@ -4,7 +4,8 @@ import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
 import React from 'react';
-import { Alert, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { BlogPost } from '../types';
 
 interface BlogPostCardProps {
@@ -22,6 +23,7 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({
   onComment,
   showActions = true,
 }) => {
+  const { t } = useTranslation();
   const bg = useThemeColor({}, 'bg');
   const card = useThemeColor({}, 'card');
   const text = useThemeColor({}, 'text');
@@ -42,8 +44,6 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({
   const handleLikePress = () => {
     if (onLike) {
       onLike();
-    } else {
-      Alert.alert('Info', 'Like functionality coming soon!');
     }
   };
 
@@ -73,7 +73,7 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({
         <View style={styles.header}>
           <View style={[styles.categoryBadge, { backgroundColor: `${primary}20` }]}>
             <ThemedText style={[styles.categoryText, { color: primary }]}>
-              {post.category || 'Uncategorized'}
+              {post.category ? t(`blog.categories.${post.category.toLowerCase()}`, { defaultValue: post.category }) : t('blog.uncategorized')}
             </ThemedText>
           </View>
           <ThemedText style={[styles.dateText, { color: muted }]}>
@@ -107,7 +107,7 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({
           )}
           <View style={styles.authorInfo}>
             <ThemedText style={[styles.authorName, { color: text }]}>
-              {post.author?.profile?.name || 'Anonymous'}
+              {post.author?.profile?.name || t('blog.anonymous')}
             </ThemedText>
             {authorLocation && (
               <ThemedText style={[styles.authorLocation, { color: muted }]}>
@@ -123,18 +123,18 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({
             <View style={styles.stats}>
               <TouchableOpacity style={styles.statButton} onPress={handleLikePress}>
                 <Ionicons
-                  name={(post as any)._isLiked ? "heart" : "heart-outline"}
+                  name={post.isLiked ? "heart" : "heart-outline"}
                   size={18}
-                  color={(post as any)._isLiked ? error : muted}
+                  color={post.isLiked ? error : muted}
                 />
-                <ThemedText style={[styles.statText, { color: (post as any)._isLiked ? error : muted }]}>
-                  {post.likeCount || 0}
+                <ThemedText style={[styles.statText, { color: post.isLiked ? error : muted }]}>
+                  {post.likesCount || 0}
                 </ThemedText>
               </TouchableOpacity>
               <TouchableOpacity style={styles.statButton} onPress={onComment}>
                 <Ionicons name="chatbubble-outline" size={18} color={muted} />
                 <ThemedText style={[styles.statText, { color: muted }]}>
-                  {post.commentCount || 0}
+                  {post.comments?.length || post.commentCount || 0}
                 </ThemedText>
               </TouchableOpacity>
               <View style={styles.statButton}>
@@ -149,14 +149,14 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({
             {post.status === 'PENDING' && (
               <View style={[styles.statusBadge, { backgroundColor: warning + '20' }]}>
                 <ThemedText style={[styles.statusText, { color: warning }]}>
-                  Pending
+                  {t('blog.pending')}
                 </ThemedText>
               </View>
             )}
             {post.status === 'REJECTED' && (
               <View style={[styles.statusBadge, { backgroundColor: error + '20' }]}>
                 <ThemedText style={[styles.statusText, { color: error }]}>
-                  Rejected
+                  {t('blog.rejected')}
                 </ThemedText>
               </View>
             )}

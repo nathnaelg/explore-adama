@@ -102,6 +102,8 @@ model User {
   refreshTokens   RefreshToken[]
   moderations     Moderation[]
   recommendations Recommendation[]
+  notifications   Notification[]
+  likes           Like[]
 
   interactions Interaction[]
   banned       Boolean       @default(false)
@@ -395,6 +397,8 @@ model BlogPost {
   author   User        @relation(fields: [authorId], references: [id])
   media    BlogMedia[]
   comments Comment[]
+  likes    Like[]
+  viewCount Int @default(0)
 }
 
 model BlogMedia {
@@ -417,6 +421,18 @@ model Comment {
 
   post BlogPost @relation(fields: [postId], references: [id])
   user User     @relation(fields: [userId], references: [id])
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post BlogPost @relation(fields: [postId], references: [id])
+  user User     @relation(fields: [userId], references: [id])
+
+  @@unique([postId, userId])
 }
 
 // ------------------------------------------------------
@@ -487,4 +503,29 @@ model AuditLog {
   resourceId String?
   payload    Json?
   createdAt  DateTime @default(now())
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  data      Json?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([userId])
+}
+
+enum NotificationType {
+  BOOKING
+  PAYMENT
+  SYSTEM
+  PROMOTION
+  EVENT
+  REVIEW
+  SOCIAL
 }

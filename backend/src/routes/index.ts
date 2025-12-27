@@ -18,6 +18,8 @@ import ticketRoutes from "./ticket.routes.ts";
 import userRoutes from "./user.routes.ts";
 
 
+import notificationRoutes from "./notification.routes.ts";
+
 const router = Router();
 
 // --------------------------
@@ -29,6 +31,7 @@ router.use("/places", placeRoutes);
 router.use("/events", eventRoutes);
 router.use("/reviews", reviewRoutes);
 router.use("/bookings", bookingRoutes);
+router.use("/notifications", notificationRoutes);
 router.use("/recommendations", recommendationRoutes);
 router.use("/upload", fileRoures);
 router.use("/categories", categoryRoutes);

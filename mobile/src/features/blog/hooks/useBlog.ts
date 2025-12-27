@@ -59,3 +59,16 @@ export const useAddBlogComment = (postId: string) => {
         },
     });
 };
+
+export const useToggleLike = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (postId: string) => blogService.toggleLike(postId),
+        onSuccess: (_, postId) => {
+            // Invalidate queries to refresh counts/status
+            queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
+            queryClient.invalidateQueries({ queryKey: ['blog-post', postId] });
+        }
+    });
+};

@@ -31,7 +31,12 @@ export class BlogController {
       const q = req.query.q as string | undefined;
       const page = Number(req.query.page || 1);
       const limit = Math.min(Number(req.query.limit || 20), 100);
-      const posts = await BlogService.listPosts({ q, page, limit });
+
+      const user = (req as any).user;
+      const userId = user?.sub;
+      const isAdmin = user?.role === "ADMIN";
+
+      const posts = await BlogService.listPosts({ q, page, limit, userId, isAdmin });
       return res.json(posts);
     } catch (err: any) {
       console.error("BlogController.list error:", err);
@@ -42,7 +47,8 @@ export class BlogController {
   static async getOne(req: Request, res: Response) {
     try {
       const id = req.params.id;
-      const post = await BlogService.getPostById(id);
+      const user = (req as any).user;
+      const post = await BlogService.getPostById(id, user?.sub); // Pass userId if auth
       if (!post) return res.status(404).json({ message: "Post not found" });
       return res.json(post);
     } catch (err: any) {
@@ -115,6 +121,34 @@ export class BlogController {
     } catch (err: any) {
       console.error("BlogController.uploadMedia error:", err);
       return res.status(500).json({ message: err.message || "Upload failed" });
+    }
+  }
+
+  static async translate(req: Request, res: Response) {
+    try {
+      const id = req.params.id;
+      const { targetLanguage } = req.body;
+      if (!targetLanguage) return res.status(400).json({ message: "targetLanguage required" });
+
+      const translated = await BlogService.translatePost({ id, targetLanguage });
+      return res.json(translated);
+    } catch (err: any) {
+      console.error("BlogController.translate error:", err);
+      return res.status(500).json({ message: err.message || "Translation failed" });
+    }
+  }
+
+  static async toggleLike(req: Request, res: Response) {
+    try {
+      const id = req.params.id;
+      const user = (req as any).user;
+      if (!user) return res.status(401).json({ message: "Unauthorized" });
+
+      const result = await BlogService.toggleLike(id, user.sub);
+      return res.json(result);
+    } catch (err: any) {
+      console.error("BlogController.toggleLike error:", err);
+      return res.status(500).json({ message: "Failed to toggle like" });
     }
   }
 }

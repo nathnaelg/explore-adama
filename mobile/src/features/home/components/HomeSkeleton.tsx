@@ -55,6 +55,25 @@ export function HomeSkeleton() {
                 ))}
             </View>
 
+            {/* Community Stories Skeleton */}
+            <View style={styles.section}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <Skeleton width={180} height={20} />
+                    <Skeleton width={60} height={16} />
+                </View>
+                <View style={{ flexDirection: 'row', gap: 16 }}>
+                    {[1, 2].map((i) => (
+                        <View key={i} style={{ width: 160, borderRadius: 16, overflow: 'hidden' }}>
+                            <Skeleton width="100%" height={100} />
+                            <View style={{ padding: 12 }}>
+                                <Skeleton width="90%" height={12} style={{ marginBottom: 6 }} />
+                                <Skeleton width="60%" height={12} />
+                            </View>
+                        </View>
+                    ))}
+                </View>
+            </View>
+
             {/* Events Skeleton (Bottom) */}
             <View style={styles.section}>
                 <Skeleton width="100%" height={100} borderRadius={16} />

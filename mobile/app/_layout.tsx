@@ -1,5 +1,6 @@
 import { queryClient } from '@/src/core/api/queryClient';
 import { AuthProvider, useAuth } from '@/src/features/auth/contexts/AuthContext';
+import '@/src/i18n/config';
 import { ThemeProvider } from '@/src/providers/ThemeProvider';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';

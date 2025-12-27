@@ -1,34 +1,38 @@
 import { OptimizedImage } from '@/src/components/common/OptimizedImage';
+import { Skeleton } from '@/src/components/common/Skeleton';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { useBlogPosts } from '@/src/features/blog/hooks/useBlog';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { router } from 'expo-router';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export function BlogRail() {
-    const { data } = useBlogPosts({ limit: 5 });
+    const { t } = useTranslation();
+    const { data, isLoading } = useBlogPosts({ limit: 5 });
     const posts = data?.items || [];
     const cardColor = useThemeColor({}, 'card');
     const primary = useThemeColor({}, 'primary');
     const text = useThemeColor({}, 'text');
     const muted = useThemeColor({}, 'muted');
 
+    if (isLoading) return <BlogRailSkeleton />;
     if (posts.length === 0) return null;
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <ThemedText type="subtitle" style={styles.title}>Community Stories ✍️</ThemedText>
+                <ThemedText type="subtitle" style={styles.title}>{t('home.blogsStories')} ✍️</ThemedText>
                 <TouchableOpacity onPress={() => router.push('/(tabs)/blog')}>
-                    <ThemedText style={{ color: primary, fontWeight: '600' }}>Read all</ThemedText>
+                    <ThemedText style={{ color: primary, fontWeight: '600' }}>{t('common.seeAll')}</ThemedText>
                 </TouchableOpacity>
             </View>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.list}>
                 {posts.map((post) => {
                     const coverImage = post.media?.find(m => m.type === 'IMAGE')?.url || post.media?.[0]?.url;
-                    const authorName = post.author?.profile?.name || 'Traveler';
+                    const authorName = post.author?.profile?.name || t('common.traveler');
                     const authorInitial = authorName[0] || 'T';
 
                     return (
@@ -56,6 +60,36 @@ export function BlogRail() {
                         </TouchableOpacity>
                     );
                 })}
+            </ScrollView>
+        </View>
+    );
+}
+
+export function BlogRailSkeleton() {
+    const { t } = useTranslation();
+    const cardColor = useThemeColor({}, 'card');
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <ThemedText type="subtitle" style={styles.title}>{t('home.blogsStories')} ✍️</ThemedText>
+                <Skeleton width={60} height={16} />
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.list}>
+                {[1, 2, 3].map((i) => (
+                    <View key={i} style={[styles.card, { backgroundColor: cardColor }]}>
+                        <Skeleton width="100%" height={120} />
+                        <View style={styles.content}>
+                            <Skeleton width="90%" height={14} style={{ marginBottom: 8 }} />
+                            <Skeleton width="70%" height={14} style={{ marginBottom: 12 }} />
+                            <View style={styles.authorRow}>
+                                <Skeleton width={20} height={20} borderRadius={10} />
+                                <Skeleton width={80} height={12} />
+                            </View>
+                        </View>
+                    </View>
+                ))}
             </ScrollView>
         </View>
     );

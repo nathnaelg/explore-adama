@@ -12,6 +12,7 @@ import { FlashList as ShopifyFlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ScrollView,
     StyleSheet,
@@ -22,6 +23,7 @@ import {
 const FlashList = ShopifyFlashList as any;
 
 export default function PlaceDetailsScreen() {
+    const { t } = useTranslation();
     const { placeId } = useLocalSearchParams<{ placeId: string }>();
     const { isAuthenticated, isGuest } = useAuth();
     const { data: place, isLoading: placeLoading, error: placeError } = usePlace(placeId || '');
@@ -48,12 +50,12 @@ export default function PlaceDetailsScreen() {
         return (
             <ThemedView style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
                 <Ionicons name="alert-circle-outline" size={60} color={error} />
-                <ThemedText type="title" style={{ marginTop: 16 }}>Place not found</ThemedText>
+                <ThemedText type="title" style={{ marginTop: 16 }}>{t('placeDetails.placeNotFound')}</ThemedText>
                 <TouchableOpacity
                     style={[styles.bookButton, { marginTop: 20, backgroundColor: primary, paddingHorizontal: 30 }]}
                     onPress={() => router.back()}
                 >
-                    <ThemedText style={{ color: 'white' }}>Go Back</ThemedText>
+                    <ThemedText style={{ color: 'white' }}>{t('placeDetails.goBack')}</ThemedText>
                 </TouchableOpacity>
             </ThemedView>
         );
@@ -67,8 +69,8 @@ export default function PlaceDetailsScreen() {
             router.push({
                 pathname: '/(modals)/guest-prompt',
                 params: {
-                    title: 'Sign In Required',
-                    message: 'You need to sign in to save places to your favorites.',
+                    title: t('placeDetails.signInRequired'),
+                    message: t('placeDetails.saveFavoriteMsg'),
                     icon: 'bookmark-outline'
                 }
             });
@@ -82,8 +84,8 @@ export default function PlaceDetailsScreen() {
             router.push({
                 pathname: '/(modals)/guest-prompt',
                 params: {
-                    title: 'Sign In Required',
-                    message: 'Please sign in to book your visit to this place.',
+                    title: t('placeDetails.signInRequired'),
+                    message: t('placeDetails.bookVisitMsg'),
                     icon: 'calendar-outline'
                 }
             });
@@ -97,8 +99,8 @@ export default function PlaceDetailsScreen() {
             router.push({
                 pathname: '/(modals)/guest-prompt',
                 params: {
-                    title: 'Sign In Required',
-                    message: 'Please sign in to write a review.',
+                    title: t('placeDetails.signInRequired'),
+                    message: t('placeDetails.writeReviewMsg'),
                     icon: 'star-outline'
                 }
             });
@@ -141,7 +143,7 @@ export default function PlaceDetailsScreen() {
                             <View style={styles.ratingContainer}>
                                 <Ionicons name="star" size={16} color={primary} />
                                 <ThemedText style={styles.rating}>
-                                    {place.avgRating || 0} ({reviews.length} reviews)
+                                    {place.avgRating || 0} {t('placeDetails.reviewsCount', { count: reviews.length })}
                                 </ThemedText>
                             </View>
                         </View>
@@ -149,9 +151,9 @@ export default function PlaceDetailsScreen() {
 
                     {/* About */}
                     <View style={styles.section}>
-                        <ThemedText type="subtitle" style={styles.sectionTitle}>About</ThemedText>
+                        <ThemedText type="subtitle" style={styles.sectionTitle}>{t('placeDetails.about')}</ThemedText>
                         <ThemedText style={[styles.description, { color: muted }]}>
-                            {place.description || 'No description available for this place.'}
+                            {place.description || t('placeDetails.noDescription')}
                         </ThemedText>
                     </View>
 
@@ -159,7 +161,7 @@ export default function PlaceDetailsScreen() {
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <Ionicons name="location-outline" size={20} color={primary} />
-                            <ThemedText type="subtitle" style={styles.sectionTitle}>Location</ThemedText>
+                            <ThemedText type="subtitle" style={styles.sectionTitle}>{t('placeDetails.location')}</ThemedText>
                         </View>
                         <ThemedText style={styles.address}>{place.address || 'Adama, Ethiopia'}</ThemedText>
                     </View>
@@ -167,7 +169,7 @@ export default function PlaceDetailsScreen() {
                     {/* Gallery */}
                     {gallery.length > 0 && (
                         <View style={styles.section}>
-                            <ThemedText type="subtitle" style={styles.sectionTitle}>Gallery</ThemedText>
+                            <ThemedText type="subtitle" style={styles.sectionTitle}>{t('placeDetails.gallery')}</ThemedText>
                             <FlashList
                                 horizontal
                                 data={gallery}
@@ -185,15 +187,15 @@ export default function PlaceDetailsScreen() {
 
                     {/* Reviews Summary */}
                     <View style={styles.section}>
-                        <ThemedText type="subtitle" style={styles.sectionTitle}>Reviews</ThemedText>
+                        <ThemedText type="subtitle" style={styles.sectionTitle}>{t('placeDetails.reviews')}</ThemedText>
                         {reviews.length === 0 ? (
-                            <ThemedText style={{ color: muted }}>No reviews yet. Be the first to write one!</ThemedText>
+                            <ThemedText style={{ color: muted }}>{t('placeDetails.noReviews')}</ThemedText>
                         ) : (
                             reviews.map((review) => (
                                 <View key={review.id} style={[styles.reviewCard, { backgroundColor: card }]}>
                                     <View style={styles.reviewHeader}>
                                         <ThemedText style={styles.reviewerName}>
-                                            {review.user?.profile?.name || review.user?.email || 'Anonymous'}
+                                            {review.user?.profile?.name || review.user?.email || t('placeDetails.anonymous')}
                                         </ThemedText>
                                         <View style={[styles.reviewRating, { backgroundColor: chip }]}>
                                             <Ionicons name="star" size={14} color={primary} />
@@ -215,13 +217,13 @@ export default function PlaceDetailsScreen() {
                             style={[styles.bookButton, { backgroundColor: primary }]}
                             onPress={handleBooking}
                         >
-                            <ThemedText style={styles.bookButtonText}>Book Visit</ThemedText>
+                            <ThemedText style={styles.bookButtonText}>{t('placeDetails.bookVisit')}</ThemedText>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.reviewButton, { borderColor: primary, borderWidth: 1 }]}
                             onPress={handleReview}
                         >
-                            <ThemedText style={{ color: primary, fontWeight: 'bold' }}>Write Review</ThemedText>
+                            <ThemedText style={{ color: primary, fontWeight: 'bold' }}>{t('placeDetails.writeReview')}</ThemedText>
                         </TouchableOpacity>
                     </View>
                 </View>
