@@ -24,6 +24,8 @@ export const useToggleFavorite = () => {
             queryClient.invalidateQueries({ queryKey: ['favorites'] });
             // Also invalidate places to update their UI if needed
             queryClient.invalidateQueries({ queryKey: ['places'] });
+            // Invalidate user stats to update the favorite count on profile screen
+            queryClient.invalidateQueries({ queryKey: ['user-stats'] });
         },
     });
 };

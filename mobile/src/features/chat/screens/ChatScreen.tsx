@@ -201,7 +201,7 @@ export default function ChatScreen() {
                     {isPending && (
                         <View style={[styles.messageRow]}>
                             <View style={[styles.botAvatar, { backgroundColor: primary }]}>
-                                <Ionicons name="sparkles" size={14} color="#fff" />
+                                <Ionicons name="sparkles" size={14} color="#ffffffff" />
                             </View>
                             <View style={[styles.bubble, styles.botBubble, { backgroundColor: card, padding: 10 }]}>
                                 <Skeleton width={40} height={10} borderRadius={5} />
@@ -245,7 +245,7 @@ export default function ChatScreen() {
                         {isPending ? (
                             <Skeleton width={18} height={18} borderRadius={9} />
                         ) : (
-                            <Ionicons name="send" size={18} color="#fff" />
+                            <Ionicons name="send" size={18} color="#013144ff" />
                         )}
                     </TouchableOpacity>
                 </View>

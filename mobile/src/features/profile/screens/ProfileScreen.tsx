@@ -3,9 +3,11 @@ import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Image,
+    RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
@@ -85,12 +87,19 @@ export default function ProfileScreen() {
     const errorColor = useThemeColor({}, 'error');
     const { user: authUser, logout, isAuthenticated, isGuest } = useAuth();
     const insets = useSafeAreaInsets();
+    const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
     // Use Auth ID if available, otherwise just rely on AuthContext user.
     // Since backend lacks /users/profile, we must fetch by ID if we want fresh data.
-    const { data: user, isLoading: loading, error, refetch } = useProfile(authUser?.id, isAuthenticated);
-    const { data: stats } = useUserStats();
-    const { data: notificationStats } = useNotificationStats();
+    const { data: user, isLoading: loading, error, refetch: refetchProfile } = useProfile(authUser?.id, isAuthenticated);
+    const { data: stats, refetch: refetchStats } = useUserStats();
+    const { data: notificationStats, refetch: refetchNotifications } = useNotificationStats();
+
+    const onRefresh = async () => {
+        setIsManualRefreshing(true);
+        await Promise.all([refetchProfile(), refetchStats(), refetchNotifications()]);
+        setIsManualRefreshing(false);
+    };
 
     const unreadCount = notificationStats?.unreadCount || 0;
 
@@ -189,7 +198,7 @@ export default function ProfileScreen() {
                 </Text>
                 <TouchableOpacity
                     style={[styles.editBtn, { borderColor: primary }]}
-                    onPress={() => refetch()}
+                    onPress={() => refetchProfile()}
                 >
                     <Text style={[styles.editText, { color: primary }]}>{t('profile.retry')}</Text>
                 </TouchableOpacity>
@@ -205,7 +214,12 @@ export default function ProfileScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: bg }]}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={isManualRefreshing} onRefresh={onRefresh} tintColor={primary} />
+                }
+            >
                 {/* ===== HEADER ===== */}
                 <Text style={[styles.screenTitle, { color: text, marginTop: insets.top + 20 }]}>
                     {t('common.profile')}
