@@ -204,13 +204,15 @@ export default function EditProfileScreen() {
                             <View style={[styles.profilePhoto, styles.loadingPhoto]}>
                                 <ActivityIndicator size="large" color={primaryColor} />
                             </View>
-                        ) : (
+                        ) : profile.avatar ? (
                             <Image
-                                source={{
-                                    uri: profile.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
-                                }}
+                                source={{ uri: profile.avatar }}
                                 style={styles.profilePhoto}
                             />
+                        ) : (
+                            <View style={[styles.profilePhoto, styles.placeholderPhoto, { backgroundColor: chipColor }]}>
+                                <Ionicons name="person" size={60} color={mutedColor} />
+                            </View>
                         )}
                         <View style={[styles.editPhotoButton, { backgroundColor: primaryColor }]}>
                             <Ionicons name="camera" size={20} color="white" />
@@ -430,6 +432,10 @@ const styles = StyleSheet.create({
         width: 120,
         height: 120,
         borderRadius: 60,
+    },
+    placeholderPhoto: {
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     loadingPhoto: {
         justifyContent: 'center',

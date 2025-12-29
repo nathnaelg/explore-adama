@@ -210,12 +210,16 @@ export default function ProfileScreen() {
                 {/* ===== PROFILE CARD ===== */}
                 <View style={[styles.profileCard, { backgroundColor: card }]}>
                     <View style={styles.avatarWrapper}>
-                        <Image
-                            source={{
-                                uri: user?.profile?.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
-                            }}
-                            style={styles.avatar}
-                        />
+                        {user?.profile?.avatar ? (
+                            <Image
+                                source={{ uri: user.profile.avatar }}
+                                style={styles.avatar}
+                            />
+                        ) : (
+                            <View style={[styles.avatar, styles.placeholderAvatar, { backgroundColor: chip }]}>
+                                <Ionicons name="person" size={50} color={muted} />
+                            </View>
+                        )}
                         {user?.role === 'ADMIN' && (
                             <View style={[styles.proBadge, { backgroundColor: primary }]}>
                                 <Text style={styles.proText}>{user.role}</Text>
@@ -376,6 +380,11 @@ const styles = StyleSheet.create({
         borderRadius: 55,
         borderWidth: 3,
         borderColor: 'white',
+    },
+    placeholderAvatar: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 0,
     },
 
     proBadge: {
