@@ -1,5 +1,6 @@
 
 import { OptimizedImage } from '@/src/components/common/OptimizedImage';
+import { ThemedText } from '@/src/components/themed/ThemedText';
 import { useAuth } from '@/src/features/auth/contexts/AuthContext';
 import { useCategories, useGlobalRecommendations, useNearbyPlaces } from '@/src/features/explore/hooks/useExplore';
 import { BlogRail } from '@/src/features/home/components/BlogRail';
@@ -123,7 +124,7 @@ export default function HomeScreen() {
 
                 {/* ================= CATEGORIES ================= */}
                 <View style={[styles.sectionHeader, { marginTop: 0 }]}>
-                    <Text style={[styles.sectionTitle, { color: text }]}>{t('home.categories')}</Text>
+                    <ThemedText type="subtitle" style={styles.title}>{t('home.categories')}</ThemedText>
                 </View>
 
                 <View style={styles.categories}>
@@ -157,9 +158,10 @@ export default function HomeScreen() {
                 {/* ================= POPULAR PLACES ================= */}
                 <Section
                     title={t('home.popularPlaces')}
-                    action={t('home.seeAll')}
+                    action={t('common.seeAll')}
                     text={text}
                     primary={primary}
+                    onPress={() => router.push('/search')}
                 />
 
                 <ScrollView
@@ -195,6 +197,7 @@ export default function HomeScreen() {
                     action={t('home.viewMap')}
                     text={text}
                     primary={primary}
+                    onPress={() => router.push('/(tabs)/map')}
                 />
 
                 {nearbyLoading ? (
@@ -207,7 +210,7 @@ export default function HomeScreen() {
                             onPress={() => router.push(`/place/${place.id}`)}
                         >
                             <OptimizedImage
-                                source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1501117716987-c8e1ecb210d1' }}
+                                source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1501785888041-af3ef285b470' }}
                                 style={styles.nearbyImage}
                                 contentFit="cover"
                                 transition={300}
@@ -223,7 +226,7 @@ export default function HomeScreen() {
                     ))
                 )}
 
-                <View style={{ height: 40 }} />
+                <View style={{ height: 120 }} />
             </ScrollView>
         </View>
     );
@@ -231,15 +234,13 @@ export default function HomeScreen() {
 
 /* ================= COMPONENTS ================= */
 
-function Section({ title, action, text, primary }: any) {
+function Section({ title, action, text, primary, onPress }: any) {
     return (
         <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: text }]}>
-                {title}
-            </Text>
+            <ThemedText type="subtitle" style={styles.title}>{title}</ThemedText>
             {action && (
-                <TouchableOpacity>
-                    <Text style={{ color: primary }}>{action}</Text>
+                <TouchableOpacity onPress={onPress}>
+                    <ThemedText style={{ color: primary, fontWeight: '600' }}>{action}</ThemedText>
                 </TouchableOpacity>
             )}
         </View>
@@ -256,7 +257,7 @@ function HotelCard({ place, card, text, muted, primary, accent }: any) {
             onPress={() => router.push(`/place/${place.id}`)}
         >
             <OptimizedImage
-                source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1501117716987-c8e1ecb210d1' }}
+                source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1501785888041-af3ef285b470' }}
                 style={styles.hotelImage}
                 contentFit="cover"
                 transition={300}
@@ -325,12 +326,13 @@ const styles = StyleSheet.create({
 
     sectionHeader: {
         paddingHorizontal: 20,
-        marginTop: 28,
         marginBottom: 16,
+        marginTop: 24,
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
     },
-    sectionTitle: { fontSize: 18, fontWeight: '700' },
+
 
     hotelCard: {
         width: 260,

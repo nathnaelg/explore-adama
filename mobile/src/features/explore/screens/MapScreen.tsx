@@ -1,4 +1,3 @@
-import { Skeleton } from '@/src/components/common/Skeleton';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useCategories, usePlaces } from '@/src/features/explore/hooks/useExplore';
@@ -6,23 +5,58 @@ import { Place } from '@/src/features/explore/types';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { Image, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Image, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 export default function MapScreen() {
+    const { t } = useTranslation();
+    const mapRef = useRef<MapView>(null);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+    // Debounce search
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 500);
+        return () => clearTimeout(handler);
+    }, [searchQuery]);
 
     const { data: categoriesData } = useCategories();
     const { data: placesData, isLoading } = usePlaces({
         categoryId: selectedCategory || undefined,
-        q: searchQuery || undefined
+        q: debouncedSearchQuery || undefined
     });
 
     const categories = categoriesData || [];
     const places = placesData?.data || [];
+
+    // Auto-center map when search results change
+    useEffect(() => {
+        if (places.length > 0 && mapRef.current) {
+            const coordinates = places.map(p => ({
+                latitude: p.latitude,
+                longitude: p.longitude
+            }));
+
+            if (coordinates.length === 1) {
+                mapRef.current.animateToRegion({
+                    ...coordinates[0],
+                    latitudeDelta: 0.05,
+                    longitudeDelta: 0.05
+                }, 1000);
+            } else {
+                mapRef.current.fitToCoordinates(coordinates, {
+                    edgePadding: { top: 150, right: 50, bottom: 250, left: 50 },
+                    animated: true
+                });
+            }
+        }
+    }, [places.length, debouncedSearchQuery, selectedCategory]);
 
     const bg = useThemeColor({}, 'bg');
     const card = useThemeColor({}, 'card');
@@ -52,6 +86,7 @@ export default function MapScreen() {
         <ThemedView style={{ flex: 1 }}>
             {/* Map */}
             <MapView
+                ref={mapRef}
                 provider={PROVIDER_GOOGLE}
                 style={StyleSheet.absoluteFillObject}
                 initialRegion={ADAMA_CENTER}
@@ -84,13 +119,21 @@ export default function MapScreen() {
             <View style={[styles.searchWrapper, { backgroundColor: card }]}>
                 <Ionicons name="search" size={20} color={muted} />
                 <TextInput
-                    placeholder="Search places..."
+                    placeholder={t('common.searchPlaces')}
                     placeholderTextColor={muted}
                     style={[styles.searchInput, { color: text }]}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                 />
-                {isLoading && <Skeleton width={20} height={20} borderRadius={10} />}
+                {(searchQuery.length > 0 || isLoading) && (
+                    <TouchableOpacity onPress={() => setSearchQuery('')}>
+                        {isLoading ? (
+                            <ActivityIndicator size="small" color={primary} />
+                        ) : (
+                            <Ionicons name="close-circle" size={20} color={muted} />
+                        )}
+                    </TouchableOpacity>
+                )}
             </View>
 
             {/* Categories */}
@@ -108,7 +151,7 @@ export default function MapScreen() {
                         color={!selectedCategory ? '#fff' : muted}
                     />
                     <ThemedText style={{ color: !selectedCategory ? '#fff' : muted, fontWeight: '600' }}>
-                        All
+                        {t('explore.all')}
                     </ThemedText>
                 </TouchableOpacity>
                 {categories.slice(0, 3).map((category) => (
@@ -168,7 +211,7 @@ export default function MapScreen() {
                                 onPress={handleNavigate}
                             >
                                 <Ionicons name="navigate" size={14} color="#fff" />
-                                <ThemedText style={{ fontWeight: '700', color: '#fff' }}>View Details</ThemedText>
+                                <ThemedText style={{ fontWeight: '700', color: '#fff' }}>{t('common.viewDetails')}</ThemedText>
                             </TouchableOpacity>
                         </View>
                     </View>

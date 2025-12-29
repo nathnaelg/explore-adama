@@ -33,8 +33,8 @@ export const searchService = {
             const results: SearchResult[] = [];
 
             // Process places
-            if (placesRes.status === 'fulfilled' && placesRes.value.data?.items) {
-                placesRes.value.data.items.forEach((place: Place) => {
+            if (placesRes.status === 'fulfilled' && placesRes.value.data?.data) {
+                placesRes.value.data.data.forEach((place: Place) => {
                     results.push({
                         type: 'place',
                         id: place.id,
@@ -48,8 +48,8 @@ export const searchService = {
             }
 
             // Process events
-            if (eventsRes.status === 'fulfilled' && eventsRes.value.data?.items) {
-                eventsRes.value.data.items.forEach((event: Event) => {
+            if (eventsRes.status === 'fulfilled' && eventsRes.value.data?.data) {
+                eventsRes.value.data.data.forEach((event: Event) => {
                     results.push({
                         type: 'event',
                         id: event.id,
@@ -84,13 +84,13 @@ export const searchService = {
     // Search places only
     async searchPlaces(query: string): Promise<Place[]> {
         const response = await apiClient.get('/places', { params: { q: query } });
-        return response.data?.items || [];
+        return response.data?.data || [];
     },
 
     // Search events only
     async searchEvents(query: string): Promise<Event[]> {
         const response = await apiClient.get('/events', { params: { q: query } });
-        return response.data?.items || [];
+        return response.data?.data || [];
     },
 
     // Search blog posts only

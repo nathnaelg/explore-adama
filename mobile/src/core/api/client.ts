@@ -19,6 +19,10 @@ export const setLogoutCallback = (callback: () => void) => {
   logoutCallback = callback;
 };
 
+// Refresh Lock variables
+let isRefreshing = false;
+let refreshPromise: Promise<string> | null = null;
+
 // Create axios instance
 export const apiClient = axios.create({
   baseURL: env.API_URL,
@@ -91,38 +95,49 @@ apiClient.interceptors.response.use(
 
     // Treat 403 the same as 401 for expired/invalid token flows
     if ((status === 401 || status === 403) && !originalRequest._retry) {
-      originalRequest._retry = true;
+      if (isRefreshing) {
+        try {
+          // If already refreshing, wait for the promise and then retry
+          const newToken = await refreshPromise;
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return apiClient(originalRequest);
+        } catch (e) {
+          return Promise.reject(error);
+        }
+      }
 
-      try {
-        const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
-        if (refreshToken) {
-          // Use axios directly to avoid interceptor recursion
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      refreshPromise = (async () => {
+        try {
+          const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+          if (!refreshToken) throw new Error('No refresh token');
+
           const response = await axios.post(`${env.API_URL}/auth/refresh`, {
             refreshToken,
           });
 
           const { accessToken } = response.data;
+          if (!accessToken) throw new Error('No access token in response');
 
-          if (accessToken) {
-            // Save new token and update headers
-            await AsyncStorage.setItem(TOKEN_KEY, accessToken);
-            apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-            originalRequest.headers = originalRequest.headers || {};
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
-            // Retry the original request
-            return apiClient(originalRequest);
-          }
+          await AsyncStorage.setItem(TOKEN_KEY, accessToken);
+          apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+          return accessToken;
+        } finally {
+          isRefreshing = false;
         }
+      })();
+
+      try {
+        const accessToken = await refreshPromise;
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return apiClient(originalRequest);
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
-        // Clear stored auth and let app handle navigation to login
         await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY]);
-
-        // Trigger global logout callback to update App state (AuthContext)
-        if (logoutCallback) {
-          logoutCallback();
-        }
+        if (logoutCallback) logoutCallback();
+        return Promise.reject(refreshError);
       }
     }
 

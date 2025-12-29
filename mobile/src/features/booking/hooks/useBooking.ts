@@ -6,7 +6,7 @@ export const useEvents = (params: EventQueryParams = {}) => {
     return useQuery({
         queryKey: ['events', params],
         queryFn: () => bookingService.listEvents(params),
-        refetchInterval: 1000,
+        refetchInterval: 30000,
     });
 };
 
@@ -15,7 +15,7 @@ export const useEvent = (id: string) => {
         queryKey: ['event', id],
         queryFn: () => bookingService.getEventById(id),
         enabled: !!id,
-        refetchInterval: 1000,
+        refetchInterval: 30000,
     });
 };
 
@@ -23,7 +23,7 @@ export const useMyBookings = () => {
     return useQuery({
         queryKey: ['bookings'],
         queryFn: () => bookingService.listBookings(),
-        refetchInterval: 1000,
+        refetchInterval: 30000,
     });
 };
 
@@ -32,7 +32,7 @@ export const useNearbyEvents = (lat: number, lng: number, radius?: number) => {
         queryKey: ['events', 'nearby', { lat, lng, radius }],
         queryFn: () => bookingService.getNearbyEvents(lat, lng, radius),
         enabled: !!lat && !!lng,
-        refetchInterval: 1000,
+        refetchInterval: 30000,
     });
 };
 
@@ -52,7 +52,7 @@ export const useBooking = (id: string) => {
         queryKey: ['booking', id],
         queryFn: () => bookingService.getBookingById(id),
         enabled: !!id,
-        refetchInterval: 1000,
+        refetchInterval: 30000,
     });
 };
 

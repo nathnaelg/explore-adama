@@ -7,7 +7,7 @@ export const usePlaces = (params: PlaceQueryParams = {}) => {
     return useQuery({
         queryKey: ['places', params],
         queryFn: () => exploreService.listPlaces(params),
-        refetchInterval: 1000,
+        refetchInterval: 30000,
     });
 };
 
@@ -16,7 +16,7 @@ export const usePlace = (id: string) => {
         queryKey: ['place', id],
         queryFn: () => exploreService.getPlaceById(id),
         enabled: !!id,
-        refetchInterval: 1000,
+        refetchInterval: 30000,
     });
 };
 
@@ -25,7 +25,7 @@ export const useNearbyPlaces = (params: NearbyParams) => {
         queryKey: ['places', 'nearby', params],
         queryFn: () => exploreService.getNearbyPlaces(params),
         enabled: !!params.lat && !!params.lng,
-        refetchInterval: 1000,
+        refetchInterval: 30000,
     });
 };
 
@@ -33,7 +33,7 @@ export const useCategories = () => {
     return useQuery({
         queryKey: ['categories'],
         queryFn: () => exploreService.listCategories(),
-        refetchInterval: 1000,
+        refetchInterval: 30000,
     });
 };
 
@@ -41,6 +41,6 @@ export const useGlobalRecommendations = () => {
     return useQuery({
         queryKey: ['recommendations', 'global'],
         queryFn: () => recommendationService.getGlobalRecommendations(),
-        refetchInterval: 1000,
+        refetchInterval: 30000,
     });
 };

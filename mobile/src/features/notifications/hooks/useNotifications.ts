@@ -5,7 +5,7 @@ export const useNotifications = (page = 1, limit = 20) => {
     return useQuery({
         queryKey: ['notifications', page],
         queryFn: () => notificationService.getNotifications(page, limit),
-        refetchInterval: 1000, // Poll every second
+        refetchInterval: 5000, // Poll every second
     });
 };
 
@@ -13,7 +13,7 @@ export const useNotificationStats = () => {
     return useQuery({
         queryKey: ['notifications', 'stats'],
         queryFn: () => notificationService.getStats(),
-        refetchInterval: 1000, // Poll every second for badge updates
+        refetchInterval: 5000, // Poll every second for badge updates
     });
 };
 

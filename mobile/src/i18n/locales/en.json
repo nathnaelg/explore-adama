@@ -74,7 +74,9 @@
         "view": "View",
         "happeningSoon": "Happening Soon",
         "hiddenGems": "Hidden Gems",
-        "premiumExperience": "Premium experience"
+        "premiumExperience": "Premium experience",
+        "viewMap": "View Map",
+        "viewPopularPlaces": "View Places"
     },
     "explore": {
         "exploreAdama": "Explore Adama",

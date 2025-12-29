@@ -59,6 +59,7 @@ export default function ExploreScreen() {
 
                     <TouchableOpacity
                         style={[styles.iconBtn, { backgroundColor: card }]}
+                        onPress={() => router.push('/search')}
                     >
                         <Ionicons name="search-outline" size={22} color={text} />
                     </TouchableOpacity>
@@ -131,7 +132,7 @@ export default function ExploreScreen() {
                                 onPress={() => router.push(`/place/${place.id}`)}
                             >
                                 <OptimizedImage
-                                    source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1501117716987-c8e1ecb210d1' }}
+                                    source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1501785888041-af3ef285b470' }}
                                     style={styles.imagePlaceholder}
                                     contentFit="cover"
                                     transition={300}
@@ -262,6 +263,7 @@ const styles = StyleSheet.create({
     },
 
     imagePlaceholder: {
+        width: '100%',
         height: 170,
         backgroundColor: '#E5E7EB',
     },

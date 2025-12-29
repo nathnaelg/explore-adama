@@ -54,7 +54,7 @@ export function FeaturedCarousel({ places }: FeaturedCarouselProps) {
                         onPress={() => router.push(`/place/${place.id}`)}
                     >
                         <OptimizedImage
-                            source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9' }}
+                            source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1501785888041-af3ef285b470' }}
                             style={styles.image}
                             contentFit="cover"
                         />

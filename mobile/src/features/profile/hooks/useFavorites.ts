@@ -5,7 +5,7 @@ export const useFavorites = () => {
     return useQuery({
         queryKey: ['favorites'],
         queryFn: () => favoriteService.getFavorites(),
-        refetchInterval: 1000,
+        refetchInterval: 30000,
     });
 };
 
