@@ -14,6 +14,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { BookingPaymentSkeleton } from '../components/BookingPaymentSkeleton';
 import { useEvent, useEvents, useInitiateBooking } from '../hooks/useBooking';
 import { Event } from '../types';
 
@@ -65,6 +66,10 @@ export default function CreateBookingScreen() {
     };
 
     const isLoading = eventLoading || (placeId && !eventId && listLoading);
+
+    if (isBooking) {
+        return <BookingPaymentSkeleton />;
+    }
 
     if (isLoading) {
         if (!eventId && placeId) {

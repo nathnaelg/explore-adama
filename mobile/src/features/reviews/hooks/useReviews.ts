@@ -7,6 +7,7 @@ export const useReviews = (params: Partial<ReviewQueryParams> = {}) => {
         queryKey: ['reviews', params],
         queryFn: () => reviewService.listReviews(params as ReviewQueryParams),
         enabled: !!params.itemType && !!params.itemId,
+        refetchInterval: 1000,
     });
 };
 
@@ -15,6 +16,7 @@ export const useReview = (id: string) => {
         queryKey: ['review', id],
         queryFn: () => reviewService.getReviewById(id),
         enabled: !!id,
+        refetchInterval: 1000,
     });
 };
 

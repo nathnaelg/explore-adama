@@ -1,4 +1,3 @@
-import { LoadingScreen } from '@/src/components/feedback/LoadingScreen';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useAuth } from '@/src/features/auth/contexts/AuthContext';
@@ -18,6 +17,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { BookingPaymentSkeleton } from '../components/BookingPaymentSkeleton';
 import { useBooking } from '../hooks/useBooking';
 
 export default function BookingPaymentScreen() {
@@ -117,7 +117,7 @@ export default function BookingPaymentScreen() {
     };
 
     if (isLoading || !booking) {
-        return <LoadingScreen message={t('common.loading')} />;
+        return <BookingPaymentSkeleton />;
     }
 
     const tourName = booking.event?.title || t('profile.bookings');
