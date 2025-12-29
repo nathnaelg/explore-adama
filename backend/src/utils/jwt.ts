@@ -10,14 +10,14 @@ export interface AccessTokenPayload {
 
 
 export interface RefreshTokenPayload {
-  sub:string;
-  tokenId:string;
+  sub: string;
+  tokenId: string;
 }
 
 
 export function signAccessToken(payload: AccessTokenPayload): string {
   return jwt.sign(payload, env.JWT_SECRET, {
-    expiresIn: env.JWT_EXPIRES_IN || "15m",
+    expiresIn: env.JWT_EXPIRES_IN || "7d",
     algorithm: "HS256",
   } as jwt.SignOptions);
 }
