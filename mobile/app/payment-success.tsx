@@ -3,10 +3,9 @@ import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 export default function PaymentSuccessScreen() {
     const { t } = useTranslation();
@@ -14,14 +13,6 @@ export default function PaymentSuccessScreen() {
     const text = useThemeColor({}, 'text');
     const muted = useThemeColor({}, 'muted');
     const card = useThemeColor({}, 'card');
-
-    const handleViewBookings = () => {
-        router.replace('/bookings/history');
-    };
-
-    const handleGoHome = () => {
-        router.replace('/(tabs)/');
-    };
 
     return (
         <ThemedView style={styles.container}>
@@ -35,27 +26,13 @@ export default function PaymentSuccessScreen() {
                 </ThemedText>
 
                 <ThemedText type="default" style={[styles.message, { color: muted }]}>
-                    {t('payment.successMessage', 'Your booking has been confirmed. You can now view your tickets.')}
+                    {t('payment.successMessage', 'Your booking has been confirmed.')}
                 </ThemedText>
 
-                <View style={styles.buttonContainer}>
-                    <TouchableOpacity
-                        style={[styles.button, { backgroundColor: primary }]}
-                        onPress={handleViewBookings}
-                    >
-                        <ThemedText style={[styles.buttonText, { color: '#fff' }]}>
-                            {t('payment.viewBookings', 'View My Bookings')}
-                        </ThemedText>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.outlineButton, { borderColor: muted }]}
-                        onPress={handleGoHome}
-                    >
-                        <ThemedText style={{ color: text }}>
-                            {t('common.goHome', 'Go Home')}
-                        </ThemedText>
-                    </TouchableOpacity>
+                <View style={styles.instructionContainer}>
+                    <ThemedText style={[styles.instructionText, { color: text }]}>
+                        {t('payment.tapDone', 'Please tap "Done" in the top-left corner to return to the app.')}
+                    </ThemedText>
                 </View>
             </View>
         </ThemedView>
@@ -98,26 +75,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
         lineHeight: 24,
     },
-    buttonContainer: {
+    instructionContainer: {
         width: '100%',
-        gap: 12,
-    },
-    button: {
-        width: '100%',
-        paddingVertical: 16,
+        padding: 16,
         borderRadius: 12,
+        backgroundColor: 'rgba(0,0,0,0.05)',
         alignItems: 'center',
     },
-    outlineButton: {
-        width: '100%',
-        paddingVertical: 16,
-        borderRadius: 12,
-        alignItems: 'center',
-        borderWidth: 1,
-        backgroundColor: 'transparent',
-    },
-    buttonText: {
+    instructionText: {
         fontWeight: '600',
-        fontSize: 16,
+        fontSize: 14,
+        textAlign: 'center',
     },
 });
