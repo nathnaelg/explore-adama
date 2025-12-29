@@ -3,7 +3,7 @@ import axios from "axios";
 import { env } from "../../config/env.ts";
 
 // Combine GEMINI_ENDPOINT (Base URL) and GEMINI_MODEL for dynamic endpoint construction
-const GEMINI_BASE_URL = env.GEMINI_ENDPOINT.substring(0, env.GEMINI_ENDPOINT.lastIndexOf('/models/')) || "https://generativelanguage.googleapis.com/v1beta";
+const GEMINI_BASE_URL = env.GEMINI_ENDPOINT || "https://generativelanguage.googleapis.com/v1beta";
 const GEMINI_API_KEY = env.GEMINI_API_KEY;
 const GEMINI_MODEL = env.GEMINI_MODEL || "gemini-2.5-flash"; // Fallback to a valid model
 

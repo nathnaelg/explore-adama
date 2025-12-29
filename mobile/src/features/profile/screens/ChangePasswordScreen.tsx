@@ -105,16 +105,12 @@ export default function ChangePasswordScreen() {
                         onPress={() => router.back()}
                         style={styles.backButton}
                     >
-                        <Ionicons
-                            name="arrow-back"
-                            size={24}
-                            color={textColor}
-                        />
+                        <Ionicons name="arrow-back" size={24} color={textColor} />
                     </TouchableOpacity>
                     <ThemedText type="title" style={[styles.title, { color: textColor }]}>
                         Change Password
                     </ThemedText>
-                    <View style={{ width: 24 }} /> {/* Spacer */}
+                    <View style={{ width: 24 }} />
                 </View>
 
                 {/* Info Message */}

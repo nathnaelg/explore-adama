@@ -1,16 +1,17 @@
 // src/app.ts
-import express from "express";
 import cors from "cors";
+import express from "express";
 
 import { corsOptions } from "./config/cors.ts";
-import routes from "./routes/index.ts";
 import { errorHandler } from "./middleware/error-handler.ts";
 import { notFound } from "./middleware/not-found.ts";
+import { globalLimiter } from "./middleware/rate-limit.ts";
+import routes from "./routes/index.ts";
 
 import cookieParser from "cookie-parser";
-import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import path from "path";
+import swaggerUi from "swagger-ui-express";
 
 const swaggerPath = path.join(process.cwd(), "src", "swagger.json");
 const swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, "utf-8"));
@@ -22,6 +23,7 @@ app.use(cookieParser());
 // Middleware
 // ---------------------------
 app.use(cors(corsOptions));
+app.use(globalLimiter);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
