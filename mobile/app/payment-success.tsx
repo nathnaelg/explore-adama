@@ -29,11 +29,11 @@ export default function PaymentSuccessScreen() {
                     {t('payment.successMessage', 'Your booking has been confirmed.')}
                 </ThemedText>
 
-                <View style={styles.instructionContainer}>
+                {/*<View style={styles.instructionContainer}>
                     <ThemedText style={[styles.instructionText, { color: text }]}>
                         {t('payment.tapDone', 'Please tap "Done" in the top-left corner to return to the app.')}
                     </ThemedText>
-                </View>
+                </View>*/}
             </View>
         </ThemedView>
     );
