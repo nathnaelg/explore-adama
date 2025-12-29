@@ -1,13 +1,13 @@
 // backend/src/modules/favorite/favorite.controller.ts
-import type { Response } from "express";
-import { FavoriteService } from "./favorite.service.ts";
-import type { AuthRequest } from "../../middleware/auth.ts";
 import { RecommendationItemType } from "@prisma/client";
+import type { Response } from "express";
+import type { AuthRequest } from "../../middleware/auth.ts";
+import { FavoriteService } from "./favorite.service.ts";
 
 export class FavoriteController {
   static async add(req: AuthRequest, res: Response) {
     try {
-      const userId = req.user.id;
+      const userId = req.user.sub;
       const { itemId, itemType } = req.body;
 
       const data = await FavoriteService.add(userId, itemId, itemType);
@@ -19,7 +19,7 @@ export class FavoriteController {
 
   static async remove(req: AuthRequest, res: Response) {
     try {
-      const userId = req.user.id;
+      const userId = req.user.sub;
       const { itemId, itemType } = req.body;
 
       const data = await FavoriteService.remove(userId, itemId, itemType);
@@ -31,7 +31,7 @@ export class FavoriteController {
 
   static async list(req: AuthRequest, res: Response) {
     try {
-      const userId = req.user.id;
+      const userId = req.user.sub;
       const data = await FavoriteService.list(userId);
       res.json(data);
     } catch (err: any) {
@@ -41,7 +41,7 @@ export class FavoriteController {
 
   static async check(req: AuthRequest, res: Response) {
     try {
-      const userId = req.user.id;
+      const userId = req.user.sub;
       const { itemId, itemType } = req.query;
 
       const data = await FavoriteService.isFavorited(

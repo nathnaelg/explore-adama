@@ -1,5 +1,8 @@
-import { NotificationType, Prisma } from "@prisma/client";
+import type { NotificationType } from "@prisma/client";
+import { createRequire } from "module";
 import { prisma } from "../../config/db.ts";
+const require = createRequire(import.meta.url);
+const { Prisma } = require("@prisma/client");
 
 export class NotificationService {
     /**
@@ -25,6 +28,27 @@ export class NotificationService {
                 isRead: false
             }
         });
+
+        // Trigger push notification if user has a push token
+        try {
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                select: { pushToken: true }
+            });
+
+            if (user?.pushToken) {
+                const { ExpoPushUtils } = await import("../../utils/expo-push.ts");
+                await ExpoPushUtils.sendPushNotification({
+                    to: user.pushToken,
+                    title,
+                    body: message,
+                    data: data
+                });
+            }
+        } catch (pushError) {
+            console.error("Failed to send push notification:", pushError);
+            // We don't throw here to avoid failing the whole operation if push fails
+        }
 
         // TODO: Integrate with Real-time socket/push notification here if needed
         // e.g. socketService.emitToUser(userId, 'notification', notification);
@@ -127,6 +151,16 @@ export class NotificationService {
 
         return prisma.notification.delete({
             where: { id: notificationId }
+        });
+    }
+
+    /**
+     * Update user's push token
+     */
+    static async updatePushToken(userId: string, pushToken: string) {
+        return prisma.user.update({
+            where: { id: userId },
+            data: { pushToken }
         });
     }
 }

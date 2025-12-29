@@ -33,8 +33,9 @@ export default function BlogScreen() {
 
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [page, setPage] = useState(1);
+    const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
-    const { data, isLoading, isFetching, refetch } = useBlogPosts({
+    const { data, isLoading, isFetching, isRefetching, refetch } = useBlogPosts({
         page,
         limit: 20,
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
@@ -50,9 +51,11 @@ export default function BlogScreen() {
     // Deduplicate categories
     const uniqueCategories = Array.from(new Set(categories));
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
+        setIsManualRefreshing(true);
         setPage(1);
-        refetch();
+        await refetch();
+        setIsManualRefreshing(false);
     };
 
     const handleCategoryChange = (category: string) => {
@@ -160,7 +163,7 @@ export default function BlogScreen() {
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl refreshing={isFetching && page === 1} onRefresh={onRefresh} tintColor={primary} />
+                    <RefreshControl refreshing={isManualRefreshing} onRefresh={onRefresh} tintColor={primary} />
                 }
             >
                 {renderHeader()}

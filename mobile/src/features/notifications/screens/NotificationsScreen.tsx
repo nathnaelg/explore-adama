@@ -30,6 +30,7 @@ export default function NotificationsScreen() {
 
     const insets = useSafeAreaInsets();
     const [selectedFilter, setSelectedFilter] = useState(t('notifications.all'));
+    const [isManualRefreshing, setIsManualRefreshing] = useState(false);
     const filters = [t('notifications.all'), t('notifications.bookings'), t('notifications.events'), t('notifications.info')];
 
     const { data, isLoading, refetch, isRefetching, error, isError } = useNotifications();
@@ -119,6 +120,12 @@ export default function NotificationsScreen() {
 
     const { isGuest } = useAuth();
 
+    const onRefresh = async () => {
+        setIsManualRefreshing(true);
+        await refetch();
+        setIsManualRefreshing(false);
+    };
+
     const handleNotificationPress = (notification: any) => {
         if (!notification.isRead) markRead(notification.id);
         // Link handling
@@ -197,7 +204,7 @@ export default function NotificationsScreen() {
 
             <ScrollView
                 contentContainerStyle={{ padding: 20 }}
-                refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={primary} />}
+                refreshControl={<RefreshControl refreshing={isManualRefreshing} onRefresh={onRefresh} tintColor={primary} />}
             >
                 {isLoading && !isRefetching ? (
                     <NotificationsSkeleton />

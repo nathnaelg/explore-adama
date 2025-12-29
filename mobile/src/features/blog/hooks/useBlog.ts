@@ -6,6 +6,7 @@ export const useBlogPosts = (params: BlogQueryParams = {}) => {
     return useQuery({
         queryKey: ['blog-posts', params],
         queryFn: () => blogService.getBlogPosts(params),
+        refetchInterval: 1000,
     });
 };
 
@@ -14,6 +15,7 @@ export const useBlogPost = (id: string) => {
         queryKey: ['blog-post', id],
         queryFn: () => blogService.getBlogPost(id),
         enabled: !!id,
+        refetchInterval: 1000,
     });
 };
 
@@ -22,6 +24,7 @@ export const useBlogComments = (postId: string) => {
         queryKey: ['blog-comments', postId],
         queryFn: () => blogService.getComments(postId),
         enabled: !!postId,
+        refetchInterval: 1000,
     });
 };
 

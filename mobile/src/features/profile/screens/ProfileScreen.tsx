@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Update this import to use the consolidated hook
 import { useAuth } from '@/src/features/auth/contexts/AuthContext';
+import { useNotificationStats } from '@/src/features/notifications/hooks/useNotifications';
 import { ProfileSkeleton } from '@/src/features/profile/components/ProfileSkeleton';
 import { useProfile, useUserStats } from '@/src/features/profile/hooks/useProfile';
 
@@ -89,6 +90,9 @@ export default function ProfileScreen() {
     // Since backend lacks /users/profile, we must fetch by ID if we want fresh data.
     const { data: user, isLoading: loading, error, refetch } = useProfile(authUser?.id, isAuthenticated);
     const { data: stats } = useUserStats();
+    const { data: notificationStats } = useNotificationStats();
+
+    const unreadCount = notificationStats?.unreadCount || 0;
 
     const handleLogout = async () => {
         try {
@@ -315,6 +319,11 @@ export default function ProfileScreen() {
                     <MenuItem
                         icon="notifications-outline"
                         title={t('common.notifications')}
+                        right={unreadCount > 0 ? (
+                            <View style={[styles.menuBadge, { backgroundColor: primary }]}>
+                                <Text style={styles.menuBadgeText}>{unreadCount}</Text>
+                            </View>
+                        ) : null}
                         onPress={() => router.push('/notifications')}
                     />
                     <Divider />
@@ -571,5 +580,18 @@ const styles = StyleSheet.create({
     guestSettingsContainer: {
         paddingHorizontal: 20,
         paddingBottom: 40,
+    },
+    menuBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 10,
+        minWidth: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    menuBadgeText: {
+        color: 'white',
+        fontSize: 12,
+        fontWeight: 'bold',
     },
 });

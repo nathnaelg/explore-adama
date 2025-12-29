@@ -40,8 +40,8 @@ export default function BlogDetailScreen() {
     const warning = useThemeColor({}, 'warning');
     const error = useThemeColor({}, 'error');
 
-    const { data: post, isLoading: postLoading, error: postError, refetch: refetchPost } = useBlogPost(id || '');
-    const { data: comments = [], isLoading: commentsLoading, refetch: refetchComments } = useBlogComments(id || '');
+    const { data: post, isLoading: postLoading, isRefetching: postRefetching, error: postError, refetch: refetchPost } = useBlogPost(id || '');
+    const { data: comments = [], isLoading: commentsLoading, isRefetching: commentsRefetching, refetch: refetchComments } = useBlogComments(id || '');
     const { mutate: addComment, isPending: submittingComment } = useAddBlogComment(id || '');
 
     const [commentText, setCommentText] = useState('');
@@ -50,13 +50,15 @@ export default function BlogDetailScreen() {
     const [isTranslating, setIsTranslating] = useState(false);
     const [translatedContent, setTranslatedContent] = useState<{ title: string; body: string } | null>(null);
     const [showOriginal, setShowOriginal] = useState(true);
+    const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
     const isAuthor = user?.id === post?.authorId;
     const isAdmin = user?.role === 'ADMIN';
 
-    const onRefresh = () => {
-        refetchPost();
-        refetchComments();
+    const onRefresh = async () => {
+        setIsManualRefreshing(true);
+        await Promise.all([refetchPost(), refetchComments()]);
+        setIsManualRefreshing(false);
     };
 
     React.useEffect(() => {
@@ -186,7 +188,7 @@ export default function BlogDetailScreen() {
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl refreshing={postLoading} onRefresh={onRefresh} tintColor={primary} />
+                    <RefreshControl refreshing={isManualRefreshing} onRefresh={onRefresh} tintColor={primary} />
                 }
             >
                 {/* Header */}

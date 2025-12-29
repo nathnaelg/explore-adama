@@ -15,6 +15,13 @@ export default function NotificationPermissionScreen() {
 
     const enableNotifications = async () => {
         const granted = await requestNotificationPermission();
+        if (granted) {
+            const { getPushToken, registerPushTokenWithBackend } = await import('@/src/services/push.service');
+            const token = await getPushToken();
+            if (token) {
+                await registerPushTokenWithBackend(token);
+            }
+        }
         router.replace('/notifications');
     };
 

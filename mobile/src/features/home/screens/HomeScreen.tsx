@@ -6,6 +6,7 @@ import { BlogRail } from '@/src/features/home/components/BlogRail';
 import { EventRail } from '@/src/features/home/components/EventRail';
 import { FeaturedCarousel } from '@/src/features/home/components/FeaturedCarousel';
 import { HomeSkeleton } from '@/src/features/home/components/HomeSkeleton';
+import { useNotificationStats } from '@/src/features/notifications/hooks/useNotifications';
 import { useProfile } from '@/src/features/profile/hooks/useProfile';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import {
@@ -13,7 +14,6 @@ import {
 } from '@/src/services/push.service';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
@@ -49,8 +49,9 @@ export default function HomeScreen() {
     const { data: categories, isLoading: categoriesLoading } = useCategories();
     // Use Adama center coordinates as default for nearby
     const { data: nearby, isLoading: nearbyLoading } = useNearbyPlaces({ lat: 8.5414, lng: 39.2689, radius: 20 });
+    const { data: notificationStats } = useNotificationStats();
 
-    const [hasUnread, setHasUnread] = useState(false);
+    const unreadCount = notificationStats?.unreadCount || 0;
 
     /** 🔔 Notification Icon Handler */
     const openNotifications = async () => {
@@ -96,7 +97,13 @@ export default function HomeScreen() {
                                 size={22}
                                 color={text}
                             />
-                            {hasUnread && <View style={[styles.badge, { backgroundColor: primary }]} />}
+                            {unreadCount > 0 && (
+                                <View style={[styles.badge, { backgroundColor: primary }]}>
+                                    <Text style={styles.badgeText}>
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </Text>
+                                </View>
+                            )}
                         </TouchableOpacity>
 
                         {/* Profile */}
@@ -299,11 +306,21 @@ const styles = StyleSheet.create({
     },
     badge: {
         position: 'absolute',
-        top: 8,
-        right: 8,
-        width: 8,
-        height: 8,
-        borderRadius: 4,
+        top: -4,
+        right: -4,
+        minWidth: 18,
+        height: 18,
+        borderRadius: 9,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 4,
+        borderWidth: 2,
+        borderColor: 'white', // Using white for contrast
+    },
+    badgeText: {
+        color: 'white',
+        fontSize: 10,
+        fontWeight: 'bold',
     },
 
     sectionHeader: {

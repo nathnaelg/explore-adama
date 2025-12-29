@@ -5,6 +5,7 @@ import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useAuth } from '@/src/features/auth/contexts/AuthContext';
 import { PlaceDetailsSkeleton } from '@/src/features/explore/components/PlaceDetailsSkeleton';
 import { usePlace } from '@/src/features/explore/hooks/useExplore';
+import { useFavorites, useToggleFavorite } from '@/src/features/profile/hooks/useFavorites';
 import { useReviews } from '@/src/features/reviews/hooks/useReviews';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
@@ -31,6 +32,10 @@ export default function PlaceDetailsScreen() {
         itemType: 'PLACE',
         itemId: placeId || ''
     });
+
+    const { data: favorites = [] } = useFavorites();
+    const { mutate: toggleFavorite } = useToggleFavorite();
+    const isFavorited = favorites.some((fav: any) => fav.itemId === placeId);
 
 
 
@@ -76,7 +81,7 @@ export default function PlaceDetailsScreen() {
             });
             return;
         }
-        // toggleFavorite(placeId || ''); // This hook isn't imported here, but handle the UI logic for now
+        toggleFavorite({ itemId: placeId || '', itemType: 'PLACE', isFavorite: isFavorited });
     };
 
     const handleBooking = () => {
@@ -132,7 +137,7 @@ export default function PlaceDetailsScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.saveButton} onPress={handleToggleFavorite}>
-                    <Ionicons name="bookmark-outline" size={24} color="white" />
+                    <Ionicons name={isFavorited ? "bookmark" : "bookmark-outline"} size={24} color={isFavorited ? primary : "white"} />
                 </TouchableOpacity>
 
                 {/* Content */}

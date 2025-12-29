@@ -20,6 +20,7 @@ const FlashList = ShopifyFlashList as any;
 
 export default function SavedPlacesScreen() {
     const [selectedCategory, setSelectedCategory] = useState('all');
+    const [isManualRefreshing, setIsManualRefreshing] = useState(false);
     const insets = useSafeAreaInsets();
 
     // Theme hooks
@@ -39,6 +40,12 @@ export default function SavedPlacesScreen() {
         { id: 'PLACE', label: 'Places', icon: 'location-outline' },
         { id: 'EVENT', label: 'Events', icon: 'calendar-outline' },
     ];
+
+    const onRefresh = async () => {
+        setIsManualRefreshing(true);
+        await refetch();
+        setIsManualRefreshing(false);
+    };
 
     const savedPlaces = favorites || [];
 
@@ -120,7 +127,7 @@ export default function SavedPlacesScreen() {
                 estimatedItemSize={300}
                 keyExtractor={(item: any) => item.id}
                 refreshControl={
-                    <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+                    <RefreshControl refreshing={isManualRefreshing} onRefresh={onRefresh} />
                 }
                 contentContainerStyle={{ paddingBottom: 40 }}
                 ListHeaderComponent={
