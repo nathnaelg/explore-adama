@@ -1,4 +1,3 @@
-import { LoadingScreen } from '@/src/components/feedback/LoadingScreen';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
@@ -7,7 +6,6 @@ import { router } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
 import React from 'react';
 import {
-    ActivityIndicator,
     Image,
     ScrollView,
     StyleSheet,
@@ -35,7 +33,7 @@ export default function BookingViewScreen() {
     };
 
     if (isLoading) {
-        return <LoadingScreen message="Loading booking details..." />;
+        return <BookingDetailsSkeleton />;
     }
 
     if (error || !booking) {
@@ -122,7 +120,7 @@ export default function BookingViewScreen() {
                             disabled={isCancelling}
                         >
                             {isCancelling ? (
-                                <ActivityIndicator size="small" color="#FF3B30" />
+                                <Skeleton width={20} height={20} borderRadius={10} />
                             ) : (
                                 <ThemedText style={{ color: '#FF3B30', fontWeight: '600' }}>Cancel Booking</ThemedText>
                             )}

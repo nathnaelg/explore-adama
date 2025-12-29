@@ -1,3 +1,4 @@
+import { Skeleton } from '@/src/components/common/Skeleton';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useCategories, usePlaces } from '@/src/features/explore/hooks/useExplore';
@@ -6,7 +7,7 @@ import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Image, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 export default function MapScreen() {
@@ -89,7 +90,7 @@ export default function MapScreen() {
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                 />
-                {isLoading && <ActivityIndicator size="small" color={primary} />}
+                {isLoading && <Skeleton width={20} height={20} borderRadius={10} />}
             </View>
 
             {/* Categories */}

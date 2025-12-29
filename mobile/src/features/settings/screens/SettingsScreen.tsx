@@ -2,13 +2,13 @@ import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useAuth } from '@/src/features/auth/contexts/AuthContext';
 import { useProfile } from '@/src/features/profile/hooks/useProfile';
+import { SettingsSkeleton } from '@/src/features/settings/components/SettingsSkeleton';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
     Image,
     ScrollView,
     StyleSheet,
@@ -83,11 +83,7 @@ export default function SettingsScreen() {
     };
 
     if (isLoading) {
-        return (
-            <ThemedView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color={primary} />
-            </ThemedView>
-        );
+        return <SettingsSkeleton />;
     }
 
 

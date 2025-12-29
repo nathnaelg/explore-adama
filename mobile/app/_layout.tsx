@@ -37,8 +37,8 @@ function InitialLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="(public)/splash" />
-      <Stack.Screen name="onboarding" />
-      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="onboarding/index" />
+      <Stack.Screen name="(auth)/login" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(modals)/filter-sort" options={{ presentation: 'modal' }} />
       <Stack.Screen

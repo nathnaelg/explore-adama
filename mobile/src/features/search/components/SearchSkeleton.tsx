@@ -4,9 +4,10 @@ import { StyleSheet, View } from 'react-native';
 
 export function SearchSkeleton() {
     const card = useThemeColor({}, 'card');
+    const bg = useThemeColor({}, 'bg');
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: bg }]}>
             <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
                 <Skeleton width={120} height={20} />
             </View>
@@ -38,6 +39,7 @@ export function SearchSkeleton() {
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         paddingTop: 20,
         paddingBottom: 40,
     },

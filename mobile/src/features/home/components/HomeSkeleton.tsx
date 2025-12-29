@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function HomeSkeleton() {
     const bg = useThemeColor({}, 'bg');
+    const card = useThemeColor({}, 'card');
     const insets = useSafeAreaInsets();
 
     return (
@@ -74,9 +75,21 @@ export function HomeSkeleton() {
                 </View>
             </View>
 
-            {/* Events Skeleton (Bottom) */}
-            <View style={styles.section}>
-                <Skeleton width="100%" height={100} borderRadius={16} />
+            {/* Events Skeleton (Happening Soon) */}
+            <View style={styles.sectionHeader}>
+                <Skeleton width={150} height={20} />
+                <Skeleton width={60} height={16} />
+            </View>
+            <View style={{ flexDirection: 'row', gap: 16 }}>
+                {[1, 2].map((i) => (
+                    <View key={i} style={[styles.eventCardSkeleton, { backgroundColor: card }]}>
+                        <Skeleton width={50} height={50} borderRadius={12} />
+                        <View style={{ flex: 1, gap: 8 }}>
+                            <Skeleton width="100%" height={16} />
+                            <Skeleton width="60%" height={12} />
+                        </View>
+                    </View>
+                ))}
             </View>
         </View>
     );
@@ -112,5 +125,20 @@ const styles = StyleSheet.create({
         gap: 16,
         marginBottom: 16,
         alignItems: 'center',
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    eventCardSkeleton: {
+        width: 240,
+        height: 100,
+        borderRadius: 20,
+        padding: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
     },
 });

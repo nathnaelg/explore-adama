@@ -1,17 +1,18 @@
+import { Skeleton } from '@/src/components/common/Skeleton';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
-import { CreateBookingSkeleton, EventsListSkeleton } from '@/src/features/booking/components/BookingSkeleton';
+import { CreateBookingSkeleton } from '@/src/features/booking/components/CreateBookingSkeleton';
+import { EventsListSkeleton } from '@/src/features/booking/components/EventsListSkeleton';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import { useEvent, useEvents, useInitiateBooking } from '../hooks/useBooking';
 import { Event } from '../types';
@@ -212,7 +213,7 @@ export default function CreateBookingScreen() {
                     disabled={isBooking}
                 >
                     {isBooking ? (
-                        <ActivityIndicator color="white" />
+                        <Skeleton width={20} height={20} borderRadius={10} />
                     ) : (
                         <ThemedText type="default" style={styles.payButtonText}>
                             Confirm Booking →

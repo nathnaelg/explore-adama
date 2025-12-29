@@ -4,7 +4,6 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
@@ -119,7 +118,7 @@ export default function ExploreScreen() {
                 {/* ================= Cards ================= */}
                 <View style={styles.list}>
                     {placesLoading ? (
-                        <ActivityIndicator size="large" color={primary} style={{ marginTop: 50 }} />
+                        <ExploreSkeleton />
                     ) : places.length === 0 ? (
                         <ThemedText style={{ color: muted, textAlign: 'center', marginTop: 50 }}>
                             {t('explore.noPlacesFound')}
@@ -210,7 +209,7 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        fontSize: 28,
+        fontSize: 25,
         fontWeight: '700',
     },
 

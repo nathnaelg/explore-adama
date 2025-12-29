@@ -15,6 +15,7 @@ export const Colors = {
     error: '#EF4444',
     success: '#10B981',
     warning: '#F59E0B',
+    skeleton: '#E1E9EE',
   },
   dark: {
     bg: '#0B1220',
@@ -30,5 +31,6 @@ export const Colors = {
     error: '#F87171',
     success: '#34D399',
     warning: '#FBBF24',
+    skeleton: '#1F2937',
   },
 };

@@ -10,7 +10,7 @@ export const ThemeContext = React.createContext({
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  
+
   return (
     <ThemeContext.Provider value={{
       isDark,
@@ -19,4 +19,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       {children}
     </ThemeContext.Provider>
   );
+}
+
+export function useTheme() {
+  return React.useContext(ThemeContext);
 }

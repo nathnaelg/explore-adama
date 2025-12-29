@@ -13,7 +13,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { BookingHistorySkeleton } from '../components/BookingSkeleton';
+import { BookingHistorySkeleton } from '../components/BookingHistorySkeleton';
 
 export default function BookingHistoryScreen() {
     const { t } = useTranslation();

@@ -1,7 +1,7 @@
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useAuth } from '@/src/features/auth/hooks';
-import { NotificationSkeleton } from '@/src/features/notifications/components/NotificationSkeleton';
+import { NotificationsSkeleton } from '@/src/features/notifications/components/NotificationsSkeleton';
 import { useMarkAllNotificationsRead, useMarkNotificationRead, useNotifications } from '@/src/features/notifications/hooks/useNotifications';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,12 +9,11 @@ import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
     RefreshControl,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -154,7 +153,7 @@ export default function NotificationsScreen() {
     }
 
     if (isLoading) {
-        return <NotificationSkeleton />;
+        return <NotificationsSkeleton />;
     }
 
     return (
@@ -201,7 +200,7 @@ export default function NotificationsScreen() {
                 refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={primary} />}
             >
                 {isLoading && !isRefetching ? (
-                    <ActivityIndicator size="large" color={primary} style={{ marginTop: 40 }} />
+                    <NotificationsSkeleton />
                 ) : groupedNotifications.length === 0 ? (
                     <View style={styles.emptyState}>
                         <Ionicons name="notifications-off-outline" size={64} color={muted} />

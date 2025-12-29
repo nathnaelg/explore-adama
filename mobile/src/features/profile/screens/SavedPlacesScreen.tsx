@@ -1,6 +1,7 @@
 import { OptimizedImage } from '@/src/components/common/OptimizedImage';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
+import { SavedPlacesSkeleton } from '@/src/features/profile/components/SavedPlacesSkeleton';
 import { useFavorites, useToggleFavorite } from '@/src/features/profile/hooks/useFavorites';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +9,6 @@ import { FlashList as ShopifyFlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
-    ActivityIndicator,
     RefreshControl,
     ScrollView,
     StyleSheet,
@@ -173,7 +173,7 @@ export default function SavedPlacesScreen() {
                                 </View>
                             </View>
                         </View>
-                        {isLoading && <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 40 }} />}
+                        {isLoading && <SavedPlacesSkeleton />}
                     </>
                 }
                 ListEmptyComponent={

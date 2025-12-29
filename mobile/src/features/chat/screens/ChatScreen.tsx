@@ -1,7 +1,9 @@
 
+import { Skeleton } from '@/src/components/common/Skeleton';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useAuth } from '@/src/features/auth/contexts/AuthContext';
+import { ChatSkeleton } from '@/src/features/chat/components/ChatSkeleton';
 import { useChatMessages, useSendMessage } from '@/src/features/chat/hooks/useChat';
 import { ChatMessage } from '@/src/features/chat/types';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
@@ -11,7 +13,6 @@ import { router } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
     Keyboard,
     KeyboardAvoidingView,
     Platform,
@@ -148,12 +149,7 @@ export default function ChatScreen() {
                     onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
                     keyboardShouldPersistTaps="handled"
                 >
-                    {isLoading && (
-                        <View style={{ alignItems: 'center', paddingVertical: 20 }}>
-                            <ActivityIndicator size="large" color={primary} />
-                            <ThemedText style={{ color: muted, marginTop: 12 }}>{t('chat.loading')}</ThemedText>
-                        </View>
-                    )}
+                    {isLoading && <ChatSkeleton />}
 
                     {!isLoading && messages.length === 0 && (
                         <View style={{ alignItems: 'center', paddingVertical: 30, paddingHorizontal: 20 }}>
@@ -207,8 +203,8 @@ export default function ChatScreen() {
                             <View style={[styles.botAvatar, { backgroundColor: primary }]}>
                                 <Ionicons name="sparkles" size={14} color="#fff" />
                             </View>
-                            <View style={[styles.bubble, styles.botBubble, { backgroundColor: card }]}>
-                                <ActivityIndicator size="small" color={primary} />
+                            <View style={[styles.bubble, styles.botBubble, { backgroundColor: card, padding: 10 }]}>
+                                <Skeleton width={40} height={10} borderRadius={5} />
                             </View>
                         </View>
                     )}
@@ -247,7 +243,7 @@ export default function ChatScreen() {
                         disabled={!message.trim() || isPending}
                     >
                         {isPending ? (
-                            <ActivityIndicator size="small" color="#fff" />
+                            <Skeleton width={18} height={18} borderRadius={9} />
                         ) : (
                             <Ionicons name="send" size={18} color="#fff" />
                         )}

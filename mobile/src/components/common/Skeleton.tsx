@@ -18,7 +18,7 @@ interface SkeletonProps {
 
 export function Skeleton({ width, height, borderRadius = 8, style }: SkeletonProps) {
     const opacity = useSharedValue(0.3);
-    const bg = useThemeColor({}, 'muted'); // Base color for skeleton
+    const bg = useThemeColor({}, 'skeleton'); // Base color for skeleton
 
     useEffect(() => {
         opacity.value = withRepeat(
@@ -43,7 +43,7 @@ export function Skeleton({ width, height, borderRadius = 8, style }: SkeletonPro
                     width,
                     height,
                     borderRadius,
-                    backgroundColor: '#E1E9EE', // Light grey base
+                    backgroundColor: bg,
                 } as any,
                 style,
                 animatedStyle,
@@ -54,7 +54,6 @@ export function Skeleton({ width, height, borderRadius = 8, style }: SkeletonPro
 
 const styles = StyleSheet.create({
     skeleton: {
-        backgroundColor: '#E1E9EE',
         overflow: 'hidden',
     },
 });

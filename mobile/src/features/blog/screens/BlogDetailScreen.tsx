@@ -1,7 +1,9 @@
 
+import { Skeleton } from '@/src/components/common/Skeleton';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useAuth } from '@/src/features/auth/contexts/AuthContext';
+import { BlogDetailSkeleton } from '@/src/features/blog/components/BlogDetailSkeleton';
 import { useAddBlogComment, useBlogComments, useBlogPost } from '@/src/features/blog/hooks/useBlog';
 import { blogService } from '@/src/features/blog/services/blog.service';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
@@ -12,7 +14,6 @@ import { useLocalSearchParams } from 'expo-router/build/hooks';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
     Alert,
     Image,
     RefreshControl,
@@ -163,11 +164,7 @@ export default function BlogDetailScreen() {
     };
 
     if (postLoading) {
-        return (
-            <ThemedView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color={primary} />
-            </ThemedView>
-        );
+        return <BlogDetailSkeleton />;
     }
 
     if (postError || !post) {
@@ -201,7 +198,7 @@ export default function BlogDetailScreen() {
                     <View style={styles.headerActions}>
                         <TouchableOpacity onPress={handleTranslate} style={styles.headerAction} disabled={isTranslating}>
                             {isTranslating ? (
-                                <ActivityIndicator size="small" color={primary} />
+                                <Skeleton width={20} height={20} borderRadius={10} />
                             ) : (
                                 <Ionicons
                                     name={showOriginal ? "language-outline" : "document-text-outline"}
@@ -334,7 +331,7 @@ export default function BlogDetailScreen() {
                                 onPress={handleAddComment}
                                 style={[styles.commentButton, { backgroundColor: primary }]}
                             >
-                                {submittingComment ? <ActivityIndicator size="small" color="white" /> : <Ionicons name="send" size={18} color="white" />}
+                                {submittingComment ? <Skeleton width={18} height={18} borderRadius={9} /> : <Ionicons name="send" size={18} color="white" />}
                             </TouchableOpacity>
                         </View>
 
