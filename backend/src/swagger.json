@@ -7,7 +7,7 @@
     },
     "servers": [
         {
-            "url": "http://localhost:3000/api",
+            "url": "http://localhost:3005/api",
             "description": "Local Development Server"
         }
     ],
@@ -351,27 +351,58 @@
             "BlogMedia": {
                 "type": "object",
                 "properties": {
-                    "id": { "type": "string" },
-                    "postId": { "type": "string" },
-                    "url": { "type": "string" },
-                    "type": { "type": "string", "enum": ["IMAGE", "VIDEO"] },
-                    "caption": { "type": "string" }
+                    "id": {
+                        "type": "string"
+                    },
+                    "postId": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "IMAGE",
+                            "VIDEO"
+                        ]
+                    },
+                    "caption": {
+                        "type": "string"
+                    }
                 }
             },
             "BlogComment": {
                 "type": "object",
                 "properties": {
-                    "id": { "type": "string" },
-                    "postId": { "type": "string" },
-                    "userId": { "type": "string" },
-                    "content": { "type": "string" },
-                    "createdAt": { "type": "string", "format": "date-time" },
+                    "id": {
+                        "type": "string"
+                    },
+                    "postId": {
+                        "type": "string"
+                    },
+                    "userId": {
+                        "type": "string"
+                    },
+                    "content": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
                     "user": {
                         "type": "object",
                         "properties": {
-                            "id": { "type": "string" },
-                            "email": { "type": "string" },
-                            "profile": { "$ref": "#/components/schemas/Profile" }
+                            "id": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string"
+                            },
+                            "profile": {
+                                "$ref": "#/components/schemas/Profile"
+                            }
                         }
                     }
                 }
@@ -379,66 +410,160 @@
             "BlogPost": {
                 "type": "object",
                 "properties": {
-                    "id": { "type": "string" },
-                    "authorId": { "type": "string" },
-                    "title": { "type": "string" },
-                    "body": { "type": "string" },
-                    "category": { "type": "string" },
-                    "tags": { "type": "array", "items": { "type": "string" } },
-                    "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"] },
-                    "createdAt": { "type": "string", "format": "date-time" },
-                    "updatedAt": { "type": "string", "format": "date-time" },
+                    "id": {
+                        "type": "string"
+                    },
+                    "authorId": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "type": "string"
+                    },
+                    "category": {
+                        "type": "string"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "PENDING",
+                            "APPROVED",
+                            "REJECTED"
+                        ]
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
                     "author": {
                         "type": "object",
                         "properties": {
-                            "id": { "type": "string" },
-                            "email": { "type": "string" },
-                            "profile": { "$ref": "#/components/schemas/Profile" }
+                            "id": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string"
+                            },
+                            "profile": {
+                                "$ref": "#/components/schemas/Profile"
+                            }
                         }
                     },
                     "media": {
                         "type": "array",
-                        "items": { "$ref": "#/components/schemas/BlogMedia" }
+                        "items": {
+                            "$ref": "#/components/schemas/BlogMedia"
+                        }
                     },
                     "comments": {
                         "type": "array",
-                        "items": { "$ref": "#/components/schemas/BlogComment" }
+                        "items": {
+                            "$ref": "#/components/schemas/BlogComment"
+                        }
                     }
                 }
             },
             "CreateBlogPostDto": {
                 "type": "object",
-                "required": ["title", "body"],
+                "required": [
+                    "title",
+                    "body"
+                ],
                 "properties": {
-                    "title": { "type": "string", "example": "Top 5 places to visit" },
-                    "body": { "type": "string", "example": "Full markdown or HTML content." },
-                    "category": { "type": "string", "example": "travel" },
-                    "tags": { "type": "array", "items": { "type": "string" }, "example": ["adama", "family"] }
+                    "title": {
+                        "type": "string",
+                        "example": "Top 5 places to visit"
+                    },
+                    "body": {
+                        "type": "string",
+                        "example": "Full markdown or HTML content."
+                    },
+                    "category": {
+                        "type": "string",
+                        "example": "travel"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "adama",
+                            "family"
+                        ]
+                    }
                 }
             },
             "UpdateBlogPostDto": {
                 "type": "object",
                 "properties": {
-                    "title": { "type": "string" },
-                    "body": { "type": "string" },
-                    "category": { "type": "string" },
-                    "tags": { "type": "array", "items": { "type": "string" } },
-                    "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"] }
+                    "title": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "type": "string"
+                    },
+                    "category": {
+                        "type": "string"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "PENDING",
+                            "APPROVED",
+                            "REJECTED"
+                        ]
+                    }
                 }
             },
             "CreateBlogCommentDto": {
                 "type": "object",
-                "required": ["content"],
+                "required": [
+                    "content"
+                ],
                 "properties": {
-                    "content": { "type": "string", "example": "Great post!" }
+                    "content": {
+                        "type": "string",
+                        "example": "Great post!"
+                    }
                 }
             },
             "ModerateBlogPostDto": {
                 "type": "object",
-                "required": ["action"],
+                "required": [
+                    "action"
+                ],
                 "properties": {
-                    "action": { "type": "string", "enum": ["APPROVE", "REJECT", "PENDING"] },
-                    "reason": { "type": "string", "example": "Inappropriate content" }
+                    "action": {
+                        "type": "string",
+                        "enum": [
+                            "APPROVE",
+                            "REJECT",
+                            "PENDING"
+                        ]
+                    },
+                    "reason": {
+                        "type": "string",
+                        "example": "Inappropriate content"
+                    }
                 }
             },
             "BlogListResponse": {
@@ -446,11 +571,19 @@
                 "properties": {
                     "items": {
                         "type": "array",
-                        "items": { "$ref": "#/components/schemas/BlogPost" }
+                        "items": {
+                            "$ref": "#/components/schemas/BlogPost"
+                        }
                     },
-                    "page": { "type": "integer" },
-                    "limit": { "type": "integer" },
-                    "total": { "type": "integer" }
+                    "page": {
+                        "type": "integer"
+                    },
+                    "limit": {
+                        "type": "integer"
+                    },
+                    "total": {
+                        "type": "integer"
+                    }
                 }
             },
             "Review": {
@@ -775,6 +908,178 @@
                         "type": "string"
                     }
                 }
+            },
+            "SocialLoginDto": {
+                "type": "object",
+                "required": [
+                    "email"
+                ],
+                "properties": {
+                    "provider": {
+                        "type": "string",
+                        "example": "google"
+                    },
+                    "token": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ForgotPasswordDto": {
+                "type": "object",
+                "required": [
+                    "email"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    }
+                }
+            },
+            "ResetPasswordDto": {
+                "type": "object",
+                "required": [
+                    "email",
+                    "code",
+                    "newPassword"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "newPassword": {
+                        "type": "string",
+                        "minLength": 6
+                    }
+                }
+            },
+            "UserStats": {
+                "type": "object",
+                "properties": {
+                    "bookings": {
+                        "type": "integer"
+                    },
+                    "reviews": {
+                        "type": "integer"
+                    },
+                    "favorites": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "Notification": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "userId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "SYSTEM",
+                            "BOOKING",
+                            "PAYMENT",
+                            "SOCIAL",
+                            "MARKETING"
+                        ]
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "object"
+                    },
+                    "isRead": {
+                        "type": "boolean"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "NotificationListResponse": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Notification"
+                        }
+                    },
+                    "total": {
+                        "type": "integer"
+                    },
+                    "page": {
+                        "type": "integer"
+                    },
+                    "limit": {
+                        "type": "integer"
+                    },
+                    "totalPages": {
+                        "type": "integer"
+                    },
+                    "unreadCount": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "NotificationStats": {
+                "type": "object",
+                "properties": {
+                    "unreadCount": {
+                        "type": "integer"
+                    },
+                    "totalCount": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "UpdatePushTokenDto": {
+                "type": "object",
+                "required": [
+                    "pushToken"
+                ],
+                "properties": {
+                    "pushToken": {
+                        "type": "string"
+                    }
+                }
+            },
+            "MessageResponse": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "SuccessResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    }
+                }
             }
         }
     },
@@ -841,6 +1146,105 @@
                     },
                     "401": {
                         "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/auth/social": {
+            "post": {
+                "summary": "Social login",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SocialLoginDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    }
+                }
+            }
+        },
+        "/auth/forgot-password": {
+            "post": {
+                "summary": "Request password reset code",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ForgotPasswordDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Reset code sent",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    }
+                }
+            }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "summary": "Reset password",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ResetPasswordDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
                     }
                 }
             }
@@ -960,6 +1364,34 @@
                                 }
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/users/stats": {
+            "get": {
+                "summary": "Get user activity stats",
+                "tags": [
+                    "Users"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User stats",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserStats"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     }
                 }
             }
@@ -1263,6 +1695,61 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Place"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/places/search": {
+            "get": {
+                "summary": "Search places",
+                "tags": [
+                    "Places"
+                ],
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "perPage",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Place"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2108,6 +2595,237 @@
                 "responses": {
                     "200": {
                         "description": "Booking cancelled"
+                    }
+                }
+            }
+        },
+        "/notifications": {
+            "get": {
+                "summary": "List user notifications",
+                "tags": [
+                    "Notifications"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of notifications",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/notifications/stats": {
+            "get": {
+                "summary": "Get notification stats",
+                "tags": [
+                    "Notifications"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notification stats",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotificationStats"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/notifications/{id}/read": {
+            "put": {
+                "summary": "Mark notification as read",
+                "tags": [
+                    "Notifications"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notification marked as read",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/notifications/read-all": {
+            "put": {
+                "summary": "Mark all notifications as read",
+                "tags": [
+                    "Notifications"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "All notifications marked as read",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/notifications/push-token": {
+            "put": {
+                "summary": "Update push token",
+                "tags": [
+                    "Notifications"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdatePushTokenDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Push token updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/notifications/{id}": {
+            "delete": {
+                "summary": "Delete notification",
+                "tags": [
+                    "Notifications"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notification deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not found"
                     }
                 }
             }
@@ -2969,13 +3687,21 @@
         "/blog": {
             "post": {
                 "summary": "Create blog post",
-                "tags": ["Blog"],
-                "security": [{ "bearerAuth": [] }],
+                "tags": [
+                    "Blog"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
-                            "schema": { "$ref": "#/components/schemas/CreateBlogPostDto" }
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateBlogPostDto"
+                            }
                         }
                     }
                 },
@@ -2983,24 +3709,55 @@
                     "201": {
                         "description": "Post created",
                         "content": {
-                            "application/json": { "schema": { "$ref": "#/components/schemas/BlogPost" } }
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BlogPost"
+                                }
+                            }
                         }
                     }
                 }
             },
             "get": {
                 "summary": "List blog posts",
-                "tags": ["Blog"],
+                "tags": [
+                    "Blog"
+                ],
                 "parameters": [
-                    { "name": "q", "in": "query", "schema": { "type": "string" }, "description": "Search by title/body/tag" },
-                    { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
-                    { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20 } }
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Search by title/body/tag"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
                 ],
                 "responses": {
                     "200": {
                         "description": "List of posts",
                         "content": {
-                            "application/json": { "schema": { "$ref": "#/components/schemas/BlogListResponse" } }
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BlogListResponse"
+                                }
+                            }
                         }
                     }
                 }
@@ -3009,31 +3766,61 @@
         "/blog/{id}": {
             "get": {
                 "summary": "Get blog post",
-                "tags": ["Blog"],
+                "tags": [
+                    "Blog"
+                ],
                 "parameters": [
-                    { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
                 ],
                 "responses": {
                     "200": {
                         "description": "Blog post",
                         "content": {
-                            "application/json": { "schema": { "$ref": "#/components/schemas/BlogPost" } }
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BlogPost"
+                                }
+                            }
                         }
                     },
-                    "404": { "description": "Not found" }
+                    "404": {
+                        "description": "Not found"
+                    }
                 }
             },
             "patch": {
                 "summary": "Update blog post (author or admin)",
-                "tags": ["Blog"],
-                "security": [{ "bearerAuth": [] }],
+                "tags": [
+                    "Blog"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "parameters": [
-                    { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
                 ],
                 "requestBody": {
                     "content": {
                         "application/json": {
-                            "schema": { "$ref": "#/components/schemas/UpdateBlogPostDto" }
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateBlogPostDto"
+                            }
                         }
                     }
                 },
@@ -3041,34 +3828,74 @@
                     "200": {
                         "description": "Updated post",
                         "content": {
-                            "application/json": { "schema": { "$ref": "#/components/schemas/BlogPost" } }
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BlogPost"
+                                }
+                            }
                         }
                     },
-                    "403": { "description": "Forbidden" },
-                    "404": { "description": "Not found" }
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
                 }
             },
             "delete": {
                 "summary": "Delete blog post (admin)",
-                "tags": ["Blog"],
-                "security": [{ "bearerAuth": [] }],
+                "tags": [
+                    "Blog"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "parameters": [
-                    { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
                 ],
                 "responses": {
-                    "204": { "description": "Deleted" },
-                    "403": { "description": "Forbidden" },
-                    "404": { "description": "Not found" }
+                    "204": {
+                        "description": "Deleted"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
                 }
             }
         },
         "/blog/{id}/media": {
             "post": {
                 "summary": "Upload media to blog post (admin)",
-                "tags": ["Blog"],
-                "security": [{ "bearerAuth": [] }],
+                "tags": [
+                    "Blog"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "parameters": [
-                    { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
                 ],
                 "requestBody": {
                     "required": true,
@@ -3077,7 +3904,10 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                    "file": { "type": "string", "format": "binary" }
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
                                 }
                             }
                         }
@@ -3087,7 +3917,11 @@
                     "201": {
                         "description": "Media uploaded",
                         "content": {
-                            "application/json": { "schema": { "$ref": "#/components/schemas/BlogMedia" } }
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BlogMedia"
+                                }
+                            }
                         }
                     }
                 }
@@ -3096,16 +3930,31 @@
         "/blog/{id}/comments": {
             "post": {
                 "summary": "Add comment to blog post",
-                "tags": ["Blog"],
-                "security": [{ "bearerAuth": [] }],
+                "tags": [
+                    "Blog"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "parameters": [
-                    { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
                 ],
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
-                            "schema": { "$ref": "#/components/schemas/CreateBlogCommentDto" }
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateBlogCommentDto"
+                            }
                         }
                     }
                 },
@@ -3113,16 +3962,29 @@
                     "201": {
                         "description": "Comment created",
                         "content": {
-                            "application/json": { "schema": { "$ref": "#/components/schemas/BlogComment" } }
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BlogComment"
+                                }
+                            }
                         }
                     }
                 }
             },
             "get": {
                 "summary": "List comments for blog post",
-                "tags": ["Blog"],
+                "tags": [
+                    "Blog"
+                ],
                 "parameters": [
-                    { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -3131,7 +3993,9 @@
                             "application/json": {
                                 "schema": {
                                     "type": "array",
-                                    "items": { "$ref": "#/components/schemas/BlogComment" }
+                                    "items": {
+                                        "$ref": "#/components/schemas/BlogComment"
+                                    }
                                 }
                             }
                         }
@@ -3142,16 +4006,31 @@
         "/blog/{id}/moderate": {
             "post": {
                 "summary": "Moderate blog post (admin)",
-                "tags": ["Blog"],
-                "security": [{ "bearerAuth": [] }],
+                "tags": [
+                    "Blog"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "parameters": [
-                    { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
                 ],
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
-                            "schema": { "$ref": "#/components/schemas/ModerateBlogPostDto" }
+                            "schema": {
+                                "$ref": "#/components/schemas/ModerateBlogPostDto"
+                            }
                         }
                     }
                 },
@@ -3163,7 +4042,9 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
-                                        "post": { "$ref": "#/components/schemas/BlogPost" }
+                                        "post": {
+                                            "$ref": "#/components/schemas/BlogPost"
+                                        }
                                     }
                                 }
                             }

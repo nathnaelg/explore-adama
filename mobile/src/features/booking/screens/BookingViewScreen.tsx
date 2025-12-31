@@ -1,3 +1,4 @@
+import { Skeleton } from '@/src/components/common/Skeleton';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
@@ -12,6 +13,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { BookingDetailsSkeleton } from '../components/BookingDetailsSkeleton';
 import { useBooking, useCancelBooking } from '../hooks/useBooking';
 
 export default function BookingViewScreen() {
