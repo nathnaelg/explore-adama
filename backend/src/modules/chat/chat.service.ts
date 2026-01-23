@@ -4,7 +4,7 @@ import { prisma } from "../../config/db.ts";
 import { env } from "../../config/env.ts";
 import { GeminiClient } from "./chat.gemini.ts";
 
-const MEM_LIMIT = Number(env.CHAT_MEMORY_MESSAGES || 20);
+const MEM_LIMIT = Number(env.CHAT_MEMORY_MESSAGES || 50); // Increased history limit
 const ML_SERVICE_URL = env.ML_SERVICE_URL || "http://127.00.0.1:5000";
 const ML_SECRET = env.ML_SECRET || "";
 
@@ -65,7 +65,7 @@ export class ChatService {
     const sid = session.id;
 
     // 2) save user message
-    const userMessage = await prisma.chatMessage.create({
+    await prisma.chatMessage.create({
       data: {
         sessionId: sid,
         role: "USER",
@@ -74,12 +74,15 @@ export class ChatService {
       },
     });
 
-    // 3) load last MEM_LIMIT messages for context (asc order)
-    const recent = await prisma.chatMessage.findMany({
+    // 3) load last MEM_LIMIT messages for context (desc order to get LATEST, then reverse)
+    let recent = await prisma.chatMessage.findMany({
       where: { sessionId: sid },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: "desc" },
       take: MEM_LIMIT,
     });
+
+    // Reverse to chronological order (oldest -> newest)
+    recent = recent.reverse();
 
     // build message history to send to Gemini
     const history = recent.map((m) => ({
@@ -88,10 +91,26 @@ export class ChatService {
     }));
 
     // 4) call Gemini (system prompt + history + user message)
+    // IMPORTANT: The last message in 'history' is the one we just saved. 
+    // GeminiClient.generate handles 'history' and 'userMessage' separately usually.
+    // To avoid duplication, we should NOT pass the last message in 'history' if we also pass 'userMessage'.
+    // However, GeminiClient impl:
+    /*
+        Conversation history:
+        ${history.map(h => `${h.role}: ${h.content}`).join("\n")}
+        User: ${userMessage}
+    */
+    // If 'history' already contains the latest user message, it will be duplicated. 
+    // Let's remove the last element from history if it matches the current user message to avoid confusion, 
+    // OR, better, we pass `userMessage` as empty string and let history handle it? 
+    // Actually, checking GeminiClient.ts, it appends User: ${userMessage}. 
+    // So we should exclude the *current* message from 'history' passed to GeminiClient.
+    const historyForAi = history.slice(0, -1);
+
     const systemPrompt = ChatService._buildSystemPrompt();
     const geminiResp = await GeminiClient.generate({
       systemPrompt,
-      history,
+      history: historyForAi,
       userMessage: message,
     });
 
@@ -161,12 +180,28 @@ export class ChatService {
   // small helpers
 
   static _buildSystemPrompt() {
-    return `You are a helpful travel assistant called "Navigator".
-You MUST NOT speak as the system; produce user-friendly replies.
-When appropriate, extract intent and entities from user messages and return intent names like:
-  SEARCH_EVENTS, SEARCH_PLACES, RECOMMEND_PERSONAL, GLOBAL_POPULAR, FAQ, SMALL_TALK.
-When you output JSON it must be valid. Provide a short natural language reply for the user.
-Do not fabricate guaranteed facts about availability; always indicate if you are unsure and say you'll fetch live data.`;
+    return `You are "Navigator", an expert local travel assistant for Adama City, Ethiopia.
+Your personality is warm, enthusiastic, and knowledgeable—like a local friend showing someone around.
+
+CORE INSTRUCTIONS:
+1. **Context Awareness**: Use the provided Conversation History to remember previous topics. If the user asks "where is that?", refer to the last mentioned place.
+2. **Helpful & Actionable**: Don't just give facts; give suggestions. If someone asks for food, ask what cuisine they like or suggest the top rated one.
+3. **Intent Detection**: Accurately predict what the user wants:
+   - "Find me a jazz concert" -> SEARCH_EVENTS ({ category: "Music", keywords: "jazz" })
+   - "Where can I eat burger?" -> SEARCH_PLACES ({ category: "Restaurant", name: "burger" })
+   - "What should I do today?" -> RECOMMEND_PERSONAL
+   - "What's popular?" -> GLOBAL_POPULAR
+   - "Hi" -> SMALL_TALK
+4. **Adama Specifics**: You know about Adama (Nazret). 
+   
+Refrain from making up availability. If you don't know, say "I can check the latest listings for you."
+
+OUTPUT FORMAT:
+You must return a valid JSON object with:
+- "reply": The text to show the user.
+- "intent": One of [SEARCH_EVENTS, SEARCH_PLACES, RECOMMEND_PERSONAL, GLOBAL_POPULAR, FAQ, SMALL_TALK].
+- "entities": Object with search filters (date, category, placeId, name).
+`;
   }
 
   static async _searchEvents(entities: any) {
@@ -182,16 +217,21 @@ Do not fabricate guaranteed facts about availability; always indicate if you are
           const end = new Date(d.setHours(23, 59, 59, 999));
           where.date = { gte: start, lte: end };
         } else {
-             // Log if date entity was extracted but invalid
-             console.warn("ChatService._searchEvents: Invalid date extracted:", entities.date);
+          // Log if date entity was extracted but invalid
+          console.warn("ChatService._searchEvents: Invalid date extracted:", entities.date);
         }
       } catch (e) {
-         console.error("ChatService._searchEvents: Error parsing date:", e);
+        console.error("ChatService._searchEvents: Error parsing date:", e);
       }
     }
     if (entities?.category) where.categoryId = entities.category;
     if (entities?.placeId) where.placeId = entities.placeId;
-    // NOTE: 'location' entity is currently ignored as there is no field for it.
+    if (entities?.keywords) {
+      where.OR = [
+        { title: { contains: entities.keywords, mode: 'insensitive' } },
+        { description: { contains: entities.keywords, mode: 'insensitive' } }
+      ];
+    }
 
     const events = await prisma.event.findMany({
       where,
@@ -205,6 +245,15 @@ Do not fabricate guaranteed facts about availability; always indicate if you are
     const where: any = {};
     if (entities?.category) where.categoryId = entities.category;
     if (entities?.name) where.name = { contains: entities.name, mode: "insensitive" };
+
+    // Add generic keyword search
+    if (entities?.keywords && !where.name) {
+      where.OR = [
+        { name: { contains: entities.keywords, mode: 'insensitive' } },
+        { description: { contains: entities.keywords, mode: 'insensitive' } }
+      ];
+    }
+
     const places = await prisma.place.findMany({
       where,
       orderBy: [{ bookingCount: "desc" }, { viewCount: "desc" }],
@@ -239,7 +288,7 @@ Do not fabricate guaranteed facts about availability; always indicate if you are
       console.error("ChatService _getPersonalizedRecommendations error:", err?.response?.data ?? err.message);
       // Change: Do not re-throw error, but return empty array if ML service fails, 
       // allowing the flow to continue without the Warning in the final reply.
-      return []; 
+      return [];
     }
   }
 

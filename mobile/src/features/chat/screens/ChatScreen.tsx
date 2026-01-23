@@ -76,9 +76,25 @@ export default function ChatScreen() {
     }, [messages]);
 
     const loadSession = async () => {
-        const savedSessionId = await AsyncStorage.getItem(SESSION_KEY);
-        if (savedSessionId) {
-            setSessionId(savedSessionId);
+        try {
+            const savedSessionId = await AsyncStorage.getItem(SESSION_KEY);
+            if (savedSessionId) {
+                setSessionId(savedSessionId);
+            }
+        } catch (error) {
+            console.error('Failed to load session', error);
+        }
+    };
+
+    const handleNewChat = async () => {
+        try {
+            await AsyncStorage.removeItem(SESSION_KEY);
+            setSessionId(undefined);
+            setMessage('');
+            // Optional: You could explicitly invalidate queries if needed, 
+            // but treating it as a new empty state is enough effectively.
+        } catch (error) {
+            console.error('Failed to clear session', error);
         }
     };
 
@@ -134,6 +150,13 @@ export default function ChatScreen() {
                         </View>
                     </View>
                 </View>
+
+                <TouchableOpacity
+                    onPress={handleNewChat}
+                    style={{ padding: 8 }}
+                >
+                    <Ionicons name="add-circle-outline" size={24} color={primary} />
+                </TouchableOpacity>
             </View>
 
             {/* Chat Area + Input */}

@@ -16,7 +16,13 @@ export const useChatMessages = (sessionId?: string) => {
         queryFn: () => chatService.getSessionById(sessionId!),
         enabled: !!sessionId,
         select: (data) => data.messages || [],
-        refetchInterval: 5000, // Poll every second for new messages
+    });
+};
+
+export const useChatSessions = () => {
+    return useQuery({
+        queryKey: ['chat-sessions'],
+        queryFn: () => chatService.listSessions(),
     });
 };
 

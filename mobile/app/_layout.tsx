@@ -2,10 +2,10 @@ import { queryClient } from '@/src/core/api/queryClient';
 import { AuthProvider, useAuth } from '@/src/features/auth/contexts/AuthContext';
 import '@/src/i18n/config';
 import { ThemeProvider } from '@/src/providers/ThemeProvider';
-import { getPushToken, registerPushTokenWithBackend } from '@/src/services/push.service';
+import { addNotificationReceivedListener, addNotificationResponseReceivedListener, getPushToken, registerPushTokenWithBackend, setupNotificationHandler } from '@/src/services/push.service';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import * as Notifications from 'expo-notifications';
+
 import { Stack } from 'expo-router/stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -14,15 +14,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Set up notification handler
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Set up notification handler safely
+setupNotificationHandler();
+
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -63,14 +57,14 @@ function InitialLayout() {
 
   useEffect(() => {
     // Listener for notifications received when app is in foreground
-    const subscription = Notifications.addNotificationReceivedListener(notification => {
+    const subscription = addNotificationReceivedListener(notification => {
       console.log('Notification received in foreground:', notification);
       // You could update local state or query cache here if needed
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     });
 
     // Listener for when user interacts with a notification
-    const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+    const responseSubscription = addNotificationResponseReceivedListener(response => {
       console.log('Notification interaction:', response);
       // Navigate to notifications screen or relevant screen
       // router.push('/notifications');

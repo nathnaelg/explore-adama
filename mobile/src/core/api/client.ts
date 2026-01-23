@@ -95,6 +95,11 @@ apiClient.interceptors.response.use(
 
     // Treat 403 the same as 401 for expired/invalid token flows
     if ((status === 401 || status === 403) && !originalRequest._retry) {
+      // Don't retry auth endpoints (login, register, etc) on 401
+      if (originalRequest.url?.includes('/auth/')) {
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         try {
           // If already refreshing, wait for the promise and then retry

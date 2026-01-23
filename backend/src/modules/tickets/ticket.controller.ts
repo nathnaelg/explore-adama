@@ -5,6 +5,20 @@ import { prisma } from "../../config/db.ts";
 import { TicketService } from "./ticket.service.ts"; // Import new service
 
 export class TicketController {
+  // GET /api/tickets
+  static async list(req: Request, res: Response) {
+    try {
+      const authUser = (req as any).user;
+      if (!authUser) return res.status(401).json({ message: "Unauthorized" });
+
+      const tickets = await TicketService.listTickets(authUser.sub);
+      return res.json({ data: tickets }); // Wrap in data to match standard api response
+    } catch (err: any) {
+      console.error("List tickets error:", err);
+      return res.status(500).json({ message: "Failed to list tickets" });
+    }
+  }
+
   // GET /api/tickets/:id
   static async getOne(req: Request, res: Response) {
     try {

@@ -90,3 +90,47 @@ export async function registerPushTokenWithBackend(token: string) {
     return false;
   }
 }
+
+// Global Notification Handler Wrapper
+export function setupNotificationHandler() {
+  if (isAndroidExpoGo) {
+    console.warn('[PushService] setNotificationHandler skipped in Expo Go Android');
+    return;
+  }
+
+  const Notifications = getNotifications();
+  if (!Notifications) return;
+
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
+
+// Notification Listeners Wrappers
+export function addNotificationReceivedListener(callback: (notification: any) => void) {
+  if (isAndroidExpoGo) {
+    return { remove: () => { } };
+  }
+
+  const Notifications = getNotifications();
+  if (!Notifications) return { remove: () => { } };
+
+  return Notifications.addNotificationReceivedListener(callback);
+}
+
+export function addNotificationResponseReceivedListener(callback: (response: any) => void) {
+  if (isAndroidExpoGo) {
+    return { remove: () => { } };
+  }
+
+  const Notifications = getNotifications();
+  if (!Notifications) return { remove: () => { } };
+
+  return Notifications.addNotificationResponseReceivedListener(callback);
+}

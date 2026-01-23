@@ -35,7 +35,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, continueAsGuest, isLoading: authLoading } = useAuth();
+  const { login, isLoading: authLoading } = useAuth();
+
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -63,14 +64,7 @@ export default function LoginScreen() {
     }
   };
 
-  const handleContinueAsGuest = async () => {
-    try {
-      await continueAsGuest();
-      router.replace('/(tabs)');
-    } catch (error) {
-      Alert.alert(t('common.error'), t('auth.failedGuestMode'));
-    }
-  };
+
 
   const isButtonDisabled = isLoading || !email || !password;
 
@@ -206,15 +200,7 @@ export default function LoginScreen() {
               </ThemedText>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.guestButton, { borderColor: chip }]}
-              onPress={handleContinueAsGuest}
-              disabled={isLoading}
-            >
-              <ThemedText type="default" style={{ color: muted }}>
-                {t('auth.continueGuest')}
-              </ThemedText>
-            </TouchableOpacity>
+
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -310,10 +296,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  guestButton: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    marginTop: 10,
-  },
+
 });
