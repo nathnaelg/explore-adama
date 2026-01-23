@@ -50,7 +50,7 @@ export default function ReviewListScreen() {
                         <View style={styles.header}>
                             <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={24} color={text} /></TouchableOpacity>
                             <ThemedText type="title">{t('reviews.reviewsList')}</ThemedText>
-                            <View style={{ width: 24 }} />
+                            <View style={{ width: 24}} />
                         </View>
 
                         <View style={styles.ratingSummary}>

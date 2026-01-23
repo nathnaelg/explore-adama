@@ -1,18 +1,31 @@
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
+import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Linking,
     ScrollView,
     StyleSheet,
+    TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
 
 export default function HelpCenterScreen() {
     const { t } = useTranslation();
+    const primaryColor = useThemeColor({}, 'primary');
+    const backgroundColor = useThemeColor({}, 'background');
+    const cardColor = useThemeColor({}, 'card');
+    const textColor = useThemeColor({}, 'text');
+    const mutedColor = useThemeColor({}, 'muted');
+    const tintColor = useThemeColor({}, 'tint');
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const [expandedFaqId, setExpandedFaqId] = useState<number | null>(null);
+
     const faqs = [
         {
             id: 1,
@@ -40,70 +53,76 @@ export default function HelpCenterScreen() {
         {
             id: 1,
             title: t('public.callUs'),
-            icon: 'call-outline',
-            description: '+251 911 123 456',
+            icon: 'call',
             action: () => Linking.openURL('tel:+251911123456'),
         },
         {
             id: 2,
             title: t('public.liveChat'),
-            icon: 'chatbubble-outline',
-            description: t('public.available247'),
+            icon: 'chatbubble',
             action: () => router.push('/chat'),
         },
         {
             id: 3,
             title: t('public.emailUs'),
-            icon: 'mail-outline',
-            description: 'support@adamacity.gov.et',
+            icon: 'mail',
             action: () => Linking.openURL('mailto:support@adamacity.gov.et'),
         },
     ];
 
+    const toggleFaq = (id: number) => {
+        setExpandedFaqId(expandedFaqId === id ? null : id);
+    };
+
     return (
         <ThemedView style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Header */}
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={24} color="#666" />
-                    </TouchableOpacity>
-                    <ThemedText type="title" style={styles.title}>
-                        {t('public.helpSupport')}
-                    </ThemedText>
-                    <View style={{ width: 24 }} />
-                </View>
+            {/* Header */}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={{ padding: 4 }}>
+                    <Ionicons name="arrow-back" size={24} color={textColor} />
+                </TouchableOpacity>
+                <ThemedText type="title" style={[styles.title, { color: textColor }]}>
+                    {t('public.helpSupport')}
+                </ThemedText>
+                <View style={{ width: 28 }} />
+            </View>
 
-                {/* Hero Section */}
-                <View style={styles.hero}>
-                    <ThemedText type="title" style={styles.heroTitle}>
-                        {t('public.howCanWeHelp')}
-                    </ThemedText>
-                    <ThemedText type="default" style={styles.heroDescription}>
-                        {t('public.heroDesc')}
-                    </ThemedText>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 40 }}
+            >
+                {/* Search Bar */}
+                <View style={styles.searchContainer}>
+                    <View style={[styles.searchBar, { backgroundColor: cardColor }]}>
+                        <Ionicons name="search" size={20} color={mutedColor} style={{ marginRight: 10 }} />
+                        <TextInput
+                            placeholder={t('public.howCanWeHelp', { defaultValue: 'How can we help you?' })}
+                            placeholderTextColor={mutedColor}
+                            style={[styles.searchInput, { color: textColor }]}
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                        />
+                    </View>
                 </View>
 
                 {/* Contact Methods */}
                 <View style={styles.section}>
-                    <ThemedText type="subtitle" style={styles.sectionTitle}>
+                    <ThemedText type="subtitle" style={[styles.sectionTitle, { color: textColor }]}>
                         {t('public.contactUs')}
                     </ThemedText>
-                    <View style={styles.contactMethods}>
+                    <View style={styles.contactGrid}>
                         {contactMethods.map((method) => (
                             <TouchableOpacity
                                 key={method.id}
-                                style={styles.contactCard}
+                                style={[styles.contactCard, { backgroundColor: cardColor }]}
                                 onPress={method.action}
                             >
-                                <View style={styles.contactIcon}>
-                                    <Ionicons name={method.icon as any} size={32} color="#007AFF" />
+                                <View style={[styles.contactIconCircle, { backgroundColor: '#FEF9C3' }]}>
+                                    {/* Using a light yellow/gold tint for the icon bg to match branding */}
+                                    <Ionicons name={method.icon as any} size={24} color="#1F2937" />
                                 </View>
-                                <ThemedText type="default" style={styles.contactTitle}>
+                                <ThemedText type="default" style={[styles.contactTitle, { color: textColor }]}>
                                     {method.title}
-                                </ThemedText>
-                                <ThemedText type="default" style={styles.contactDescription}>
-                                    {method.description}
                                 </ThemedText>
                             </TouchableOpacity>
                         ))}
@@ -112,50 +131,71 @@ export default function HelpCenterScreen() {
 
                 {/* FAQ Section */}
                 <View style={styles.section}>
-                    <ThemedText type="subtitle" style={styles.sectionTitle}>
-                        {t('public.faq')}
+                    <ThemedText type="subtitle" style={[styles.sectionTitle, { color: textColor }]}>
+                        {t('public.frequentlyAskedQuestions')}
                     </ThemedText>
                     <View style={styles.faqList}>
-                        {faqs.map((faq) => (
-                            <TouchableOpacity key={faq.id} style={styles.faqItem}>
-                                <View style={styles.faqQuestion}>
-                                    <ThemedText type="default" style={styles.faqQuestionText}>
-                                        {faq.question}
-                                    </ThemedText>
-                                    <Ionicons name="chevron-down" size={20} color="#666" />
+                        {faqs.map((faq) => {
+                            const isExpanded = expandedFaqId === faq.id;
+                            return (
+                                <View key={faq.id} style={[styles.faqItem, { backgroundColor: cardColor }]}>
+                                    <TouchableOpacity
+                                        style={styles.faqHeader}
+                                        onPress={() => toggleFaq(faq.id)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <ThemedText type="default" style={[styles.faqQuestionText, { color: textColor }]}>
+                                            {faq.question}
+                                        </ThemedText>
+                                        <Ionicons
+                                            name={isExpanded ? "chevron-up" : "chevron-down"}
+                                            size={20}
+                                            color={mutedColor}
+                                        />
+                                    </TouchableOpacity>
+                                    {isExpanded && (
+                                        <View style={styles.faqContent}>
+                                            <ThemedText type="default" style={[styles.faqAnswer, { color: mutedColor }]}>
+                                                {faq.answer}
+                                            </ThemedText>
+                                        </View>
+                                    )}
                                 </View>
-                                <ThemedText type="default" style={styles.faqAnswer}>
-                                    {faq.answer}
-                                </ThemedText>
-                            </TouchableOpacity>
-                        ))}
+                            );
+                        })}
                     </View>
                 </View>
 
-                {/* Legal Links */}
-                <View style={styles.legalSection}>
+                {/* Legal Links & Footer */}
+                <View style={styles.footer}>
                     <TouchableOpacity
-                        style={styles.legalLink}
+                        style={styles.legalRow}
                         onPress={() => router.push('/privacy-policy')}
                     >
-                        <ThemedText type="link">{t('public.privacyPolicy')}</ThemedText>
+                        <ThemedText style={{ color: textColor }}>{t('public.privacyPolicy')}</ThemedText>
+                        <Ionicons name="chevron-forward" size={16} color={mutedColor} />
                     </TouchableOpacity>
+
                     <TouchableOpacity
-                        style={styles.legalLink}
+                        style={styles.legalRow}
                         onPress={() => router.push('/terms')}
                     >
-                        <ThemedText type="link">{t('public.termsOfService')}</ThemedText>
+                        <ThemedText style={{ color: textColor }}>{t('public.termsOfService')}</ThemedText>
+                        <Ionicons name="chevron-forward" size={16} color={mutedColor} />
                     </TouchableOpacity>
-                </View>
 
-                {/* Footer */}
-                <View style={styles.footer}>
-                    <ThemedText type="default" style={styles.version}>
-                        {t('public.version', { version: '1.0.2' })}
-                    </ThemedText>
-                    <ThemedText type="default" style={styles.copyright}>
-                        {t('public.copyright')}
-                    </ThemedText>
+                    <View style={styles.brandFooter}>
+                        <View style={styles.logoCircle}>
+                            <Ionicons name="search" size={24} color="#000" />
+                            {/* Placeholder for the specific yellow branding icon if image asset not available */}
+                        </View>
+                        <ThemedText style={[styles.versionText, { color: mutedColor }]}>
+                            Adama Smart Tourism v1.0.2
+                        </ThemedText>
+                        <ThemedText style={[styles.copyrightText, { color: mutedColor }]}>
+                            © 2023 Adama City Administration
+                        </ThemedText>
+                    </View>
                 </View>
             </ScrollView>
         </ThemedView>
@@ -171,42 +211,43 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingTop: 60,
+        paddingTop: 60, // Adjust for safe area or use SafeAreaView
         paddingBottom: 20,
     },
     title: {
         fontSize: 20,
         fontWeight: 'bold',
     },
-    hero: {
+    searchContainer: {
         paddingHorizontal: 20,
-        paddingVertical: 32,
+        marginBottom: 20,
+    },
+    searchBar: {
+        flexDirection: 'row',
         alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        borderRadius: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+        elevation: 1,
     },
-    heroTitle: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        marginBottom: 12,
-        textAlign: 'center',
-    },
-    heroDescription: {
+    searchInput: {
+        flex: 1,
         fontSize: 16,
-        color: '#666',
-        textAlign: 'center',
-        lineHeight: 24,
     },
     section: {
         paddingHorizontal: 20,
-        paddingVertical: 32,
-    },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
         marginBottom: 24,
     },
-    contactMethods: {
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        marginBottom: 16,
+    },
+    contactGrid: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         gap: 12,
@@ -214,91 +255,89 @@ const styles = StyleSheet.create({
     contactCard: {
         flex: 1,
         alignItems: 'center',
-        backgroundColor: 'white',
-        padding: 20,
+        paddingVertical: 24,
+        paddingHorizontal: 8,
         borderRadius: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 4,
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
     },
-    contactIcon: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: '#F0F8FF',
+    contactIconCircle: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 16,
+        marginBottom: 12,
     },
     contactTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        marginBottom: 8,
-        textAlign: 'center',
-    },
-    contactDescription: {
-        color: '#666',
         fontSize: 14,
+        fontWeight: '600',
         textAlign: 'center',
     },
     faqList: {
-        gap: 16,
+        gap: 12,
     },
     faqItem: {
-        backgroundColor: 'white',
         borderRadius: 12,
-        padding: 16,
+        overflow: 'hidden',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.03,
+        shadowRadius: 2,
+        elevation: 1,
     },
-    faqQuestion: {
+    faqHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        padding: 16,
     },
     faqQuestionText: {
+        fontSize: 15,
+        fontWeight: '500',
         flex: 1,
-        fontSize: 16,
-        fontWeight: '600',
-        marginRight: 12,
+        marginRight: 10,
+    },
+    faqContent: {
+        paddingHorizontal: 16,
+        paddingBottom: 16,
     },
     faqAnswer: {
-        marginTop: 12,
-        paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: '#F5F5F5',
-        color: '#666',
         fontSize: 14,
-        lineHeight: 20,
-    },
-    legalSection: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 24,
-        paddingVertical: 32,
-        borderTopWidth: 1,
-        borderTopColor: '#E0E0E0',
-    },
-    legalLink: {
-        padding: 8,
+        lineHeight: 22,
     },
     footer: {
-        alignItems: 'center',
-        paddingVertical: 32,
+        marginTop: 20,
         paddingHorizontal: 20,
     },
-    version: {
-        color: '#666',
-        fontSize: 14,
-        marginBottom: 8,
+    legalRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 16,
     },
-    copyright: {
-        color: '#666',
-        fontSize: 14,
+    brandFooter: {
+        alignItems: 'center',
+        marginTop: 40,
+        paddingBottom: 20,
+    },
+    logoCircle: {
+        width: 48,
+        height: 48,
+        borderRadius: 16,
+        backgroundColor: '#FFD700', // Gold color for branding
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 12,
+    },
+    versionText: {
+        fontSize: 12,
+        marginBottom: 4,
+    },
+    copyrightText: {
+        fontSize: 12,
     },
 });

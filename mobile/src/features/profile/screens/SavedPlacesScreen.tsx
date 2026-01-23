@@ -167,19 +167,21 @@ export default function SavedPlacesScreen() {
                             ))}
                         </ScrollView>
 
-                        <View style={styles.statsContainer}>
-                            <View style={styles.statItem}>
-                                <Ionicons name="bookmark" size={24} color="#007AFF" />
-                                <View style={styles.statTexts}>
-                                    <ThemedText type="title" style={styles.statNumber}>
-                                        {savedPlaces.length}
-                                    </ThemedText>
-                                    <ThemedText type="default" style={styles.statLabel}>
-                                        Total Saved
-                                    </ThemedText>
-                                </View>
-                            </View>
-                        </View>
+{/*
+<View style={styles.statsContainer}>
+    <View style={styles.statItem}>
+        <Ionicons name="bookmark" size={24} color="#007AFF" />
+        <View style={styles.statTexts}>
+            <ThemedText type="title" style={styles.statNumber}>
+                {savedPlaces.length}
+            </ThemedText>
+            <ThemedText type="default" style={styles.statLabel}>
+                Total Saved
+            </ThemedText>
+        </View>
+    </View>
+</View>
+*/}
                         {isLoading && <SavedPlacesSkeleton />}
                     </>
                 }

@@ -139,24 +139,21 @@ const styles = StyleSheet.create({
     updatedContainer: {
         paddingHorizontal: 20,
         paddingVertical: 16,
-        backgroundColor: '#F5F5F5',
+        borderRadius: 8, // Added radius for better look
     },
     updatedText: {
         fontSize: 12,
         fontWeight: '600',
-        color: '#666',
         textAlign: 'center',
     },
     introduction: {
         paddingHorizontal: 20,
         paddingVertical: 32,
         borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
     },
     introductionText: {
         fontSize: 16,
         lineHeight: 24,
-        color: '#666',
         textAlign: 'center',
     },
     sectionsContainer: {
@@ -175,33 +172,28 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         marginRight: 8,
-        color: '#007AFF',
     },
     sectionTitle: {
         fontSize: 20,
         fontWeight: 'bold',
+        flex: 1, // Ensure title wraps if needed
     },
     sectionContent: {
         fontSize: 16,
         lineHeight: 24,
-        color: '#666',
     },
     agreementContainer: {
         paddingHorizontal: 20,
         paddingVertical: 24,
         borderTopWidth: 1,
-        borderTopColor: '#E0E0E0',
         borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
     },
     agreementText: {
         fontSize: 16,
         lineHeight: 24,
-        color: '#666',
         textAlign: 'center',
     },
     acceptButton: {
-        backgroundColor: '#007AFF',
         marginHorizontal: 20,
         marginVertical: 32,
         paddingVertical: 18,
@@ -209,7 +201,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     acceptButtonText: {
-        color: 'white',
+        color: 'white', // Keep white for filled button text usually
         fontSize: 16,
         fontWeight: '600',
     },
