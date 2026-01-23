@@ -17,7 +17,7 @@ import {
 export default function HelpCenterScreen() {
     const { t } = useTranslation();
     const primaryColor = useThemeColor({}, 'primary');
-    const backgroundColor = useThemeColor({}, 'background');
+    const backgroundColor = useThemeColor({}, 'bg');
     const cardColor = useThemeColor({}, 'card');
     const textColor = useThemeColor({}, 'text');
     const mutedColor = useThemeColor({}, 'muted');
