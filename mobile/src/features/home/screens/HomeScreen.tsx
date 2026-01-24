@@ -143,7 +143,31 @@ export default function HomeScreen() {
                                     color={primary}
                                 />
                                 <Text style={{ color: text, fontSize: 12 }} numberOfLines={1}>
-                                    {t(`explore.categories.${cat.key || cat.name.toLowerCase().replace(/[^a-z]/g, '')}`, { defaultValue: cat.name })}
+                                    {(() => {
+                                        const KEY_MAP: Record<string, string> = {
+                                            'hotel': 'hotels',
+                                            'hotels': 'hotels',
+                                            'restaurant': 'restaurants',
+                                            'restaurants': 'restaurants',
+                                            'event': 'events',
+                                            'events': 'events',
+                                            'attraction': 'attractions',
+                                            'attractions': 'attractions',
+                                            'historical site': 'historicalsites',
+                                            'historical sites': 'historicalsites',
+                                            'nature & wildlife': 'natureandwildlife',
+                                            'nature and wildlife': 'natureandwildlife',
+                                            'relaxation & spa': 'relaxationandspa',
+                                            'relaxation and spa': 'relaxationandspa',
+                                            'shopping': 'shopping',
+                                            'nightlife': 'nightlife'
+                                        };
+                                        let rawKey = ((cat as any).key || (cat as any).name || '').toLowerCase().trim();
+                                        if (KEY_MAP[rawKey]) rawKey = KEY_MAP[rawKey];
+                                        else rawKey = rawKey.replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+
+                                        return t(`explore.categories.${rawKey}`, { defaultValue: cat.name });
+                                    })()}
                                 </Text>
                             </TouchableOpacity>
                         ))

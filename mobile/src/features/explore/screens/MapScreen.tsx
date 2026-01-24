@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 export default function MapScreen() {
@@ -138,47 +138,101 @@ export default function MapScreen() {
 
             {/* Categories */}
             <View style={styles.categoriesRow}>
-                <TouchableOpacity
-                    style={[
-                        styles.categoryChip,
-                        { backgroundColor: !selectedCategory ? primary : card },
-                    ]}
-                    onPress={() => setSelectedCategory(null)}
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ gap: 10, paddingHorizontal: 16 }}
                 >
-                    <Ionicons
-                        name="apps-outline"
-                        size={16}
-                        color={!selectedCategory ? '#fff' : muted}
-                    />
-                    <ThemedText style={{ color: !selectedCategory ? '#fff' : muted, fontWeight: '600' }}>
-                        {t('explore.all')}
-                    </ThemedText>
-                </TouchableOpacity>
-                {categories.slice(0, 3).map((category) => (
                     <TouchableOpacity
-                        key={category.id}
                         style={[
                             styles.categoryChip,
-                            { backgroundColor: selectedCategory === category.id ? primary : card },
+                            { backgroundColor: !selectedCategory ? primary : card },
                         ]}
-                        onPress={() => setSelectedCategory(category.id)}
+                        onPress={() => setSelectedCategory(null)}
                     >
                         <Ionicons
-                            name="location-outline"
+                            name="apps-outline"
                             size={16}
-                            color={selectedCategory === category.id ? '#fff' : muted}
+                            color={!selectedCategory ? '#fff' : muted}
                         />
-                        <ThemedText
-                            style={{
-                                color: selectedCategory === category.id ? '#fff' : muted,
-                                fontWeight: '600',
-                            }}
-                            numberOfLines={1}
-                        >
-                            {category.name}
+                        <ThemedText style={{ color: !selectedCategory ? '#fff' : muted, fontWeight: '600' }}>
+                            {t('explore.all')}
                         </ThemedText>
                     </TouchableOpacity>
-                ))}
+                    {categories.map((cat) => {
+                        const KEY_MAP: Record<string, string> = {
+                            'hotel': 'hotels',
+                            'hotels': 'hotels',
+                            'restaurant': 'restaurants',
+                            'restaurants': 'restaurants',
+                            'historical site': 'historicalsites',
+                            'historical sites': 'historicalsites',
+                            'historical_sites': 'historicalsites',
+                            'historical-sites': 'historicalsites',
+                            'history': 'historicalsites',
+                            'historical': 'historicalsites',
+                            'historicsites': 'historicalsites',
+                            'nature & wildlife': 'natureandwildlife',
+                            'nature and wildlife': 'natureandwildlife',
+                            'nature_wildlife': 'natureandwildlife',
+                            'nature-wildlife': 'natureandwildlife',
+                            'nature': 'natureandwildlife',
+                            'wildlife': 'natureandwildlife',
+                            'naturewildlife': 'natureandwildlife',
+                            'relaxation & spa': 'relaxationandspa',
+                            'relaxation and spa': 'relaxationandspa',
+                            'relaxation_spa': 'relaxationandspa',
+                            'relaxation-spa': 'relaxationandspa',
+                            'relaxtion & spa': 'relaxationandspa',
+                            'relaxtion and spa': 'relaxationandspa',
+                            'relaxation': 'relaxationandspa',
+                            'relaxationspa': 'relaxationandspa',
+                            'shopping': 'shopping',
+                            'nightlife': 'nightlife',
+                            'spa': 'spa',
+                            'attractions': 'attractions',
+                            'attraction': 'attractions',
+                            'events': 'events',
+                            'event': 'events'
+                        };
+
+                        let rawKey = ((cat as any).key || (cat as any).name || '').toLowerCase().trim();
+                        if (KEY_MAP[rawKey]) {
+                            rawKey = KEY_MAP[rawKey];
+                        } else {
+                            rawKey = rawKey.replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+                        }
+
+                        const finalKey = `explore.categories.${rawKey}`;
+                        const translated = t(finalKey, { defaultValue: cat.name });
+
+                        return (
+                            <TouchableOpacity
+                                key={cat.id}
+                                style={[
+                                    styles.categoryChip,
+                                    { backgroundColor: selectedCategory === cat.id ? primary : card },
+                                ]}
+                                onPress={() => setSelectedCategory(cat.id)}
+                            >
+                                <Ionicons
+                                    name="location-outline"
+                                    size={16}
+                                    color={selectedCategory === cat.id ? '#fff' : muted}
+                                />
+                                <ThemedText
+                                    style={{
+                                        color: selectedCategory === cat.id ? '#fff' : muted,
+                                        fontWeight: '600',
+                                    }}
+                                    numberOfLines={1}
+                                >
+                                    {translated}
+                                </ThemedText>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </ScrollView>
             </View>
 
             {/* Bottom Place Card */}
@@ -252,10 +306,9 @@ const styles = StyleSheet.create({
     categoriesRow: {
         position: 'absolute',
         top: 130,
-        left: 16,
-        right: 16,
+        left: 0,
+        right: 0,
         flexDirection: 'row',
-        gap: 10,
     },
     categoryChip: {
         flexDirection: 'row',

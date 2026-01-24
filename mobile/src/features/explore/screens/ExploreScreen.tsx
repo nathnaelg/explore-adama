@@ -73,6 +73,61 @@ export default function ExploreScreen() {
                 >
                     {displayCategories.map((cat) => {
                         const active = (selectedCategoryId === null && cat.id === 'all') || selectedCategoryId === cat.id;
+                        // Specific map for known singular/plural issues
+                        const KEY_MAP: Record<string, string> = {
+                            'hotel': 'hotels',
+                            'hotels': 'hotels',
+                            'restaurant': 'restaurants',
+                            'restaurants': 'restaurants',
+                            'historical site': 'historicalsites',
+                            'historical sites': 'historicalsites',
+                            'historical_sites': 'historicalsites', // Backend variant
+                            'historical-sites': 'historicalsites', // Backend variant
+                            'history': 'historicalsites',
+                            'historical': 'historicalsites',
+                            'historicsites': 'historicalsites',
+                            'nature & wildlife': 'natureandwildlife',
+                            'nature and wildlife': 'natureandwildlife',
+                            'nature_wildlife': 'natureandwildlife', // Backend variant
+                            'nature-wildlife': 'natureandwildlife', // Backend variant
+                            'nature': 'natureandwildlife',
+                            'wildlife': 'natureandwildlife',
+                            'naturewildlife': 'natureandwildlife',
+                            'relaxation & spa': 'relaxationandspa',
+                            'relaxation and spa': 'relaxationandspa',
+                            'relaxation_spa': 'relaxationandspa', // Backend variant
+                            'relaxation-spa': 'relaxationandspa', // Backend variant
+                            'relaxtion & spa': 'relaxationandspa',
+                            'relaxtion and spa': 'relaxationandspa',
+                            'relaxation': 'relaxationandspa',
+                            'relaxationspa': 'relaxationandspa',
+                            'shopping': 'shopping',
+                            'nightlife': 'nightlife',
+                            'spa': 'spa',
+                            'attractions': 'attractions',
+                            'attraction': 'attractions',
+                            'events': 'events',
+                            'event': 'events'
+                        };
+
+                        let rawKey = ((cat as any).key || (cat as any).name || '').toLowerCase().trim();
+                        // Handle "Hotel" -> "hotels"
+                        console.log(`[DEBUG_TRANSLATE] Name: '${cat.name}', Initial RawKey: '${rawKey}'`);
+
+                        if (KEY_MAP[rawKey]) {
+                            rawKey = KEY_MAP[rawKey];
+                            console.log(`[DEBUG_TRANSLATE] Mapped to: '${rawKey}'`);
+                        } else {
+                            rawKey = rawKey.replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+                            console.log(`[DEBUG_TRANSLATE] Normalized to: '${rawKey}'`);
+                        }
+
+                        const finalKey = `explore.categories.${rawKey}`;
+                        const translated = t(finalKey, { defaultValue: cat.name });
+                        console.log(`[DEBUG_TRANSLATE] Final: '${finalKey}' -> '${translated}'`);
+
+
+
                         return (
                             <TouchableOpacity
                                 key={cat.id}
@@ -90,7 +145,7 @@ export default function ExploreScreen() {
                                         fontWeight: '600',
                                     }}
                                 >
-                                    {cat.id === 'all' ? t('explore.all') : t(`explore.categories.${(cat as any).key || (cat as any).name.toLowerCase().replace(/[^a-z]/g, '')}`, { defaultValue: cat.name })}
+                                    {cat.id === 'all' ? t('explore.all') : translated}
                                 </ThemedText>
                             </TouchableOpacity>
                         );
