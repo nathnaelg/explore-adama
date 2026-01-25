@@ -1,9 +1,15 @@
-import { setLogoutCallback } from '@/src/core/api/client';
-import { profileService } from '@/src/features/profile/services/profile.service';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import { authService } from '../services/auth.service';
-import { AuthResponse, LoginDto, RegisterDto, SocialLoginDto } from '../types';
+import { setLogoutCallback } from "@/src/core/api/client";
+import { profileService } from "@/src/features/profile/services/profile.service";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, {
+    createContext,
+    ReactNode,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
+import { authService } from "../services/auth.service";
+import { AuthResponse, LoginDto, RegisterDto, SocialLoginDto } from "../types";
 
 interface AuthContextType {
   user: any | null;
@@ -17,10 +23,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateUser: (user: any) => Promise<void>;
   checkAuth: () => Promise<boolean>;
-  continueAsGuest: () => Promise<void>;
   clearError: () => void;
   isReady: boolean;
-  isGuest: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,7 +34,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [isGuest, setIsGuest] = useState(false);
 
   // Initialize auth state
   useEffect(() => {
@@ -38,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Register global logout callback for API client
     setLogoutCallback(() => {
-      console.log('[AuthContext] Global logout triggered from API Client');
+      console.log("[AuthContext] Global logout triggered from API Client");
       setUser(null);
       setAccessToken(null);
       // Optionally navigate to login key if needed, but state change should trigger Router
@@ -52,15 +55,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (token && storedUser) {
         setUser(storedUser);
         setAccessToken(token);
-        setIsGuest(false);
-      } else {
-        const guestFlag = await AsyncStorage.getItem('@auth_is_guest');
-        if (guestFlag === 'true') {
-          setIsGuest(true);
-        }
       }
     } catch (err) {
-      console.error('Auth initialization error:', err);
+      console.error("Auth initialization error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -73,12 +70,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       clearError();
       setIsLoading(true);
       const response = await authService.login(credentials);
-      console.log('[AuthContext] Login response:', JSON.stringify(response, null, 2));
+      console.log(
+        "[AuthContext] Login response:",
+        JSON.stringify(response, null, 2),
+      );
       setUser(response.user);
       setAccessToken(response.accessToken);
       return response;
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err.message || "Login failed");
       throw err;
     } finally {
       setIsLoading(false);
@@ -90,12 +90,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       clearError();
       setIsLoading(true);
       const response = await authService.register(userData);
-      console.log('[AuthContext] Register response:', JSON.stringify(response, null, 2));
+      console.log(
+        "[AuthContext] Register response:",
+        JSON.stringify(response, null, 2),
+      );
       setUser(response.user);
       setAccessToken(response.accessToken);
       return response;
     } catch (err: any) {
-      setError(err.message || 'Registration failed');
+      setError(err.message || "Registration failed");
       throw err;
     } finally {
       setIsLoading(false);
@@ -111,7 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setAccessToken(response.accessToken);
       return response;
     } catch (err: any) {
-      setError(err.message || 'Social login failed');
+      setError(err.message || "Social login failed");
       throw err;
     } finally {
       setIsLoading(false);
@@ -124,10 +127,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await authService.logout();
       setUser(null);
       setAccessToken(null);
-      setIsGuest(false);
-      await AsyncStorage.removeItem('@auth_is_guest');
+      setAccessToken(null);
     } catch (err: any) {
-      setError(err.message || 'Logout failed');
+      setError(err.message || "Logout failed");
       throw err;
     } finally {
       setIsLoading(false);
@@ -145,9 +147,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         updatedUser = await profileService.updateProfile(updatedData);
       }
       setUser(updatedUser);
-      await AsyncStorage.setItem('@auth_user', JSON.stringify(updatedUser));
+      await AsyncStorage.setItem("@auth_user", JSON.stringify(updatedUser));
     } catch (err: any) {
-      setError(err.message || 'Update failed');
+      setError(err.message || "Update failed");
       throw err;
     }
   };
@@ -156,22 +158,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       return await authService.isAuthenticated();
     } catch (err) {
-      console.error('Check auth error:', err);
+      console.error("Check auth error:", err);
       return false;
-    }
-  };
-
-  const continueAsGuest = async () => {
-    try {
-      setIsLoading(true);
-      setIsGuest(true);
-      setUser(null);
-      setAccessToken(null);
-      await AsyncStorage.setItem('@auth_is_guest', 'true');
-    } catch (err: any) {
-      setError(err.message || 'Failed to enter guest mode');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -188,9 +176,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
     updateUser,
     checkAuth,
-    continueAsGuest,
     clearError,
-    isGuest,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -199,7 +185,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

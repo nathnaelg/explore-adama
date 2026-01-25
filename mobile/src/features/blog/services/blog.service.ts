@@ -1,20 +1,25 @@
-import { apiClient } from '@/src/core/api/client';
+import { apiClient } from "@/src/core/api/client";
 import {
-  BlogListResponse,
-  BlogPost,
-  BlogQueryParams,
-  CreateBlogCommentDto,
-  CreateBlogPostDto,
-  ModerateBlogPostDto,
-  UpdateBlogPostDto
-} from '../types';
+    BlogListResponse,
+    BlogPost,
+    BlogQueryParams,
+    CreateBlogCommentDto,
+    CreateBlogPostDto,
+    ModerateBlogPostDto,
+    UpdateBlogPostDto,
+} from "../types";
 
 export const blogService = {
   // Get all blog posts
   async getBlogPosts(params?: BlogQueryParams): Promise<BlogListResponse> {
-    const response = await apiClient.get('/blog', { params });
+    const response = await apiClient.get("/blog", { params });
     if (Array.isArray(response.data)) {
-      return { items: response.data, page: 1, limit: response.data.length, total: response.data.length };
+      return {
+        items: response.data,
+        page: 1,
+        limit: response.data.length,
+        total: response.data.length,
+      };
     }
     return response.data;
   },
@@ -27,7 +32,7 @@ export const blogService = {
 
   // Create blog post
   async createBlogPost(data: CreateBlogPostDto): Promise<BlogPost> {
-    const response = await apiClient.post('/blog', data);
+    const response = await apiClient.post("/blog", data);
     return response.data;
   },
 
@@ -46,7 +51,7 @@ export const blogService = {
   async uploadMedia(postId: string, file: FormData): Promise<any> {
     const response = await apiClient.post(`/blog/${postId}/media`, file, {
       headers: {
-        'Content-Type': null as any,
+        "Content-Type": null as any,
       },
     });
     return response.data;
@@ -68,7 +73,10 @@ export const blogService = {
   },
 
   // Moderate blog post (admin only)
-  async moderateBlogPost(id: string, data: ModerateBlogPostDto): Promise<BlogPost> {
+  async moderateBlogPost(
+    id: string,
+    data: ModerateBlogPostDto,
+  ): Promise<BlogPost> {
     const response = await apiClient.post(`/blog/${id}/moderate`, data);
     return response.data;
   },
@@ -78,13 +86,19 @@ export const blogService = {
   // - unlikeBlogPost
   // - incrementViewCount
   // - getUserBlogPosts
-  // - getCategories
+
+  async getCategories(): Promise<string[]> {
+    const response = await apiClient.get("/blog/categories");
+    return response.data;
+  },
+
+  // - getPopularTags
   // - getPopularTags
 
   // Instead, we can create helper functions to extract categories and tags from posts (client-side)
   extractCategoriesFromPosts(posts: BlogPost[]): string[] {
     const categories = new Set<string>();
-    posts.forEach(post => {
+    posts.forEach((post) => {
       if (post.category) {
         categories.add(post.category);
       }
@@ -94,9 +108,9 @@ export const blogService = {
 
   extractPopularTagsFromPosts(posts: BlogPost[], limit: number = 10): string[] {
     const tagCounts: Record<string, number> = {};
-    posts.forEach(post => {
+    posts.forEach((post) => {
       if (post.tags && Array.isArray(post.tags)) {
-        post.tags.forEach(tag => {
+        post.tags.forEach((tag) => {
           tagCounts[tag] = (tagCounts[tag] || 0) + 1;
         });
       }
@@ -110,13 +124,18 @@ export const blogService = {
   },
 
   // Translate blog post
-  async translatePost(id: string, targetLanguage: string): Promise<{ id: string, title: string, body: string, language: string }> {
-    const response = await apiClient.post(`/blog/${id}/translate`, { targetLanguage });
+  async translatePost(
+    id: string,
+    targetLanguage: string,
+  ): Promise<{ id: string; title: string; body: string; language: string }> {
+    const response = await apiClient.post(`/blog/${id}/translate`, {
+      targetLanguage,
+    });
     return response.data;
   },
 
   async toggleLike(id: string): Promise<{ liked: boolean }> {
     const response = await apiClient.post(`/blog/${id}/like`);
     return response.data;
-  }
+  },
 };
