@@ -13,7 +13,7 @@ const router = Router();
 // Posts
 router.post("/", auth, createPostValidators, BlogController.create);
 router.get("/", laxAuth, BlogController.list);
-router.get("/:id", BlogController.getOne);
+router.get("/:id", laxAuth, BlogController.getOne);
 router.patch("/:id", auth, BlogController.update);
 router.delete("/:id", auth, permit("ADMIN"), BlogController.remove);
 

@@ -4,7 +4,7 @@ import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useAuth } from '@/src/features/auth/contexts/AuthContext';
 import { BlogDetailSkeleton } from '@/src/features/blog/components/BlogDetailSkeleton';
-import { useAddBlogComment, useBlogComments, useBlogPost } from '@/src/features/blog/hooks/useBlog';
+import { useAddBlogComment, useBlogComments, useBlogPost, useToggleLike } from '@/src/features/blog/hooks/useBlog';
 import { blogService } from '@/src/features/blog/services/blog.service';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,9 +43,10 @@ export default function BlogDetailScreen() {
     const { data: post, isLoading: postLoading, isRefetching: postRefetching, error: postError, refetch: refetchPost } = useBlogPost(id || '');
     const { data: comments = [], isLoading: commentsLoading, isRefetching: commentsRefetching, refetch: refetchComments } = useBlogComments(id || '');
     const { mutate: addComment, isPending: submittingComment } = useAddBlogComment(id || '');
+    const { mutate: toggleLike } = useToggleLike();
 
     const [commentText, setCommentText] = useState('');
-    const [liked, setLiked] = useState(false);
+    // const [liked, setLiked] = useState(false); // Removed local state
     const [showAllComments, setShowAllComments] = useState(false);
     const [isTranslating, setIsTranslating] = useState(false);
     const [translatedContent, setTranslatedContent] = useState<{ title: string; body: string } | null>(null);
@@ -61,11 +62,11 @@ export default function BlogDetailScreen() {
         setIsManualRefreshing(false);
     };
 
-    React.useEffect(() => {
-        if (post) {
-            setLiked(post.isLiked || false);
-        }
-    }, [post]);
+    // React.useEffect(() => {
+    //     if (post) {
+    //         setLiked(post.isLiked || false);
+    //     }
+    // }, [post]);
 
     const handleLike = async () => {
         if (!isAuthenticated) {
@@ -73,17 +74,7 @@ export default function BlogDetailScreen() {
             return;
         }
 
-        // Optimistic update
-        const previousLiked = liked;
-        setLiked(!liked);
-
-        try {
-            await blogService.toggleLike(id || '');
-            refetchPost();
-        } catch (e) {
-            setLiked(previousLiked);
-            // Alert.alert(t('common.error'), t('blog.failedToLike'));
-        }
+        toggleLike(id || '');
     };
 
     const handleAddComment = () => {
@@ -96,7 +87,6 @@ export default function BlogDetailScreen() {
         addComment({ content: commentText }, {
             onSuccess: () => {
                 setCommentText('');
-                Alert.alert(t('common.success'), t('blog.commentAdded'));
             },
             onError: (err: any) => {
                 Alert.alert(t('common.error'), err?.response?.data?.message || t('blog.failedAddComment'));
@@ -262,12 +252,12 @@ export default function BlogDetailScreen() {
                             onPress={handleLike}
                         >
                             <Ionicons
-                                name={liked ? "heart" : "heart-outline"}
+                                name={post.isLiked ? "heart" : "heart-outline"}
                                 size={24}
-                                color={liked ? error : text}
+                                color={post.isLiked ? error : text}
                             />
                             <ThemedText style={[styles.interactionText, { color: text }]}>
-                                {post.likesCount || 0} {liked ? '' : ''}
+                                {post.likesCount || 0}
                             </ThemedText>
                         </TouchableOpacity>
 

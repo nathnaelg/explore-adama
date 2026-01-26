@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { blogService } from "../services/blog.service";
 import {
-    BlogQueryParams,
-    CreateBlogCommentDto,
-    CreateBlogPostDto,
-    UpdateBlogPostDto,
+  BlogQueryParams,
+  CreateBlogCommentDto,
+  CreateBlogPostDto,
+  UpdateBlogPostDto,
 } from "../types";
 
 export const useBlogPosts = (params: BlogQueryParams = {}) => {
@@ -82,10 +82,58 @@ export const useToggleLike = () => {
 
   return useMutation({
     mutationFn: (postId: string) => blogService.toggleLike(postId),
-    onSuccess: (_, postId) => {
-      // Invalidate queries to refresh counts/status
+    onMutate: async (postId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["blog-post", postId] });
+      await queryClient.cancelQueries({ queryKey: ["blog-posts"] });
+
+      // Snapshot the previous value
+      const previousPost = queryClient.getQueryData(["blog-post", postId]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(["blog-post", postId], (old: any) => {
+        if (!old) return old;
+        const wasLiked = old.isLiked;
+        return {
+          ...old,
+          isLiked: !wasLiked,
+          likesCount: wasLiked ? (old.likesCount || 0) - 1 : (old.likesCount || 0) + 1,
+        };
+      });
+
+      // Also update the list if it exists
+      queryClient.setQueriesData({ queryKey: ["blog-posts"] }, (old: any) => {
+        if (!old?.items) return old;
+        return {
+          ...old,
+          items: old.items.map((post: any) => {
+            if (post.id === postId) {
+              const wasLiked = post.isLiked;
+              return {
+                ...post,
+                isLiked: !wasLiked,
+                likesCount: wasLiked ? (post.likesCount || 0) - 1 : (post.likesCount || 0) + 1,
+              };
+            }
+            return post;
+          })
+        };
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousPost };
+    },
+    onError: (err, postId, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousPost) {
+        queryClient.setQueryData(["blog-post", postId], context.previousPost);
+      }
       queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+    },
+    onSettled: (data, error, postId) => {
+      // Always refetch after error or success:
       queryClient.invalidateQueries({ queryKey: ["blog-post", postId] });
+      queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
     },
   });
 };
