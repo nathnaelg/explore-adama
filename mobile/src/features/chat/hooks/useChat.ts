@@ -1,3 +1,4 @@
+import i18n from '@/src/i18n/config';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatService } from '../services/chat.service';
 import { SendMessageResponse } from '../types';
@@ -39,7 +40,11 @@ export const useSendMessage = () => {
                 activeSessionId = session.id;
             }
 
-            return chatService.sendMessage({ sessionId: activeSessionId, message });
+            return chatService.sendMessage({
+                sessionId: activeSessionId,
+                message,
+                language: i18n.language
+            });
         },
         onSuccess: (data) => {
             // Invalidate messages to refetch

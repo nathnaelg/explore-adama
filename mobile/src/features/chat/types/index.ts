@@ -14,6 +14,7 @@ export interface ChatSession {
 export interface SendMessageDto {
     sessionId?: string;
     message: string;
+    language?: string;
     meta?: Record<string, any>;
 }
 

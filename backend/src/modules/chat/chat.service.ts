@@ -12,6 +12,7 @@ type HandleMessageParams = {
   sessionId?: string | null;
   userId?: string | null;
   message: string;
+  language?: string;
   meta?: any;
 };
 
@@ -47,7 +48,7 @@ export class ChatService {
 
   // main handler
   static async handleMessage(params: HandleMessageParams) {
-    const { sessionId, userId, message, meta } = params;
+    const { sessionId, userId, message, language, meta } = params;
     // 1) ensure session exists
     let session;
     if (sessionId) {
@@ -107,7 +108,7 @@ export class ChatService {
     // So we should exclude the *current* message from 'history' passed to GeminiClient.
     const historyForAi = history.slice(0, -1);
 
-    const systemPrompt = ChatService._buildSystemPrompt();
+    const systemPrompt = ChatService._buildSystemPrompt(language);
     const geminiResp = await GeminiClient.generate({
       systemPrompt,
       history: historyForAi,
@@ -179,9 +180,17 @@ export class ChatService {
 
   // small helpers
 
-  static _buildSystemPrompt() {
+  static _buildSystemPrompt(languageCode: string = "en") {
+    const languageMap: Record<string, string> = {
+      am: "Amharic",
+      om: "Afan Oromo",
+      en: "English",
+    };
+    const targetLang = languageMap[languageCode] || "English";
+
     return `You are "Navigator", an expert local travel assistant for Adama City, Ethiopia.
 Your personality is warm, enthusiastic, and knowledgeable—like a local friend showing someone around.
+You MUST reply to the user in ${targetLang} language ONLY.
 
 CORE INSTRUCTIONS:
 1. **Context Awareness**: Use the provided Conversation History to remember previous topics. If the user asks "where is that?", refer to the last mentioned place.

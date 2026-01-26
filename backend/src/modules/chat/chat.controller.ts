@@ -1,5 +1,5 @@
 // backend/src/modules/chat/chat.controller.ts
-import type{ Request, Response } from "express";
+import type { Request, Response } from "express";
 import { ChatService } from "./chat.service.ts";
 
 export class ChatController {
@@ -9,7 +9,7 @@ export class ChatController {
     try {
       const user = (req as any).user; // may be undefined for anonymous
       const userId = user?.sub || null;
-      const { sessionId, message, meta } = req.body;
+      const { sessionId, message, meta, language } = req.body;
       if (!message || typeof message !== "string") {
         return res.status(400).json({ message: "message is required" });
       }
@@ -18,6 +18,7 @@ export class ChatController {
         sessionId,
         userId,
         message,
+        language,
         meta,
       });
 
