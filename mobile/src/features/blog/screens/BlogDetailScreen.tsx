@@ -18,6 +18,7 @@ import {
     Image,
     RefreshControl,
     ScrollView,
+    Share,
     StyleSheet,
     TextInput,
     TouchableOpacity,
@@ -138,6 +139,16 @@ export default function BlogDetailScreen() {
             Alert.alert(t('common.error'), t('blog.translationFailed'));
         } finally {
             setIsTranslating(false);
+        }
+    };
+
+    const handleShare = async () => {
+        try {
+            await Share.share({
+                message: `${post.title}\n\n${post.body.substring(0, 100)}...\n\nRead more on Explore Adama App`,
+            });
+        } catch (error: any) {
+            Alert.alert(t('common.error'), error.message);
         }
     };
 
@@ -268,7 +279,7 @@ export default function BlogDetailScreen() {
                             </ThemedText>
                         </View>
 
-                        <TouchableOpacity style={styles.interactionButton}>
+                        <TouchableOpacity style={styles.interactionButton} onPress={handleShare}>
                             <Ionicons name="share-social-outline" size={22} color={text} />
                         </TouchableOpacity>
                     </View>
