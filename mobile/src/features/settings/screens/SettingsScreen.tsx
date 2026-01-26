@@ -5,6 +5,7 @@ import { useProfile } from '@/src/features/profile/hooks/useProfile';
 import { SettingsSkeleton } from '@/src/features/settings/components/SettingsSkeleton';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -72,6 +73,17 @@ export default function SettingsScreen() {
                 screen: '/(public)/meta/app-version',
             },
         ];
+
+    const handleResetOnboarding = async () => {
+        try {
+            await AsyncStorage.removeItem('@adama_onboarding_seen');
+            console.log('[Settings] Onboarding status reset');
+            alert('Onboarding reset! Please restart the app to see onboarding again.');
+        } catch (error) {
+            console.error('[Settings] Error resetting onboarding:', error);
+            alert('Failed to reset onboarding');
+        }
+    };
 
     const handleLogout = async () => {
         try {
@@ -233,7 +245,26 @@ export default function SettingsScreen() {
                             </View>
                             <Ionicons name="chevron-forward" size={20} color={muted} />
                         </TouchableOpacity>
-                    ))}
+                    ))}\n                </View>
+
+                {/* Developer Options */}
+                <View style={[styles.section, { borderBottomColor: muted + '20' }]}>
+                    <ThemedText type="subtitle" style={[styles.sectionTitle, { color: muted }]}>
+                        DEVELOPER
+                    </ThemedText>
+
+                    <TouchableOpacity
+                        style={styles.settingItem}
+                        onPress={handleResetOnboarding}
+                    >
+                        <View style={styles.settingItemLeft}>
+                            <Ionicons name="refresh-outline" size={20} color={primary} />
+                            <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
+                                Reset Onboarding
+                            </ThemedText>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color={muted} />
+                    </TouchableOpacity>
                 </View>
 
 

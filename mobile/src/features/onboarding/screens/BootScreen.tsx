@@ -1,39 +1,29 @@
 import { LoadingScreen } from "@/src/components/feedback/LoadingScreen";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useEffect } from "react";
 
 export default function BootScreen() {
   useEffect(() => {
-    checkInitialRoute();
+    // Add a small delay to ensure AsyncStorage is ready
+    const timer = setTimeout(() => {
+      checkInitialRoute();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const checkInitialRoute = async () => {
     try {
-      // Check if user has seen onboarding
-      const hasSeenOnboarding = await AsyncStorage.getItem(
-        "@adama_onboarding_seen",
-      );
+      console.log("[BootScreen] Starting initial route check...");
 
-      if (!hasSeenOnboarding) {
-        // First time user - show onboarding
-        router.replace("/onboarding");
-      } else {
-        // Check if user is logged in
-        const token = await AsyncStorage.getItem("@auth_token");
-
-        if (token) {
-          // User is logged in - go to tabs
-          router.replace("/(tabs)");
-        } else {
-          // User needs to login
-          router.replace("/(auth)/login");
-        }
-      }
+      // Always show onboarding when app opens
+      console.log("[BootScreen] Navigating to onboarding");
+      router.replace("/onboarding");
     } catch (error) {
-      console.error("Error checking initial route:", error);
-      // Default to login on error
-      router.replace("/(auth)/login");
+      console.error("[BootScreen] Error checking initial route:", error);
+      // Default to onboarding on error
+      console.log("[BootScreen] Error occurred - navigating to onboarding");
+      router.replace("/onboarding");
     }
   };
 

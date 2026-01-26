@@ -1,6 +1,5 @@
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
-import { useAuth } from '@/src/features/auth/contexts/AuthContext';
 import { useCancelBooking, useMyBookings } from '@/src/features/booking/hooks/useBooking';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
@@ -73,35 +72,6 @@ export default function BookingHistoryScreen() {
         }
     };
 
-    const { isGuest } = useAuth();
-
-    if (isGuest) {
-        return (
-            <ThemedView style={[styles.container, { backgroundColor: bg }]}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={24} color={text} />
-                    </TouchableOpacity>
-                </View>
-
-                <View style={styles.guestState}>
-                    <View style={[styles.guestIconCircle, { backgroundColor: primary + '15' }]}>
-                        <Ionicons name="calendar-outline" size={60} color={primary} />
-                    </View>
-                    <ThemedText type="title" style={styles.guestTitle}>{t('booking.yourBookings')}</ThemedText>
-                    <ThemedText style={[styles.guestSubtitle, { color: muted }]}>
-                        {t('booking.guestSubtitle')}
-                    </ThemedText>
-                    <TouchableOpacity
-                        style={[styles.signInButton, { backgroundColor: primary }]}
-                        onPress={() => router.push('/(auth)/login')}
-                    >
-                        <ThemedText style={styles.signInButtonText}>{t('profile.signInRegister')}</ThemedText>
-                    </TouchableOpacity>
-                </View>
-            </ThemedView>
-        );
-    }
 
     if (isLoading) {
         return <BookingHistorySkeleton />;
@@ -488,43 +458,5 @@ const styles = StyleSheet.create({
         color: '#FF9800',
         fontSize: 14,
         fontWeight: '600',
-    },
-    guestState: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 40,
-        paddingBottom: 80,
-    },
-    guestIconCircle: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    guestTitle: {
-        fontSize: 24,
-        marginBottom: 12,
-        textAlign: 'center',
-    },
-    guestSubtitle: {
-        fontSize: 16,
-        textAlign: 'center',
-        lineHeight: 22,
-        marginBottom: 32,
-    },
-    signInButton: {
-        width: '100%',
-        height: 56,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    signInButtonText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: '700',
     },
 });

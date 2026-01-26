@@ -25,7 +25,7 @@ export default function SearchScreen() {
     const { q, type } = useLocalSearchParams<{ q: string; type: string }>();
     const [query, setQuery] = useState(q || '');
     const { debouncedQuery, data: searchResults, isLoading } = useDebouncedSearch(query, 500);
-    const { isGuest } = useAuth();
+    const { isAuthenticated } = useAuth();
     const { data: categoriesData } = useCategories();
     const categories = categoriesData || [];
 
@@ -47,15 +47,8 @@ export default function SearchScreen() {
         if (result.type === 'place') {
             router.push(`/place/${result.id}`);
         } else if (result.type === 'event') {
-            if (isGuest) {
-                router.push({
-                    pathname: '/(modals)/guest-prompt',
-                    params: {
-                        title: t('auth.signInRequired'),
-                        message: t('auth.signInToBookTickets'),
-                        icon: 'search-outline'
-                    }
-                });
+            if (!isAuthenticated) {
+                router.push('/(auth)/login');
                 return;
             }
             router.push({ pathname: '/bookings/new', params: { eventId: result.id } } as any);

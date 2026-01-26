@@ -30,7 +30,7 @@ export default function ChatScreen() {
     const { t } = useTranslation();
     const [message, setMessage] = useState('');
     const [sessionId, setSessionId] = useState<string | undefined>();
-    const { isGuest } = useAuth();
+    const { isAuthenticated } = useAuth();
     const scrollViewRef = useRef<ScrollView>(null);
     const insets = useSafeAreaInsets();
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
@@ -99,15 +99,8 @@ export default function ChatScreen() {
     };
 
     const handleSend = () => {
-        if (isGuest) {
-            router.push({
-                pathname: '/(modals)/guest-prompt',
-                params: {
-                    title: t('chat.signInRequired'),
-                    message: t('chat.guestMsg'),
-                    icon: 'chatbubbles-outline'
-                }
-            });
+        if (!isAuthenticated) {
+            router.push('/(auth)/login');
             return;
         }
         if (!message.trim() || isPending) return;

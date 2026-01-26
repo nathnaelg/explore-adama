@@ -28,7 +28,7 @@ import Markdown from 'react-native-markdown-display';
 export default function BlogDetailScreen() {
     const { t, i18n } = useTranslation();
     const { id } = useLocalSearchParams<{ id: string }>();
-    const { user, isGuest } = useAuth();
+    const { user, isAuthenticated } = useAuth();
 
     const bg = useThemeColor({}, 'bg');
     const card = useThemeColor({}, 'card');
@@ -68,15 +68,8 @@ export default function BlogDetailScreen() {
     }, [post]);
 
     const handleLike = async () => {
-        if (isGuest) {
-            router.push({
-                pathname: '/(modals)/guest-prompt',
-                params: {
-                    title: t('common.signInRequired'),
-                    message: t('blog.signInToLike'),
-                    icon: 'heart-outline'
-                }
-            });
+        if (!isAuthenticated) {
+            router.push('/(auth)/login');
             return;
         }
 
@@ -94,15 +87,8 @@ export default function BlogDetailScreen() {
     };
 
     const handleAddComment = () => {
-        if (isGuest) {
-            router.push({
-                pathname: '/(modals)/guest-prompt',
-                params: {
-                    title: t('common.signInRequired'),
-                    message: t('blog.signInToJoinConversation'),
-                    icon: 'chatbubble-outline'
-                }
-            });
+        if (!isAuthenticated) {
+            router.push('/(auth)/login');
             return;
         }
         if (!commentText.trim()) return;

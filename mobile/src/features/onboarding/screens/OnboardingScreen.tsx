@@ -80,7 +80,17 @@ export default function OnboardingScreen() {
         try {
             // Save that user has seen onboarding
             await AsyncStorage.setItem('@adama_onboarding_seen', 'true');
-            router.replace('/(auth)/login');
+
+            // Check if user is logged in
+            const token = await AsyncStorage.getItem('@auth_token');
+
+            if (token) {
+                // User is logged in - go to tabs
+                router.replace('/(tabs)');
+            } else {
+                // User needs to login
+                router.replace('/(auth)/login');
+            }
         } catch (error) {
             console.error('Error saving onboarding status:', error);
             router.replace('/(auth)/login');

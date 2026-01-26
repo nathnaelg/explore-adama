@@ -26,7 +26,7 @@ const FlashList = ShopifyFlashList as any;
 export default function PlaceDetailsScreen() {
     const { t } = useTranslation();
     const { placeId } = useLocalSearchParams<{ placeId: string }>();
-    const { isAuthenticated, isGuest } = useAuth();
+    const { isAuthenticated } = useAuth();
     const { data: place, isLoading: placeLoading, error: placeError } = usePlace(placeId || '');
     const { data: reviewsData, isLoading: reviewsLoading } = useReviews({
         itemType: 'PLACE',
@@ -70,45 +70,24 @@ export default function PlaceDetailsScreen() {
     const gallery = place.images?.map((img, index) => ({ id: index.toString(), image: { uri: img.url } })) || [];
 
     const handleToggleFavorite = () => {
-        if (isGuest) {
-            router.push({
-                pathname: '/(modals)/guest-prompt',
-                params: {
-                    title: t('placeDetails.signInRequired'),
-                    message: t('placeDetails.saveFavoriteMsg'),
-                    icon: 'bookmark-outline'
-                }
-            });
+        if (!isAuthenticated) {
+            router.push('/(auth)/login');
             return;
         }
         toggleFavorite({ itemId: placeId || '', itemType: 'PLACE', isFavorite: isFavorited });
     };
 
     const handleBooking = () => {
-        if (isGuest) {
-            router.push({
-                pathname: '/(modals)/guest-prompt',
-                params: {
-                    title: t('placeDetails.signInRequired'),
-                    message: t('placeDetails.bookVisitMsg'),
-                    icon: 'calendar-outline'
-                }
-            });
+        if (!isAuthenticated) {
+            router.push('/(auth)/login');
             return;
         }
         router.push({ pathname: '/bookings/new', params: { placeId: place.id } } as any);
     };
 
     const handleReview = () => {
-        if (isGuest) {
-            router.push({
-                pathname: '/(modals)/guest-prompt',
-                params: {
-                    title: t('placeDetails.signInRequired'),
-                    message: t('placeDetails.writeReviewMsg'),
-                    icon: 'star-outline'
-                }
-            });
+        if (!isAuthenticated) {
+            router.push('/(auth)/login');
             return;
         }
         router.push({ pathname: '/reviews/add', params: { itemId: place.id, itemType: 'PLACE' } } as any);

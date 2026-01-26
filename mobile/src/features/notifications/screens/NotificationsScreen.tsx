@@ -118,8 +118,6 @@ export default function NotificationsScreen() {
         return t('notifications.yesterday');
     };
 
-    const { isGuest } = useAuth();
-
     const onRefresh = async () => {
         setIsManualRefreshing(true);
         await refetch();
@@ -130,34 +128,6 @@ export default function NotificationsScreen() {
         if (!notification.isRead) markRead(notification.id);
         // Link handling
     };
-
-    if (isGuest) {
-        return (
-            <ThemedView style={[styles.container, { backgroundColor: bg }]}>
-                <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
-                    <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={24} color={text} />
-                    </TouchableOpacity>
-                </View>
-
-                <View style={styles.guestState}>
-                    <View style={[styles.guestIconCircle, { backgroundColor: primary + '15' }]}>
-                        <Ionicons name="notifications-outline" size={60} color={primary} />
-                    </View>
-                    <ThemedText type="title" style={styles.guestTitle}>{t('notifications.stayUpdated')}</ThemedText>
-                    <ThemedText style={[styles.guestSubtitle, { color: muted }]}>
-                        {t('notifications.guestSubtitle')}
-                    </ThemedText>
-                    <TouchableOpacity
-                        style={[styles.signInButton, { backgroundColor: primary }]}
-                        onPress={() => router.push('/(auth)/login')}
-                    >
-                        <ThemedText style={styles.signInButtonText}>{t('profile.signInRegister')}</ThemedText>
-                    </TouchableOpacity>
-                </View>
-            </ThemedView>
-        );
-    }
 
     if (isLoading) {
         return <NotificationsSkeleton />;
@@ -313,42 +283,4 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
     emptySubText: { fontSize: 14, marginTop: 8 },
-    guestState: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 40,
-        paddingBottom: 80,
-    },
-    guestIconCircle: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    guestTitle: {
-        fontSize: 24,
-        marginBottom: 12,
-        textAlign: 'center',
-    },
-    guestSubtitle: {
-        fontSize: 16,
-        textAlign: 'center',
-        lineHeight: 22,
-        marginBottom: 32,
-    },
-    signInButton: {
-        width: '100%',
-        height: 56,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    signInButtonText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: '700',
-    },
 });

@@ -13,7 +13,7 @@ interface EventRailProps {
 
 export function EventRail({ events }: EventRailProps) {
     const { t, i18n } = useTranslation();
-    const { isGuest } = useAuth();
+    const { isAuthenticated } = useAuth();
     const text = useThemeColor({}, 'text');
     const primary = useThemeColor({}, 'primary');
     const muted = useThemeColor({}, 'muted');
@@ -43,15 +43,8 @@ export function EventRail({ events }: EventRailProps) {
                             key={event.id}
                             style={[styles.card, { backgroundColor: card, borderColor: muted + '40' }]}
                             onPress={() => {
-                                if (isGuest) {
-                                    router.push({
-                                        pathname: '/(modals)/guest-prompt',
-                                        params: {
-                                            title: t('common.signInRequired'),
-                                            message: t('placeDetails.bookVisitMsg'),
-                                            icon: 'ticket-outline'
-                                        }
-                                    });
+                                if (!isAuthenticated) {
+                                    router.push('/(auth)/login');
                                     return;
                                 }
                                 router.push({ pathname: '/bookings/new', params: { eventId: event.id } } as any);

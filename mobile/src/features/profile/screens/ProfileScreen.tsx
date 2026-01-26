@@ -1,5 +1,4 @@
 
-import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -85,7 +84,7 @@ export default function ProfileScreen() {
     const primary = useThemeColor({}, 'primary');
     const chip = useThemeColor({}, 'chip');
     const errorColor = useThemeColor({}, 'error');
-    const { user: authUser, logout, isAuthenticated, isGuest } = useAuth();
+    const { user: authUser, logout, isAuthenticated } = useAuth();
     const insets = useSafeAreaInsets();
     const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
@@ -116,56 +115,9 @@ export default function ProfileScreen() {
         return <ProfileSkeleton />;
     }
 
-    if (isGuest) {
-        return (
-            <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
-                <View style={styles.guestContainer}>
-                    <View style={[styles.guestIconCircle, { backgroundColor: primary + '15' }]}>
-                        <Ionicons name="person-outline" size={60} color={primary} />
-                    </View>
-                    <Text style={[styles.guestTitle, { color: text }]}>{t('profile.exploreFeatures')}</Text>
-                    <Text style={[styles.guestSubtitle, { color: muted }]}>
-                        {t('profile.guestSubtitle')}
-                    </Text>
 
-                    <TouchableOpacity
-                        style={[styles.signInButton, { backgroundColor: primary }]}
-                        onPress={() => router.replace('/(auth)/login')}
-                    >
-                        <Text style={styles.signInButtonText}>{t('profile.signInRegister')}</Text>
-                    </TouchableOpacity>
-
-                    <View style={styles.guestFeatures}>
-                        <View style={styles.guestFeatureItem}>
-                            <Ionicons name="heart" size={20} color={primary} />
-                            <Text style={[styles.guestFeatureText, { color: text }]}>{t('profile.savePlaces')}</Text>
-                        </View>
-                        <View style={styles.guestFeatureItem}>
-                            <Ionicons name="calendar" size={20} color={primary} />
-                            <Text style={[styles.guestFeatureText, { color: text }]}>{t('profile.makeBookings')}</Text>
-                        </View>
-                        <View style={styles.guestFeatureItem}>
-                            <Ionicons name="megaphone" size={20} color={primary} />
-                            <Text style={[styles.guestFeatureText, { color: text }]}>{t('profile.shareStories')}</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Still show settings even for guest */}
-                <View style={styles.guestSettingsContainer}>
-                    <MenuItem
-                        icon="settings-outline"
-                        title={t('common.settings')}
-                        onPress={() => router.push('/settings')}
-                    />
-                    <MenuItem
-                        icon="help-circle-outline"
-                        title={t('profile.helpSupport')}
-                        onPress={() => { }}
-                    />
-                </View>
-            </ThemedView>
-        );
+    if (loading && isAuthenticated) {
+        return <ProfileSkeleton />;
     }
 
     if (!isAuthenticated) {
@@ -539,61 +491,6 @@ const styles = StyleSheet.create({
 
     countryText: {
         fontSize: 12,
-    },
-    guestContainer: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 30,
-    },
-    guestIconCircle: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    guestTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 12,
-    },
-    guestSubtitle: {
-        fontSize: 16,
-        textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32,
-    },
-    signInButton: {
-        width: '100%',
-        paddingVertical: 16,
-        borderRadius: 12,
-        alignItems: 'center',
-        marginBottom: 40,
-    },
-    signInButtonText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    guestFeatures: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-    },
-    guestFeatureItem: {
-        alignItems: 'center',
-        gap: 8,
-    },
-    guestFeatureText: {
-        fontSize: 12,
-        fontWeight: '500',
-    },
-    guestSettingsContainer: {
-        paddingHorizontal: 20,
-        paddingBottom: 40,
     },
     menuBadge: {
         paddingHorizontal: 8,
