@@ -449,6 +449,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         alignItems: 'center',
         marginHorizontal: 20,
+        marginTop: 20,
         borderRadius: 20,
         padding: 24,
         marginBottom: 24,

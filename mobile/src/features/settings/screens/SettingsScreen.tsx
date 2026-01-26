@@ -245,7 +245,8 @@ export default function SettingsScreen() {
                             </View>
                             <Ionicons name="chevron-forward" size={20} color={muted} />
                         </TouchableOpacity>
-                    ))}\n                </View>
+                    ))}
+                </View>
 
                 {/* Developer Options */}
                 <View style={[styles.section, { borderBottomColor: muted + '20' }]}>
