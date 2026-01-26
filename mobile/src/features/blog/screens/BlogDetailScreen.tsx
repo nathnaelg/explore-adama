@@ -143,6 +143,7 @@ export default function BlogDetailScreen() {
     };
 
     const handleShare = async () => {
+        if (!post) return;
         try {
             await Share.share({
                 message: `${post.title}\n\n${post.body.substring(0, 100)}...\n\nRead more on Explore Adama App`,
