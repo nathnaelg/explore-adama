@@ -1,6 +1,7 @@
 import { OptimizedImage } from '@/src/components/common/OptimizedImage';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router/build/hooks';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -30,10 +31,26 @@ export default function ExploreScreen() {
     const insets = useSafeAreaInsets();
 
     /* ---------------- state ---------------- */
+    const { initialCategoryKey } = useLocalSearchParams<{ initialCategoryKey: string }>();
+
+    /* ---------------- state ---------------- */
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
     /* ---------------- data ---------------- */
     const { data: categories, isLoading: categoriesLoading } = useCategories();
+
+    // Effect to handle deep linking to category
+    React.useEffect(() => {
+        if (initialCategoryKey && categories) {
+            const targetCategory = categories.find(c =>
+                (c.key || c.name).toLowerCase().includes(initialCategoryKey.toLowerCase())
+            );
+            if (targetCategory) {
+                setSelectedCategoryId(targetCategory.id);
+            }
+        }
+    }, [initialCategoryKey, categories]);
+
     const { data: placesData, isLoading: placesLoading } = usePlaces({
         categoryId: selectedCategoryId || undefined,
         perPage: 20

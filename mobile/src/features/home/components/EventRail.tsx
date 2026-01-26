@@ -25,7 +25,7 @@ export function EventRail({ events }: EventRailProps) {
         <View style={styles.container}>
             <View style={styles.header}>
                 <ThemedText type="subtitle" style={styles.title}>{t('home.happeningSoon')}</ThemedText>
-                <TouchableOpacity onPress={() => router.push('/search?type=event')}>
+                <TouchableOpacity onPress={() => router.push('/events')}>
                     <ThemedText style={{ color: primary, fontWeight: '600' }}>{t('common.seeAll')}</ThemedText>
                 </TouchableOpacity>
             </View>

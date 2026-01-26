@@ -185,7 +185,7 @@ export default function HomeScreen() {
                     action={t('common.seeAll')}
                     text={text}
                     primary={primary}
-                    onPress={() => router.push('/search')}
+                    onPress={() => router.push('/(tabs)/explore')}
                 />
 
                 <ScrollView

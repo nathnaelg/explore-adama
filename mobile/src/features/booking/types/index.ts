@@ -1,10 +1,11 @@
-import { Media } from '../../explore/types';
+import { Media, Place } from '../../explore/types';
 
 export interface Event {
     id: string;
     title: string;
     description?: string;
     placeId?: string;
+    place?: Place;
     categoryId?: string;
     date: string;
     startTime?: string;
