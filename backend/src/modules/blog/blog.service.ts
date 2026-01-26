@@ -16,7 +16,7 @@ export class BlogService {
     return post;
   }
 
-  static async listPosts({ q, page = 1, limit = 20, userId, isAdmin }: { q?: string; page?: number; limit?: number; userId?: string; isAdmin?: boolean }) {
+  static async listPosts({ q, category, page = 1, limit = 20, userId, isAdmin }: { q?: string; category?: string; page?: number; limit?: number; userId?: string; isAdmin?: boolean }) {
     const where: any = {};
 
     // Visibility rules:
@@ -33,6 +33,11 @@ export class BlogService {
     } else {
       // Guest sees only APPROVED posts
       where.status = "APPROVED";
+    }
+
+    // Add category filter if provided
+    if (category && category.length) {
+      where.category = category;
     }
 
     if (q && q.length) {
@@ -240,5 +245,39 @@ export class BlogService {
       body: translatedBody,
       language: targetLanguage,
     };
+  }
+
+  static async getCategories() {
+    // Predefined categories that should always be available
+    const defaultCategories = [
+      "travel",
+      "hotels",
+      "restaurants",
+      "culture",
+      "events",
+      "tips"
+    ];
+
+    // Get all distinct categories from approved blog posts
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        status: "APPROVED",
+        category: { not: null }
+      },
+      select: {
+        category: true
+      },
+      distinct: ['category']
+    });
+
+    // Extract and filter out null values
+    const dbCategories = posts
+      .map(p => p.category)
+      .filter((cat): cat is string => cat !== null);
+
+    // Merge default categories with database categories and remove duplicates
+    const allCategories = Array.from(new Set([...defaultCategories, ...dbCategories]));
+
+    return allCategories;
   }
 }

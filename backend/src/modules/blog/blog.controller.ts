@@ -29,6 +29,7 @@ export class BlogController {
   static async list(req: Request, res: Response) {
     try {
       const q = req.query.q as string | undefined;
+      const category = req.query.category as string | undefined;
       const page = Number(req.query.page || 1);
       const limit = Math.min(Number(req.query.limit || 20), 100);
 
@@ -36,7 +37,7 @@ export class BlogController {
       const userId = user?.sub;
       const isAdmin = user?.role === "ADMIN";
 
-      const posts = await BlogService.listPosts({ q, page, limit, userId, isAdmin });
+      const posts = await BlogService.listPosts({ q, category, page, limit, userId, isAdmin });
       return res.json(posts);
     } catch (err: any) {
       console.error("BlogController.list error:", err);
@@ -149,6 +150,16 @@ export class BlogController {
     } catch (err: any) {
       console.error("BlogController.toggleLike error:", err);
       return res.status(500).json({ message: "Failed to toggle like" });
+    }
+  }
+
+  static async getCategories(req: Request, res: Response) {
+    try {
+      const categories = await BlogService.getCategories();
+      return res.json(categories);
+    } catch (err: any) {
+      console.error("BlogController.getCategories error:", err);
+      return res.status(500).json({ message: "Failed to fetch categories" });
     }
   }
 }

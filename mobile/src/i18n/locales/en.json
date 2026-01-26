@@ -248,7 +248,11 @@
       "food": "Food",
       "history": "History",
       "hotels": "Hotels",
-      "culture": "Culture"
+      "culture": "Culture",
+      "travel": "Travel",
+      "restaurants": "Restaurants",
+      "events": "Events",
+      "tips": "Tips"
     },
     "translatedByAi": "Translated by AI",
     "translationFailed": "Translation failed"

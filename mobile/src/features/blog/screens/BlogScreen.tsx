@@ -4,9 +4,9 @@ import { useAuth } from "@/src/features/auth/contexts/AuthContext";
 import { BlogPostCard } from "@/src/features/blog/components/BlogPostCard";
 import { BlogSkeleton } from "@/src/features/blog/components/BlogSkeleton";
 import {
-    useBlogCategories,
-    useBlogPosts,
-    useToggleLike,
+  useBlogCategories,
+  useBlogPosts,
+  useToggleLike,
 } from "@/src/features/blog/hooks/useBlog";
 import { useThemeColor } from "@/src/hooks/use-theme-color";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,11 +14,11 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -51,7 +51,15 @@ export default function BlogScreen() {
   const total = data?.total || 0;
 
   // Use fetched categories or fallback to defaults
-  const categories = ["all", ...(categoryData || [])];
+  const hardcodedCategories = [
+    "travel",
+    "hotels",
+    "restaurants",
+    "culture",
+    "events",
+    "tips",
+  ];
+  const categories = ["all", ...hardcodedCategories, ...(categoryData || [])];
   const uniqueCategories = Array.from(new Set(categories));
 
   const onRefresh = async () => {
@@ -127,8 +135,8 @@ export default function BlogScreen() {
             {category === "all"
               ? t("explore.all")
               : t(`blog.categories.${category.toLowerCase()}`, {
-                  defaultValue: category,
-                })}
+                defaultValue: category,
+              })}
           </ThemedText>
         </TouchableOpacity>
       ))}
@@ -192,8 +200,8 @@ export default function BlogScreen() {
                 {selectedCategory === "all"
                   ? t("blog.recentPosts")
                   : t(`blog.categories.${selectedCategory.toLowerCase()}`, {
-                      defaultValue: selectedCategory,
-                    })}
+                    defaultValue: selectedCategory,
+                  })}
               </ThemedText>
               <ThemedText type="default" style={{ color: muted }}>
                 {t("blog.postsCount", { count: total })}
@@ -214,7 +222,7 @@ export default function BlogScreen() {
           </>
         )}
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </ThemedView>
   );
