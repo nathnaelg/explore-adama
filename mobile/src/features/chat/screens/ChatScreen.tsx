@@ -22,6 +22,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import Markdown from 'react-native-markdown-display';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SESSION_KEY = '@chat_session_id';
@@ -204,11 +205,26 @@ export default function ChatScreen() {
                                             : [styles.botBubble, { backgroundColor: card }]
                                     ]}
                                 >
-                                    <ThemedText
-                                        style={isUser ? styles.userText : [styles.botText, { color: text }]}
-                                    >
-                                        {msg.content}
-                                    </ThemedText>
+                                    {isUser ? (
+                                        <ThemedText style={styles.userText}>{msg.content}</ThemedText>
+                                    ) : (
+                                        <Markdown
+                                            style={{
+                                                body: { color: text, fontSize: 15, lineHeight: 22 },
+                                                link: { color: primary, fontWeight: 'bold' },
+                                                paragraph: { marginVertical: 0, paddingVertical: 0 },
+                                            }}
+                                            onLinkPress={(url) => {
+                                                if (url.startsWith('app://')) {
+                                                    router.push(url.replace('app://', '/') as any);
+                                                    return false;
+                                                }
+                                                return true;
+                                            }}
+                                        >
+                                            {msg.content}
+                                        </Markdown>
+                                    )}
                                 </View>
                             </View>
                         );

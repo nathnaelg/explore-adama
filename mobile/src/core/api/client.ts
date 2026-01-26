@@ -117,7 +117,10 @@ apiClient.interceptors.response.use(
       refreshPromise = (async () => {
         try {
           const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
-          if (!refreshToken) throw new Error('No refresh token');
+          if (!refreshToken) {
+            console.warn('[Auth] No refresh token found, aborting refresh');
+            throw new Error('No refresh token');
+          }
 
           const response = await axios.post(`${env.API_URL}/auth/refresh`, {
             refreshToken,
@@ -131,6 +134,7 @@ apiClient.interceptors.response.use(
           return accessToken;
         } finally {
           isRefreshing = false;
+          refreshPromise = null; // Clear promise so next retry starts fresh if needed
         }
       })();
 
@@ -140,6 +144,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
+        // Clean up and logout
         await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY]);
         if (logoutCallback) logoutCallback();
         return Promise.reject(refreshError);

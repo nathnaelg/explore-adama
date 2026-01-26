@@ -193,23 +193,33 @@ Your personality is warm, enthusiastic, and knowledgeable—like a local friend 
 You MUST reply to the user in ${targetLang} language ONLY.
 
 CORE INSTRUCTIONS:
-1. **Context Awareness**: Use the provided Conversation History to remember previous topics. If the user asks "where is that?", refer to the last mentioned place.
-2. **Helpful & Actionable**: Don't just give facts; give suggestions. If someone asks for food, ask what cuisine they like or suggest the top rated one.
-3. **Intent Detection**: Accurately predict what the user wants:
-   - "Find me a jazz concert" -> SEARCH_EVENTS ({ category: "Music", keywords: "jazz" })
-   - "Where can I eat burger?" -> SEARCH_PLACES ({ category: "Restaurant", name: "burger" })
+1. **General Knowledge**: You have extensive knowledge about Adama City (also known as Nazret), Ethiopia:
+   - History, culture, and landmarks
+   - General information about hospitals, cinemas, schools, and other facilities
+   - Administration, geography, and local facts
+   Answer these questions directly using your knowledge. Be specific and helpful.
+
+2. **Database Search**: When users ask for specific recommendations like "best hotels", "top restaurants", "nearby hospitals", trigger a database search:
+   - "Show me hotels" -> SEARCH_PLACES ({ category: "hotel" })
+   - "Find restaurants" -> SEARCH_PLACES ({ category: "restaurant" })
+   - "Where are hospitals?" -> SEARCH_PLACES ({ category: "hospital" })
+   - "Find cinemas" -> SEARCH_PLACES ({ category: "cinema" })
+   Provide a warm introduction; I will append the actual list from the database.
+
+3. **Context Awareness**: Use Conversation History to remember previous topics.
+
+4. **Intent Detection Examples**:
+   - "Find me a jazz concert" -> SEARCH_EVENTS ({ keywords: "jazz" })
+   - "What's the history of Adama?" -> SMALL_TALK (answer directly)
+   - "Who is the mayor?" -> SMALL_TALK (answer if you know, or say you'll check)
    - "What should I do today?" -> RECOMMEND_PERSONAL
    - "What's popular?" -> GLOBAL_POPULAR
-   - "Hi" -> SMALL_TALK
-4. **Adama Specifics**: You know about Adama (Nazret). 
-   
-Refrain from making up availability. If you don't know, say "I can check the latest listings for you."
 
 OUTPUT FORMAT:
-You must return a valid JSON object with:
-- "reply": The text to show the user.
-- "intent": One of [SEARCH_EVENTS, SEARCH_PLACES, RECOMMEND_PERSONAL, GLOBAL_POPULAR, FAQ, SMALL_TALK].
-- "entities": Object with search filters (date, category, placeId, name).
+Return valid JSON:
+- "reply": Your response text (do NOT list items; I append them)
+- "intent": [SEARCH_EVENTS, SEARCH_PLACES, RECOMMEND_PERSONAL, GLOBAL_POPULAR, FAQ, SMALL_TALK]
+- "entities": { category, keywords, etc. } - for category, use singular lowercase (hotel, restaurant, hospital, cinema)
 `;
   }
 
@@ -252,7 +262,23 @@ You must return a valid JSON object with:
 
   static async _searchPlaces(entities: any) {
     const where: any = {};
-    if (entities?.category) where.categoryId = entities.category;
+
+    // Handle category search - look up by key or name
+    if (entities?.category) {
+      const categoryStr = String(entities.category).toLowerCase().trim();
+      const category = await prisma.category.findFirst({
+        where: {
+          OR: [
+            { key: { equals: categoryStr, mode: 'insensitive' } },
+            { name: { contains: categoryStr, mode: 'insensitive' } }
+          ]
+        }
+      });
+      if (category) {
+        where.categoryId = category.id;
+      }
+    }
+
     if (entities?.name) where.name = { contains: entities.name, mode: "insensitive" };
 
     // Add generic keyword search
@@ -265,6 +291,10 @@ You must return a valid JSON object with:
 
     const places = await prisma.place.findMany({
       where,
+      include: {
+        category: true,
+        images: { take: 1 }
+      },
       orderBy: [{ bookingCount: "desc" }, { viewCount: "desc" }],
       take: 10,
     });
@@ -315,18 +345,31 @@ You must return a valid JSON object with:
   }
 
   static _joinReplyWithData(reply: string, data: any) {
-    // If data is array or object produce a short appended line
     if (!data) return reply;
+
+    let items: any[] = [];
     if (Array.isArray(data)) {
-      if (data.length === 0) return reply + "\n\n(Note: I couldn't find any items matching your request.)";
-      return `${reply}\n\nI found ${data.length} items — showing top ${Math.min(data.length, 6)}.`;
+      items = data;
+    } else if (data.popularEvents || data.popularPlaces) {
+      items = [...(data.popularEvents || []), ...(data.popularPlaces || [])];
     }
-    if (data.popularEvents || data.popularPlaces) {
-      const eventCount = data.popularEvents?.length || 0;
-      const placeCount = data.popularPlaces?.length || 0;
-      if (eventCount === 0 && placeCount === 0) return reply + "\n\n(Note: I couldn't find any popular items right now.)";
-      return `${reply}\n\nI found ${eventCount} popular events and ${placeCount} popular places.`;
-    }
-    return reply;
+
+    if (items.length === 0) return reply + "\n\n(I couldn't find any items matching your request.)";
+
+    const topItems = items.slice(0, 6);
+    const links = topItems.map((item: any) => {
+      // Determine type based on properties
+      const isEvent = item.date !== undefined || item._type === 'EVENT'; // Simple heuristic
+      // Events go to booking (or event detail if exists), Places to place detail
+      const url = isEvent
+        ? `app://bookings/new?eventId=${item.id}`
+        : `app://place/${item.id}`;
+
+      const title = item.title || item.name;
+      const rating = item.avgRating ? ` (⭐${item.avgRating})` : '';
+      return `- [${title}${rating}](${url})`;
+    }).join("\n");
+
+    return `${reply}\n\n${links}`;
   }
 }
