@@ -116,9 +116,15 @@ Make sure the JSON is valid and nothing else is printed.
   },
 
   async translate({ text, targetLanguage }: { text: string; targetLanguage: string }) {
+    const languageMap: Record<string, string> = {
+      am: "Amharic",
+      om: "Afan Oromo",
+      en: "English",
+    };
+    const fullLanguage = languageMap[targetLanguage] || targetLanguage;
+
     const instruct = `
-Translate the following text into ${targetLanguage}. 
-Support the following languages: English, Amharic (am), Afan Oromo (om).
+Translate the following text into ${fullLanguage}. 
 Return ONLY the translated text without any explanations or extra characters.
 
 Text:
