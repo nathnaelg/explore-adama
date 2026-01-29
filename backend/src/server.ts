@@ -1,8 +1,22 @@
-// src/server.ts
+import admin from 'firebase-admin';
 import app from "./app.ts";
 import { prisma } from "./config/db.ts";
 import { env } from "./config/env.ts";
 import { logger } from "./config/logger.ts";
+
+// Initialize Firebase Admin
+// Expects GOOGLE_APPLICATION_CREDENTIALS env var to be set to path of service account json
+// OR FIREBASE_CONFIG env var
+if (!admin.apps.length) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.applicationDefault(),
+    });
+    logger.success("Firebase Admin initialized");
+  } catch (error) {
+    logger.warn("Failed to initialize Firebase Admin, social auth may not work:", error);
+  }
+}
 
 async function startServer() {
   try {

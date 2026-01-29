@@ -64,6 +64,7 @@ export const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({
       : process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     redirectUri: finalRedirectUri,
+    extraParams: { prompt: 'select_account' },
   });
 
 
@@ -88,31 +89,33 @@ export const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({
       if (response?.type === 'success') {
         try {
           const { authentication } = response;
+          const idToken = authentication?.idToken || authentication?.accessToken;
 
-          // Prefer idToken for backend verification
-          const token = authentication?.idToken || authentication?.accessToken;
+          if (!idToken) throw new Error('No Google token received');
 
-          // Get user info from Google for initial profile setup
-          const userInfoResponse = await fetch(
-            'https://www.googleapis.com/oauth2/v1/userinfo?alt=json',
-            {
-              headers: { Authorization: `Bearer ${authentication?.accessToken}` },
-            }
-          );
+          // Sign in to Firebase with the Google token
+          const { GoogleAuthProvider, signInWithCredential } = await import('firebase/auth');
+          const { auth } = await import('@/src/config/firebase');
 
-          const userInfo = await userInfoResponse.json();
+          const credential = GoogleAuthProvider.credential(idToken);
+          const userCredential = await signInWithCredential(auth, credential);
+          const firebaseToken = await userCredential.user.getIdToken();
 
-          // Send to backend
+          // Get additional user info if needed, or rely on what Firebase provides/backend fetches
+          const user = userCredential.user;
+
+          // Send to backend with Firebase token
           await socialLogin({
-            provider: 'google',
-            token: token!,
-            email: userInfo.email,
-            name: userInfo.name,
-            image: userInfo.picture,
+            provider: 'google', // Backend will now verify this as a Firebase token
+            token: firebaseToken,
+            email: user.email || undefined,
+            name: user.displayName || undefined,
+            image: user.photoURL || undefined,
           });
 
           onSuccess?.();
         } catch (error: any) {
+          console.error('Google login error:', error);
           onError?.(error.message || 'Google login failed');
         } finally {
           setIsLoadingGoogle(false);

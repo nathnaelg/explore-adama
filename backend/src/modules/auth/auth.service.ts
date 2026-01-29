@@ -1,12 +1,10 @@
-// src/modules/auth/auth.service.ts
 import { Role } from "@prisma/client";
 import crypto from "crypto";
-import { OAuth2Client } from 'google-auth-library';
+import admin from 'firebase-admin';
 import { prisma } from "../../config/db.ts";
 import { signAccessToken, signRefreshToken } from "../../utils/jwt.ts";
 import { comparePassword, hashPassword } from "../../utils/password.ts";
 
-const googleClient = new OAuth2Client();
 
 type CreateSessionOptions = {
   userId: string;
@@ -36,31 +34,19 @@ export class AuthService {
     let verifiedEmail = email;
     let verifiedName = name;
 
-    if (provider === 'google') {
+    if (provider === 'google' || provider === 'apple') {
       try {
-        const audiences = [
-          process.env.GOOGLE_CLIENT_ID_IOS,
-          process.env.GOOGLE_CLIENT_ID_ANDROID,
-          process.env.GOOGLE_CLIENT_ID_WEB
-        ].filter(Boolean) as string[];
+        const decodedToken = await admin.auth().verifyIdToken(token);
 
-        // Only verify if at least one audience is configured
-        if (audiences.length > 0) {
-          const ticket = await googleClient.verifyIdToken({
-            idToken: token,
-            audience: audiences
-          });
-          const payload = ticket.getPayload();
-          if (payload) {
-            verifiedEmail = payload.email;
-            verifiedName = payload.name || verifiedName;
-          }
-        } else {
-          console.warn('Google Client IDs not configured, bypassing token verification in development.');
-        }
+        verifiedEmail = decodedToken.email;
+        verifiedName = decodedToken.name || verifiedName;
+
+        // If we want to use the picture from firebase:
+        // const picture = decodedToken.picture;
+
       } catch (error) {
-        console.error('Google token verification failed:', error);
-        throw new Error("Invalid Google token");
+        console.error('Firebase token verification failed:', error);
+        throw new Error("Invalid Firebase token");
       }
     }
 

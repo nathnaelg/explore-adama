@@ -3,6 +3,7 @@
     "name": "Explore Adama",
     "slug": "Explore-Adama",
     "version": "1.0.0",
+    "owner": "natk3y0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "smarttourism",
@@ -52,7 +53,15 @@
       ],
       "expo-secure-store",
       "expo-web-browser",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "@react-native-firebase/app",
+        {
+          "android": {
+            "googleServicesFile": "./google-services.json"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
