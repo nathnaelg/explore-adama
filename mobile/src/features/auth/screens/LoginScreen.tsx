@@ -18,7 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SocialLoginButtons } from '../components/SocialLoginButtons';
+
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -168,20 +168,7 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
 
-            <View style={styles.divider}>
-              <View style={[styles.dividerLine, { backgroundColor: chip }]} />
-              <ThemedText type="default" style={[styles.dividerText, { color: muted }]}>
-                {t('auth.orContinue')}
-              </ThemedText>
-              <View style={[styles.dividerLine, { backgroundColor: chip }]} />
-            </View>
 
-            <View style={styles.socialButtons}>
-              <SocialLoginButtons
-                onSuccess={() => router.replace('/(tabs)')}
-                onError={(err: string) => Alert.alert(t('auth.loginFailed'), err)}
-              />
-            </View>
 
             <TouchableOpacity
               style={styles.signupLink}
@@ -273,25 +260,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
-  },
-  socialButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-    marginBottom: 24,
-  },
+
   signupLink: {
     alignItems: 'center',
     marginBottom: 32,

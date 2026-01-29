@@ -47,5 +47,6 @@ export const env = {
     SESSION_EXPIRES_IN: parseInt(getEnv("SESSION_EXPIRES_IN")),
     LOG_LEVEL: getEnv("LOG_LEVEL"),
     SESSION_SECRET: getEnv("SESSION_SECRET"),
+    GOOGLE_MAPS_API_KEY: getEnv("GOOGLE_MAPS_API_KEY", false),
 
 };

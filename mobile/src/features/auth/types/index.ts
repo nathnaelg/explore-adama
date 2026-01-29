@@ -22,13 +22,7 @@ export interface LoginDto {
   password: string;
 }
 
-export interface SocialLoginDto {
-  provider: "google" | "apple";
-  token: string;
-  email?: string;
-  name?: string;
-  image?: string;
-}
+
 
 export interface ForgotPasswordDto {
   email: string;

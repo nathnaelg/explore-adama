@@ -16,7 +16,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { SocialLoginButtons } from '../components/SocialLoginButtons';
+
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
@@ -204,22 +204,7 @@ export default function RegisterScreen() {
             </ThemedText>
           </TouchableOpacity>
 
-          <View style={styles.socialSection}>
-            <View style={styles.divider}>
-              <View style={[styles.dividerLine, { backgroundColor: chip }]} />
-              <ThemedText type="default" style={[styles.dividerText, { color: muted }]}>
-                {t('auth.orRegister')}
-              </ThemedText>
-              <View style={[styles.dividerLine, { backgroundColor: chip }]} />
-            </View>
 
-            <View style={styles.socialButtons}>
-              <SocialLoginButtons
-                onSuccess={() => router.replace('/(tabs)')}
-                onError={(err: string) => Alert.alert(t('auth.registrationFailed'), err)}
-              />
-            </View>
-          </View>
 
           <TouchableOpacity
             style={styles.loginLink}
@@ -304,27 +289,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  socialSection: {
-    marginBottom: 24,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
-  },
-  socialButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-  },
+
   loginLink: {
     alignItems: 'center',
     paddingVertical: 20,
