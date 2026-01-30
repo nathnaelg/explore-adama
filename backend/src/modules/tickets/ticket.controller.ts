@@ -6,15 +6,19 @@ import { TicketService } from "./ticket.service.ts"; // Import new service
 
 export class TicketController {
   // GET /api/tickets
-  static async list(req: Request, res: Response) {
+  static async list(req: any, res: Response) {
     try {
-      const authUser = (req as any).user;
-      if (!authUser) return res.status(401).json({ message: "Unauthorized" });
+      const { role, sub: userId } = req.user;
 
-      const tickets = await TicketService.listTickets(authUser.sub);
-      return res.json({ data: tickets }); // Wrap in data to match standard api response
+      let where = {};
+      if (role !== "ADMIN") {
+        where = { userId };
+      }
+
+      const tickets = await TicketService.findAll(where);
+      return res.json(tickets);
     } catch (err: any) {
-      console.error("List tickets error:", err);
+      console.error(err);
       return res.status(500).json({ message: "Failed to list tickets" });
     }
   }
@@ -42,11 +46,17 @@ export class TicketController {
       if (!ticket.qrToken) {
         // Generate on-the-fly if not present
         await TicketService.generateQrCode(ticket.id, ticket.qrToken);
-        const refreshedTicket = await prisma.ticket.findUnique({ where: { id } });
-        if (!refreshedTicket?.qrToken) return res.status(500).json({ message: "QR code not available" });
+        const refreshedTicket = await prisma.ticket.findUnique({
+          where: { id },
+        });
+        if (!refreshedTicket?.qrToken)
+          return res.status(500).json({ message: "QR code not available" });
 
         // Send as image
-        const buffer = Buffer.from(refreshedTicket.qrToken.split(",")[1], "base64"); // Extract base64 data
+        const buffer = Buffer.from(
+          refreshedTicket.qrToken.split(",")[1],
+          "base64",
+        ); // Extract base64 data
         res.setHeader("Content-Type", "image/png");
         return res.send(buffer);
       }
@@ -66,18 +76,31 @@ export class TicketController {
   static async validate(req: Request, res: Response) {
     try {
       const { qrToken } = req.body;
-      if (!qrToken) return res.status(400).json({ message: "qrToken required" });
+      if (!qrToken)
+        return res.status(400).json({ message: "qrToken required" });
 
       const ticket = await prisma.ticket.findUnique({ where: { qrToken } });
-      if (!ticket) return res.status(404).json({ message: "Ticket not found or invalid" });
+      if (!ticket)
+        return res.status(404).json({ message: "Ticket not found or invalid" });
 
       // check expiry & status
-      if (ticket.status !== "CONFIRMED") return res.status(400).json({ message: `Ticket not valid (status=${ticket.status})` });
+      if (ticket.status !== "CONFIRMED")
+        return res
+          .status(400)
+          .json({ message: `Ticket not valid (status=${ticket.status})` });
 
       // mark used
-      await prisma.ticket.update({ where: { id: ticket.id }, data: { status: "USED", usedAt: new Date() } });
+      await prisma.ticket.update({
+        where: { id: ticket.id },
+        data: { status: "USED", usedAt: new Date() },
+      });
 
-      return res.json({ message: "Ticket validated", ticketId: ticket.id, eventId: ticket.eventId, userId: ticket.userId });
+      return res.json({
+        message: "Ticket validated",
+        ticketId: ticket.id,
+        eventId: ticket.eventId,
+        userId: ticket.userId,
+      });
     } catch (err: any) {
       console.error(err);
       return res.status(500).json({ message: "Failed to validate ticket" });
