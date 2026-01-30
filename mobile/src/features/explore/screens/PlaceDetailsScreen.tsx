@@ -77,14 +77,6 @@ export default function PlaceDetailsScreen() {
         toggleFavorite({ itemId: placeId || '', itemType: 'PLACE', isFavorite: isFavorited });
     };
 
-    const handleBooking = () => {
-        if (!isAuthenticated) {
-            router.push('/(auth)/login');
-            return;
-        }
-        router.push({ pathname: '/bookings/new', params: { placeId: place.id } } as any);
-    };
-
     const handleReview = () => {
         if (!isAuthenticated) {
             router.push('/(auth)/login');
@@ -92,6 +84,7 @@ export default function PlaceDetailsScreen() {
         }
         router.push({ pathname: '/reviews/add', params: { itemId: place.id, itemType: 'PLACE' } } as any);
     };
+
 
     const features = [
         { icon: 'wifi-outline', label: 'Free WiFi' },
@@ -203,12 +196,6 @@ export default function PlaceDetailsScreen() {
 
                     {/* Actions */}
                     <View style={styles.actionButtons}>
-                        <TouchableOpacity
-                            style={[styles.bookButton, { backgroundColor: primary }]}
-                            onPress={handleBooking}
-                        >
-                            <ThemedText style={styles.bookButtonText}>{t('placeDetails.bookVisit')}</ThemedText>
-                        </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.reviewButton, { borderColor: primary, borderWidth: 1 }]}
                             onPress={handleReview}
