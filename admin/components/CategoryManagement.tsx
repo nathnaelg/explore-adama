@@ -1,17 +1,27 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Category } from '../types';
-import { api } from '../services/api';
-import { 
-  Layers, Plus, Edit, Trash2, Search, Loader2, Tag, Copy,
-  ArrowUp, ArrowDown, ChevronLeft, ChevronRight, CheckCircle, AlertCircle
+import {
+  AlertCircle,
+  ArrowDown,
+  ArrowUp,
+  CheckCircle,
+  ChevronLeft, ChevronRight,
+  Copy,
+  Edit,
+  Layers,
+  Loader2,
+  Plus,
+  Tag,
+  Trash2
 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { api } from '../services/api';
+import { Category } from '../types';
 import { cn } from '../utils';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Button } from './ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Input } from './ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Label } from './ui/label';
 import { Select } from './ui/select';
 
@@ -26,7 +36,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({ isDarkMode, sea
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'delete', message: string } | null>(null);
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [hasMore, setHasMore] = useState(false);
@@ -40,10 +50,11 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({ isDarkMode, sea
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
-  
+
   const [formData, setFormData] = useState({
     name: '',
-    key: ''
+    key: '',
+    icon: 'grid-outline'
   });
 
   const showFeedback = (type: 'success' | 'error' | 'delete', message: string) => {
@@ -56,7 +67,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({ isDarkMode, sea
     try {
       const res = await api.categories.getAll();
       let data: Category[] = [];
-      
+
       if (Array.isArray(res)) {
         data = res;
       } else if (res && Array.isArray((res as any).data)) {
@@ -83,26 +94,26 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({ isDarkMode, sea
     const nameMatch = (cat.name || '').toLowerCase().includes(term);
     const keyMatch = (cat.key || '').toLowerCase().includes(term);
     const idMatch = (cat.id || '').toLowerCase().includes(term);
-    
+
     return nameMatch || keyMatch || idMatch;
   }).sort((a, b) => {
-      let comparison = 0;
-      if (sortBy === 'name') {
-          comparison = a.name.localeCompare(b.name);
-      } else if (sortBy === 'count') {
-          comparison = (a.count || 0) - (b.count || 0);
-      }
-      return sortOrder === 'asc' ? comparison : -comparison;
+    let comparison = 0;
+    if (sortBy === 'name') {
+      comparison = a.name.localeCompare(b.name);
+    } else if (sortBy === 'count') {
+      comparison = (a.count || 0) - (b.count || 0);
+    }
+    return sortOrder === 'asc' ? comparison : -comparison;
   });
 
   const paginatedCategories = filteredCategories.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   const handleOpenAdd = () => {
     setEditingId(null);
-    setFormData({ name: '', key: '' });
+    setFormData({ name: '', key: '', icon: 'grid-outline' });
     setIsDialogOpen(true);
   };
 
@@ -110,7 +121,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({ isDarkMode, sea
     setEditingId(category.id);
     setFormData({
       name: category.name,
-      key: category.key
+      key: category.key,
+      icon: (category as any).icon || 'grid-outline'
     });
     setIsDialogOpen(true);
   };
@@ -156,8 +168,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({ isDarkMode, sea
   };
 
   const copyToClipboard = (text: string) => {
-      navigator.clipboard.writeText(text);
-      showFeedback('success', "ID copied to clipboard.");
+    navigator.clipboard.writeText(text);
+    showFeedback('success', "ID copied to clipboard.");
   };
 
   return (
@@ -170,17 +182,17 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({ isDarkMode, sea
           <p className="text-sm text-gray-500">Organize places and events with categories.</p>
         </div>
         <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-          <Select 
-            value={sortBy} 
+          <Select
+            value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
             className="w-[130px]"
           >
             <option value="name">Name</option>
             <option value="key">Key</option>
           </Select>
-          <Button 
-            variant="outline" 
-            size="icon" 
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
             title={sortOrder === 'asc' ? "Ascending" : "Descending"}
           >
@@ -206,95 +218,99 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({ isDarkMode, sea
             <div className="flex flex-col">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-separate border-spacing-0">
-                    <thead>
+                  <thead>
                     <tr className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] border-b border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-950">
-                        <th className="p-6 pl-8">Name</th>
-                        <th className="p-6">Key</th>
-                        <th className="p-6">ID</th>
-                    
-                        <th className="p-6 text-right pr-8">Control</th>
-                    </tr>
-                    </thead>
-                    <tbody className="text-sm divide-y divide-gray-100 dark:divide-zinc-800">
-                    {paginatedCategories.length === 0 ? (
-                        <tr>
-                            <td colSpan={5} className="p-12 text-center text-gray-400 font-bold uppercase tracking-widest text-[10px]">
-                                {searchTerm ? `No categories matching "${searchTerm}"` : 'No categories found.'}
-                            </td>
-                        </tr>
-                    ) : paginatedCategories.map(category => (
-                        <tr key={category.id} className="hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors group">
-                        <td className="p-6 pl-8">
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shadow-sm">
-                                    <Tag size={18} />
-                                </div>
-                                <span className="font-black text-gray-900 dark:text-white text-sm">{category.name}</span>
-                            </div>
-                        </td>
-                        <td className="p-6">
-                            <span className="font-mono text-[10px] font-bold bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded text-gray-600 dark:text-zinc-400 border border-gray-200 dark:border-zinc-700">
-                                {category.key}
-                            </span>
-                        </td>
-                        <td className="p-6">
-                            <div className="flex items-center gap-2 group/id cursor-pointer" onClick={() => copyToClipboard(category.id)} title="Click to copy">
-                                <span className="font-mono text-[10px] text-gray-400 truncate max-w-[100px]">{category.id}</span>
-                                <Copy size={12} className="opacity-0 group-hover/id:opacity-100 text-gray-400" />
-                            </div>
-                        </td>
-                      
-                        <td className="p-6 text-right pr-8">
-                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-9 w-9 p-0 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 rounded-xl" 
-                                    onClick={() => handleOpenEdit(category)}
-                                >
-                                    <Edit size={16} />
-                                </Button>
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-9 w-9 p-0 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 rounded-xl" 
-                                    onClick={() => handleOpenDelete(category)}
-                                >
-                                    <Trash2 size={16} />
-                                </Button>
-                            </div>
-                        </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-                </div>
+                      <th className="p-6 pl-8">Name</th>
+                      <th className="p-6">Key</th>
+                      <th className="p-6">ID</th>
 
-                {!isLoading && (
+                      <th className="p-6 text-right pr-8">Control</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm divide-y divide-gray-100 dark:divide-zinc-800">
+                    {paginatedCategories.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="p-12 text-center text-gray-400 font-bold uppercase tracking-widest text-[10px]">
+                          {searchTerm ? `No categories matching "${searchTerm}"` : 'No categories found.'}
+                        </td>
+                      </tr>
+                    ) : paginatedCategories.map(category => (
+                      <tr key={category.id} className="hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors group">
+                        <td className="p-6 pl-8">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shadow-sm">
+                              {(category as any).icon ? (
+                                <span className="text-xs font-mono">{(category as any).icon.split('-')[0]}</span>
+                              ) : (
+                                <Tag size={18} />
+                              )}
+                            </div>
+                            <span className="font-black text-gray-900 dark:text-white text-sm">{category.name}</span>
+                          </div>
+                        </td>
+                        <td className="p-6">
+                          <span className="font-mono text-[10px] font-bold bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded text-gray-600 dark:text-zinc-400 border border-gray-200 dark:border-zinc-700">
+                            {category.key}
+                          </span>
+                        </td>
+                        <td className="p-6">
+                          <div className="flex items-center gap-2 group/id cursor-pointer" onClick={() => copyToClipboard(category.id)} title="Click to copy">
+                            <span className="font-mono text-[10px] text-gray-400 truncate max-w-[100px]">{category.id}</span>
+                            <Copy size={12} className="opacity-0 group-hover/id:opacity-100 text-gray-400" />
+                          </div>
+                        </td>
+
+                        <td className="p-6 text-right pr-8">
+                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 w-9 p-0 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 rounded-xl"
+                              onClick={() => handleOpenEdit(category)}
+                            >
+                              <Edit size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 w-9 p-0 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 rounded-xl"
+                              onClick={() => handleOpenDelete(category)}
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {!isLoading && (
                 <div className="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-zinc-800">
-                  <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1 || isLoading}
-                      className="gap-2 rounded-xl text-[10px] uppercase font-black tracking-widest px-4"
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1 || isLoading}
+                    className="gap-2 rounded-xl text-[10px] uppercase font-black tracking-widest px-4"
                   >
-                      <ChevronLeft size={16} /> Previous
+                    <ChevronLeft size={16} /> Previous
                   </Button>
                   <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                      Page {currentPage} of {Math.ceil(filteredCategories.length / itemsPerPage)}
+                    Page {currentPage} of {Math.ceil(filteredCategories.length / itemsPerPage)}
                   </div>
-                  <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => setCurrentPage(prev => prev + 1)}
-                      disabled={currentPage * itemsPerPage >= filteredCategories.length || isLoading}
-                      className="gap-2 rounded-xl text-[10px] uppercase font-black tracking-widest px-4"
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => prev + 1)}
+                    disabled={currentPage * itemsPerPage >= filteredCategories.length || isLoading}
+                    className="gap-2 rounded-xl text-[10px] uppercase font-black tracking-widest px-4"
                   >
-                      Next <ChevronRight size={16} />
+                    Next <ChevronRight size={16} />
                   </Button>
                 </div>
-                )}
+              )}
             </div>
           )}
         </CardContent>
@@ -312,17 +328,34 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({ isDarkMode, sea
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="name" className="text-right">Name</Label>
-                <Input id="name" className="col-span-3" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required placeholder="e.g. Hotels" />
+                <Input id="name" className="col-span-3" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required placeholder="e.g. Hotels" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="key" className="text-right">Key</Label>
-                <Input id="key" className="col-span-3" value={formData.key} onChange={e => setFormData({...formData, key: e.target.value})} placeholder="unique-key" />
+                <Input id="key" className="col-span-3" value={formData.key} onChange={e => setFormData({ ...formData, key: e.target.value })} placeholder="unique-key" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="icon" className="text-right">Icon</Label>
+                <Select id="icon" className="col-span-3" value={formData.icon} onChange={e => setFormData({ ...formData, icon: e.target.value })}>
+                  <option value="grid-outline">Grid (Default)</option>
+                  <option value="location-outline">Location</option>
+                  <option value="bed-outline">Bed (Hotels)</option>
+                  <option value="restaurant-outline">Restaurant</option>
+                  <option value="calendar-outline">Calendar (Events)</option>
+                  <option value="cart-outline">Cart (Shopping)</option>
+                  <option value="moon-outline">Moon (Nightlife)</option>
+                  <option value="leaf-outline">Leaf (Nature)</option>
+                  <option value="water-outline">Water (Spa)</option>
+                  <option value="fitness-outline">Fitness</option>
+                  <option value="camera-outline">Camera (Attractions)</option>
+                  <option value="library-outline">Library (Historical)</option>
+                </Select>
               </div>
             </div>
             <DialogFooter>
-               <Button type="button" variant="secondary" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+              <Button type="button" variant="secondary" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={isSaving}>
-                  {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Category'}
+                {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Category'}
               </Button>
             </DialogFooter>
           </form>
@@ -355,13 +388,13 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({ isDarkMode, sea
       </Dialog>
 
       {feedback && (
-          <div className={cn(
-              "fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-5 fade-in z-[9999] text-white",
-              feedback.type === 'success' ? "bg-green-600" : "bg-red-600"
-          )}>
-              {feedback.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-              <span className="font-medium">{feedback.message}</span>
-          </div>
+        <div className={cn(
+          "fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-5 fade-in z-[9999] text-white",
+          feedback.type === 'success' ? "bg-green-600" : "bg-red-600"
+        )}>
+          {feedback.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+          <span className="font-medium">{feedback.message}</span>
+        </div>
       )}
 
     </div>

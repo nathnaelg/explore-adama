@@ -138,7 +138,7 @@ export default function HomeScreen() {
                                 onPress={() => router.push({ pathname: '/search', params: { categoryId: cat.id } })}
                             >
                                 <Ionicons
-                                    name={(CATEGORY_ICONS[cat.key] || 'grid-outline') as any}
+                                    name={(cat.icon || CATEGORY_ICONS[cat.key] || 'grid-outline') as any}
                                     size={22}
                                     color={primary}
                                 />
@@ -224,31 +224,39 @@ export default function HomeScreen() {
                     onPress={() => router.push('/(tabs)/map')}
                 />
 
-                {nearbyLoading ? (
-                    <ActivityIndicator size="small" color={primary} />
-                ) : (
-                    nearby?.data?.slice(0, 3).map((place: any) => (
-                        <TouchableOpacity
-                            key={place.id}
-                            style={[styles.nearby, { backgroundColor: card }]}
-                            onPress={() => router.push(`/place/${place.id}`)}
-                        >
-                            <OptimizedImage
-                                source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1501785888041-af3ef285b470' }}
-                                style={styles.nearbyImage}
-                                contentFit="cover"
-                                transition={300}
-                            />
-                            <View style={{ flex: 1 }}>
-                                <Text style={{ color: text, fontWeight: '700' }}>
-                                    {place.name}
-                                </Text>
-                                <Text style={{ color: muted }}>{place.address || t('home.adamaEthiopia')}</Text>
-                                <Text style={{ color: primary }}>⭐ {place.avgRating || t('explore.new')}</Text>
-                            </View>
-                        </TouchableOpacity>
-                    ))
-                )}
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={{ paddingLeft: 20 }}
+                    contentContainerStyle={{ paddingRight: 20 }}
+                >
+                    {nearbyLoading ? (
+                        <ActivityIndicator size="small" color={primary} style={{ margin: 50 }} />
+                    ) : (
+                        nearby?.data?.slice(0, 5).map((place: any) => (
+                            <TouchableOpacity
+                                key={place.id}
+                                style={[styles.nearby, { backgroundColor: card }]}
+                                onPress={() => router.push(`/place/${place.id}`)}
+                            >
+                                <OptimizedImage
+                                    source={{ uri: place.images?.[0]?.url || 'https://images.unsplash.com/photo-1501785888041-af3ef285b470' }}
+                                    style={styles.nearbyImage}
+                                    contentFit="cover"
+                                    transition={300}
+                                />
+                                <View style={styles.nearbyContent}>
+                                    <Text style={{ color: text, fontWeight: '700', fontSize: 15 }} numberOfLines={1}>
+                                        {place.name}
+                                    </Text>
+                                    <Text style={{ color: muted, fontSize: 12 }} numberOfLines={1}>{place.address || t('home.adamaEthiopia')}</Text>
+                                    <Text style={{ color: primary, fontSize: 13, fontWeight: '600' }}>⭐ {place.avgRating || t('explore.new')}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        ))
+                    )}
+                </ScrollView>
+
 
                 <View style={{ height: 120 }} />
             </ScrollView>
@@ -398,15 +406,19 @@ const styles = StyleSheet.create({
     },
 
     nearby: {
-        marginHorizontal: 20,
+        width: 200,
         borderRadius: 16,
-        padding: 14,
-        flexDirection: 'row',
-        gap: 12,
+        padding: 12,
+        marginRight: 16,
+        flexDirection: 'column',
     },
     nearbyImage: {
-        width: 60,
-        height: 60,
+        width: '100%',
+        height: 120,
         borderRadius: 12,
+        marginBottom: 10,
+    },
+    nearbyContent: {
+        gap: 4,
     },
 });
