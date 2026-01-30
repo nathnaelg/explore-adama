@@ -67,13 +67,13 @@ export default function TabLayout() {
   const tint = useThemeColor({}, 'tint');
   const bg = useThemeColor({}, 'tabBarBackground');
   const inactive = useThemeColor({}, 'tabBarInactiveTint');
-  const { isAuthenticated, isGuest, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return null; // Or a spinner
   }
 
-  if (!isAuthenticated && !isGuest) {
+  if (!isAuthenticated) {
     // Use router to redirect since Redirect component is missing
     setTimeout(() => router.replace('/(auth)/login'), 0);
     return null;
