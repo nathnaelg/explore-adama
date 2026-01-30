@@ -3,7 +3,7 @@ import { ThemedText } from '@/src/components/themed/ThemedText';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dimensions, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
@@ -19,6 +19,26 @@ export function FeaturedCarousel({ places }: FeaturedCarouselProps) {
     const primary = useThemeColor({}, 'primary');
     const muted = useThemeColor({}, 'muted');
     const [activeIndex, setActiveIndex] = useState(0);
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    // Take top 5 for carousel
+    const featuredPlaces = places ? places.slice(0, 5) : [];
+
+    useEffect(() => {
+        if (featuredPlaces.length === 0) return;
+
+        const interval = setInterval(() => {
+            const nextIndex = (activeIndex + 1) % featuredPlaces.length;
+            const offset = nextIndex * (CARD_WIDTH + 20);
+
+            scrollViewRef.current?.scrollTo({
+                x: offset,
+                animated: true,
+            });
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [activeIndex, featuredPlaces.length]);
 
     const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const x = event.nativeEvent.contentOffset.x;
@@ -28,9 +48,6 @@ export function FeaturedCarousel({ places }: FeaturedCarouselProps) {
 
     if (!places || places.length === 0) return null;
 
-    // Take top 5 for carousel
-    const featuredPlaces = places.slice(0, 5);
-
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -38,6 +55,7 @@ export function FeaturedCarousel({ places }: FeaturedCarouselProps) {
             </View>
 
             <ScrollView
+                ref={scrollViewRef}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 snapToInterval={CARD_WIDTH + 20}
