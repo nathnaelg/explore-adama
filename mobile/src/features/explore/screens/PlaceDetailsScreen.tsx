@@ -142,13 +142,19 @@ export default function PlaceDetailsScreen() {
                     </View>
 
                     {/* Location */}
-                    <View style={styles.section}>
+                    <TouchableOpacity
+                        style={styles.section}
+                        onPress={() => router.push({ pathname: '/(tabs)/map', params: { placeId: place.id } } as any)}
+                    >
                         <View style={styles.sectionHeader}>
                             <Ionicons name="location-outline" size={20} color={primary} />
                             <ThemedText type="subtitle" style={styles.sectionTitle}>{t('placeDetails.location')}</ThemedText>
                         </View>
                         <ThemedText style={styles.address}>{place.address || 'Adama, Ethiopia'}</ThemedText>
-                    </View>
+                        <ThemedText style={{ color: primary, fontSize: 14, fontWeight: '600', marginTop: 4 }}>
+                            {t('common.viewOnMap', 'View on Map')}
+                        </ThemedText>
+                    </TouchableOpacity>
 
                     {/* Gallery */}
                     {gallery.length > 0 && (

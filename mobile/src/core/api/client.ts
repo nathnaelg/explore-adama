@@ -141,8 +141,14 @@ apiClient.interceptors.response.use(
         const accessToken = await refreshPromise;
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
-      } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
+      } catch (refreshError: any) {
+        // Only log as error if it's not a missing token (which is expected on expiry)
+        if (refreshError.message === 'No refresh token' || refreshError.message === 'No access token') {
+          console.warn('[Auth] Session expired (no refresh token), logging out.');
+        } else {
+          console.error('Token refresh failed:', refreshError);
+        }
+
         // Clean up and logout
         await secureStorage.clearAuth();
         await AsyncStorage.removeItem(USER_KEY);

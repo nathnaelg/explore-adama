@@ -53,15 +53,7 @@
       ],
       "expo-secure-store",
       "expo-web-browser",
-      "expo-notifications",
-      [
-        "@react-native-firebase/app",
-        {
-          "android": {
-            "googleServicesFile": "./google-services.json"
-          }
-        }
-      ]
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -72,7 +64,7 @@
       "eas": {
         "projectId": "e09802cb-6a7e-4c63-bc4b-68b6f0917afc"
       },
-      "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": "your_google_maps_api_key_here"
+      "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": "AIzaSyBZ-pljCr0xAuooBBNYwF9SuDXQKSt5lbI"
     }
   }
 }
