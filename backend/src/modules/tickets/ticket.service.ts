@@ -12,18 +12,20 @@ export class TicketService {
   // src/modules/tickets/ticket.service.ts
   static async generateQrCode(ticketId: string, qrToken: string) {
     try {
-      const ticket = await prisma.ticket.findUnique({ where: { id: ticketId } });
+      const ticket = await prisma.ticket.findUnique({
+        where: { id: ticketId },
+      });
       if (!ticket) throw new Error("Ticket not found");
 
       // Use only the short, unique qrToken (already UUID) → perfect size
       const qrData = qrToken;
 
       const qrBase64 = await QRCode.toDataURL(qrData, {
-        errorCorrectionLevel: "M",   // ← Lower from H → fixes "data too big"
+        errorCorrectionLevel: "M", // ← Lower from H → fixes "data too big"
         type: "image/png",
         quality: 0.92,
         margin: 1,
-        width: 512,                  // ← Smaller image = smaller data
+        width: 512, // ← Smaller image = smaller data
         color: {
           dark: "#000000",
           light: "#FFFFFF",
@@ -48,7 +50,7 @@ export class TicketService {
   static async findById(id: string) {
     return prisma.ticket.findUnique({
       where: { id },
-      include: { booking: true, event: true }
+      include: { booking: true, event: true },
     });
   }
 
@@ -58,11 +60,41 @@ export class TicketService {
       where: { userId },
       include: {
         booking: true,
-        event: true
+        event: true,
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
   }
 
-  // Other ticket operations can be added here
+  // List tickets with optional filtering
+  static async findAll(where: any = {}) {
+    return prisma.ticket.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            profile: {
+              select: {
+                name: true,
+                avatar: true,
+              },
+            },
+          },
+        },
+        event: {
+          select: {
+            id: true,
+            title: true,
+            date: true,
+          },
+        },
+        booking: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
 }
