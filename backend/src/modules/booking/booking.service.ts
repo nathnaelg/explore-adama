@@ -23,9 +23,9 @@ export class BookingService {
         tax: data.tax,
         fees: data.fees,
         total: data.total,
-        status: "PENDING"
+        status: "PENDING",
       },
-      include: { event: true } // Include event to get title for notification
+      include: { event: true }, // Include event to get title for notification
     });
 
     try {
@@ -34,7 +34,7 @@ export class BookingService {
         type: "BOOKING",
         title: "Booking Initiated",
         message: `Your booking for ${booking.event.title} is pending payment.`,
-        data: { bookingId: booking.id, eventId: booking.eventId }
+        data: { bookingId: booking.id, eventId: booking.eventId },
       });
     } catch (e) {
       console.error("Failed to send pending booking notification", e);
@@ -49,75 +49,88 @@ export class BookingService {
       include: {
         event: true,
         tickets: true,
-        user: { select: { id: true, email: true, profile: true } }
-      }
+        user: { select: { id: true, email: true, profile: true } },
+      },
     });
   }
 
   static async cancelBooking(id: string) {
     return prisma.booking.update({
       where: { id },
-      data: { status: "CANCELLED" }
+      data: { status: "CANCELLED" },
     });
   }
 
-  static async listBookings(userId: string) {
-    return prisma.booking.findMany({
-      where: { userId },
-      include: {
-        event: true,
-        tickets: true
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+  static async listBookings(userId: string, page = 1, perPage = 20) {
+    const skip = (page - 1) * perPage;
+
+    const [data, total] = await Promise.all([
+      prisma.booking.findMany({
+        where: { userId },
+        include: {
+          event: true,
+          tickets: true,
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: perPage,
+      }),
+      prisma.booking.count({ where: { userId } }),
+    ]);
+
+    return { data, total, page, perPage };
   }
 
   // Confirm booking: update status, create tickets atomically and increment event bookingCount
   static async confirmBooking(bookingId: string, paymentId?: string) {
-    const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
     if (!booking) return null;
     if (booking.status === "CONFIRMED") return booking; // idempotent
 
     // transaction: update booking, create tickets, update event bookingCount
-    const created = await prisma.$transaction(async (tx) => {
-      const updatedBooking = await tx.booking.update({
-        where: { id: bookingId },
-        data: {
-          status: "CONFIRMED",
-          transactionId: paymentId ?? undefined
-        }
-      });
-
-      // Optimize ticket creation with Promise.all
-      const ticketPromises = Array.from({ length: booking.quantity }).map(() =>
-        tx.ticket.create({
+    const created = await prisma.$transaction(
+      async (tx) => {
+        const updatedBooking = await tx.booking.update({
+          where: { id: bookingId },
           data: {
-            bookingId,
-            eventId: booking.eventId,
-            userId: booking.userId,
             status: "CONFIRMED",
-            qrToken: crypto.randomUUID()
-          }
-        })
-      );
+            transactionId: paymentId ?? undefined,
+          },
+        });
 
-      const tickets = await Promise.all(ticketPromises);
+        // Optimize ticket creation with Promise.all
+        const ticketPromises = Array.from({ length: booking.quantity }).map(
+          () =>
+            tx.ticket.create({
+              data: {
+                bookingId,
+                eventId: booking.eventId,
+                userId: booking.userId,
+                status: "CONFIRMED",
+                qrToken: crypto.randomUUID(),
+              },
+            }),
+        );
 
-      await tx.event.update({
-        where: { id: booking.eventId },
-        data: { bookingCount: { increment: booking.quantity } }
-      });
+        const tickets = await Promise.all(ticketPromises);
 
-      // return updated booking with tickets
-      return tx.booking.findUnique({
-        where: { id: bookingId },
-        include: { tickets: true, event: true, user: true }
-      });
-    }, {
-      timeout: 20000 // Increase timeout to 20s
-    });
+        await tx.event.update({
+          where: { id: booking.eventId },
+          data: { bookingCount: { increment: booking.quantity } },
+        });
 
-
+        // return updated booking with tickets
+        return tx.booking.findUnique({
+          where: { id: bookingId },
+          include: { tickets: true, event: true, user: true },
+        });
+      },
+      {
+        timeout: 20000, // Increase timeout to 20s
+      },
+    );
 
     if (created && created.status === "CONFIRMED") {
       try {
@@ -126,7 +139,7 @@ export class BookingService {
           type: "BOOKING",
           title: "Booking Confirmed",
           message: `Your booking for ${created.event.title} has been confirmed!`,
-          data: { bookingId: created.id, eventId: created.event.id }
+          data: { bookingId: created.id, eventId: created.event.id },
         });
       } catch (e) {
         console.error("Failed to send booking notification", e);

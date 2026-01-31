@@ -12,14 +12,21 @@ export class BookingController {
       if (!authUser) return res.status(401).json({ message: "Unauthorized" });
 
       const { eventId, quantity } = req.body;
-      if (!eventId || !quantity) return res.status(400).json({ message: "eventId and quantity required" });
+      if (!eventId || !quantity)
+        return res
+          .status(400)
+          .json({ message: "eventId and quantity required" });
 
       const event = await prisma.event.findUnique({ where: { id: eventId } });
       if (!event) return res.status(404).json({ message: "Event not found" });
-      if (event.price == null) return res.status(400).json({ message: "Event has no price configured" });
+      if (event.price == null)
+        return res
+          .status(400)
+          .json({ message: "Event has no price configured" });
 
       const q = Number(quantity);
-      if (isNaN(q) || q <= 0) return res.status(400).json({ message: "invalid quantity" });
+      if (isNaN(q) || q <= 0)
+        return res.status(400).json({ message: "invalid quantity" });
 
       const subTotal = event.price * q;
       const tax = 0;
@@ -34,13 +41,18 @@ export class BookingController {
         subTotal,
         tax,
         fees,
-        total
+        total,
       });
 
       // ensure user exists in DB (get email/profile)
-      const user = await prisma.user.findUnique({ where: { id: authUser.sub }, include: { profile: true } });
+      const user = await prisma.user.findUnique({
+        where: { id: authUser.sub },
+        include: { profile: true },
+      });
       if (!user) {
-        return res.status(500).json({ message: "Authenticated user not found in DB" });
+        return res
+          .status(500)
+          .json({ message: "Authenticated user not found in DB" });
       }
 
       // initiate payment (service will build chapa payload)
@@ -50,18 +62,20 @@ export class BookingController {
         amount: total,
         currency: "ETB",
         description: `Payment for booking ${booking.id}`,
-        returnUrl: `${env.FRONTEND_URL || env.BACKEND_URL}/payment-result`
+        returnUrl: `${env.FRONTEND_URL || env.BACKEND_URL}/payment-result`,
       });
 
       return res.status(201).json({
         message: "Booking initiated",
         booking,
         checkoutUrl: paymentInit.checkoutUrl,
-        providerData: paymentInit.providerData
+        providerData: paymentInit.providerData,
       });
     } catch (err: any) {
       console.error("❌ Booking initiate error:", err);
-      return res.status(500).json({ message: "Failed to initiate booking", error: err.message });
+      return res
+        .status(500)
+        .json({ message: "Failed to initiate booking", error: err.message });
     }
   }
 
@@ -69,7 +83,8 @@ export class BookingController {
     try {
       const bookingId = req.params.id;
       const booking = await BookingService.findById(bookingId);
-      if (!booking) return res.status(404).json({ message: "Booking not found" });
+      if (!booking)
+        return res.status(404).json({ message: "Booking not found" });
       return res.json(booking);
     } catch (err: any) {
       console.error(err);
@@ -84,7 +99,8 @@ export class BookingController {
       if (!authUser) return res.status(401).json({ message: "Unauthorized" });
 
       const booking = await BookingService.findById(bookingId);
-      if (!booking) return res.status(404).json({ message: "Booking not found" });
+      if (!booking)
+        return res.status(404).json({ message: "Booking not found" });
 
       if (booking.user?.id !== authUser.sub && authUser.role !== "ADMIN") {
         return res.status(403).json({ message: "Forbidden" });
@@ -92,7 +108,6 @@ export class BookingController {
 
       await BookingService.cancelBooking(bookingId);
       return res.json({ message: "Booking cancelled" });
-
     } catch (err: any) {
       console.error(err);
       return res.status(500).json({ message: "Failed to cancel booking" });
@@ -104,8 +119,15 @@ export class BookingController {
       const authUser = (req as any).user;
       if (!authUser) return res.status(401).json({ message: "Unauthorized" });
 
-      const bookings = await BookingService.listBookings(authUser.sub);
-      return res.json({ data: bookings }); // Wrap in data to match standard api response
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 20;
+
+      const result = await BookingService.listBookings(
+        authUser.sub,
+        page,
+        limit,
+      );
+      return res.json(result); // Service now returns standardised { data, total, page, perPage }
     } catch (err: any) {
       console.error("List bookings error:", err);
       return res.status(500).json({ message: "Failed to list bookings" });
