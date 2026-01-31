@@ -65,7 +65,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
   } | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(6);
+  const [itemsPerPage] = useState(10);
   const [hasMore, setHasMore] = useState(false);
   const [totalPlaces, setTotalPlaces] = useState(0);
 

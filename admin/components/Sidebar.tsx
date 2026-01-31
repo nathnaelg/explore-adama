@@ -92,9 +92,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             isCollapsed ? "justify-center" : "gap-3",
           )}
         >
-          <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/20 shrink-0">
-            E
-          </div>
+          <img
+            src="/icon.png"
+            alt="Logo"
+            className="w-12 h-12 rounded-xl object-contain shadow-lg shadow-blue-500/20 shrink-0 bg-white"
+          />
           <div
             className={cn(
               "flex flex-col overflow-hidden whitespace-nowrap transition-all duration-300",

@@ -393,7 +393,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                     </td>
                   </tr>
                 ) : (
-                  recentBookings.slice(0, 5).map((b) => (
+                  recentBookings.slice(0, 10).map((b) => (
                     <tr
                       key={b.id}
                       className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors"

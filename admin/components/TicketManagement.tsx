@@ -94,7 +94,13 @@ const TicketManagement: React.FC<TicketManagementProps> = ({
         });
 
         const ticketList = extractData(res);
-        const serverTotal = (res as any).total || (res as any).count || 0;
+        const payload = (res as any).data || res;
+        const serverTotal =
+          payload.total ||
+          payload.count ||
+          (res as any).total ||
+          (res as any).count ||
+          0;
 
         setTickets(ticketList);
         setTotalTickets(serverTotal || ticketList.length);
@@ -120,13 +126,19 @@ const TicketManagement: React.FC<TicketManagementProps> = ({
       setIsLoadingBookings(true);
       try {
         const res = await bookingsApi.getAll({
-          page: 1,
-          perPage: 100,
+          page: bookingPage,
+          perPage: 10,
           search: searchTerm,
         });
 
         const bookingList = extractData(res);
-        const serverTotal = (res as any).total || (res as any).count || 0;
+        const payload = (res as any).data || res;
+        const serverTotal =
+          payload.total ||
+          payload.count ||
+          (res as any).total ||
+          (res as any).count ||
+          0;
 
         setBookings(bookingList);
         setTotalBookings(serverTotal || bookingList.length);
@@ -138,7 +150,7 @@ const TicketManagement: React.FC<TicketManagementProps> = ({
         setIsLoadingBookings(false);
       }
     },
-    [searchTerm],
+    [searchTerm, bookingPage],
   );
 
   useEffect(() => {
@@ -151,10 +163,8 @@ const TicketManagement: React.FC<TicketManagementProps> = ({
     }
   }, [activeTab, fetchBookings]);
 
-  const displayedBookings = bookings.slice(
-    (bookingPage - 1) * perPage,
-    bookingPage * perPage,
-  );
+  // Server-side pagination is now used, so we use the full list
+  const displayedBookings = bookings;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
@@ -424,7 +434,7 @@ const TicketManagement: React.FC<TicketManagementProps> = ({
                   {Math.ceil(
                     (activeTab === "tickets" ? totalTickets : totalBookings) /
                       perPage,
-                  )}
+                  ) || 1}
                 </div>
                 <Button
                   variant="outline"
@@ -437,7 +447,8 @@ const TicketManagement: React.FC<TicketManagementProps> = ({
                   disabled={
                     !(activeTab === "tickets"
                       ? hasMoreTickets && !isLoadingTickets
-                      : bookingPage * perPage < bookings.length)
+                      : bookingPage * perPage < totalBookings &&
+                        !isLoadingBookings)
                   }
                   className="gap-2 rounded-xl text-[10px] uppercase font-black tracking-widest px-4"
                 >

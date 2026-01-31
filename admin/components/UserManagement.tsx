@@ -23,7 +23,7 @@ import {
     Trash2,
     UserCheck,
     User as UserIcon,
-    UserX
+    UserX,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
@@ -31,10 +31,7 @@ import { BlogPost, Booking, User } from "../types";
 import { cn } from "../utils";
 import ErrorAlert from "./ErrorAlert";
 import { Button } from "./ui/button";
-import {
-    Card,
-    CardContent
-} from "./ui/card";
+import { Card, CardContent } from "./ui/card";
 import {
     Dialog,
     DialogContent,
@@ -623,7 +620,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                                     size="sm"
                                     className="h-auto p-0 text-blue-500 font-bold uppercase text-[10px]"
                                   >
-                                    Inspect{" "}
+                                    View{" "}
                                     <ExternalLink size={10} className="ml-1" />
                                   </Button>
                                 </div>
@@ -758,7 +755,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
                                       : "text-green-500",
                                   )}
                                 >
-                                  {isUserBanned(user) ? "Suspended" : "Active"}
+                                  {isUserBanned(user) ? "Banned" : "Active"}
                                 </span>
                               </div>
                             </div>

@@ -595,7 +595,7 @@ const AnalyticsDashboard: React.FC<{ isDarkMode: boolean }> = ({
                     </td>
                   </tr>
                 ) : (
-                  stats.traffic.recentTickets.map((t: any) => (
+                  stats.traffic.recentTickets.slice(0, 10).map((t: any) => (
                     <tr
                       key={t.id}
                       className="hover:bg-gray-50 dark:hover:bg-zinc-800/30 transition-colors"

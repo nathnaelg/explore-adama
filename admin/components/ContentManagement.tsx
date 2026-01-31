@@ -18,7 +18,7 @@ import {
     Sparkles,
     ThumbsUp,
     Trash2,
-    User
+    User,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
@@ -152,17 +152,26 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
     fetchCategories();
   }, []);
 
+  const [totalItems, setTotalItems] = useState(0); // Add totalItems state
+
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const query = searchTerm
-        ? `?search=${encodeURIComponent(searchTerm)}`
-        : "";
-      const res = await api.get<{ items: any[] }>(`/blog${query}`);
+      const queryParams = new URLSearchParams();
+      if (searchTerm) queryParams.append("q", searchTerm);
+      if (categoryFilter !== "All")
+        queryParams.append("category", categoryFilter);
+      queryParams.append("page", currentPage.toString());
+      queryParams.append("limit", itemsPerPage.toString());
+
+      const res = await api.get<{ items: any[]; total?: number }>(
+        `/blog?${queryParams.toString()}`,
+      );
 
       if (res && res.items) {
         setHasMore(res.items.length === itemsPerPage);
+        setTotalItems(res.total || 0); // Set total items from response
         const mappedPosts: BlogPost[] = res.items.map((item: any) => ({
           id: item.id,
           title: item.title,
@@ -190,14 +199,14 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
 
   useEffect(() => {
     fetchData();
-  }, [searchTerm, currentPage]);
+  }, [searchTerm, currentPage, categoryFilter]);
 
+  // Client-side filtering for date/sort only (applied to current page)
   const filteredPosts = posts
     .filter((post) => {
       const dateMatch = dateFilter ? post.date.startsWith(dateFilter) : true;
-      const categoryMatch =
-        categoryFilter === "All" || post.category === categoryFilter;
-      return dateMatch && categoryMatch;
+      // Category is already filtered by backend, but keeping safety check or removing it logic
+      return dateMatch;
     })
     .sort((a, b) => {
       let comparison = 0;
@@ -208,11 +217,8 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
       return sortOrder === "asc" ? comparison : -comparison;
     });
 
-  const totalPages = Math.ceil(filteredPosts.length / itemsPerPage);
-  const paginatedPosts = filteredPosts.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  const paginatedPosts = filteredPosts;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
   const handleOpenAddPost = () => {
     setEditingPostId(null);
@@ -364,7 +370,10 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
         <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
           <Select
             value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
+            onChange={(e) => {
+              setCategoryFilter(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-full md:w-[150px]"
           >
             <option value="All">All Categories</option>

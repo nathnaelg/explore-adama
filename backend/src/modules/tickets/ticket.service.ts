@@ -55,7 +55,7 @@ export class TicketService {
   }
 
   // List all tickets for a user
-  static async listTickets(userId: string, page = 1, perPage = 20) {
+  static async listTickets(userId: string, page = 1, perPage = 10) {
     // 1️⃣ Get user role from DB
     const user = await prisma.user.findUnique({
       where: { id: userId },

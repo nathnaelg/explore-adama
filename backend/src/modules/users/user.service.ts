@@ -19,6 +19,7 @@ export class UserService {
           id: true,
           email: true,
           role: true,
+          banned: true,
           createdAt: true,
           updatedAt: true,
           profile: true,
@@ -42,7 +43,7 @@ export class UserService {
         createdAt: true,
         updatedAt: true,
         profile: true,
-        banned: true
+        banned: true,
       },
     });
   }
@@ -53,7 +54,10 @@ export class UserService {
     });
   }
 
-  static async updateProfile(userId: string, payload: Partial<Prisma.ProfileCreateInput>) {
+  static async updateProfile(
+    userId: string,
+    payload: Partial<Prisma.ProfileCreateInput>,
+  ) {
     // use upsert so profile is created if missing
     const profile = await prisma.profile.upsert({
       where: { userId },

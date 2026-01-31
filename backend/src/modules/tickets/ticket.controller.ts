@@ -12,7 +12,7 @@ export class TicketController {
       if (!authUser) return res.status(401).json({ message: "Unauthorized" });
 
       const page = Number(req.query.page) || 1;
-      const limit = Number(req.query.limit) || 20;
+      const limit = Number(req.query.limit || req.query.perPage) || 10;
 
       const result = await TicketService.listTickets(authUser.sub, page, limit);
       return res.json(result); // Service now returns standardised { data, total, page, perPage }
