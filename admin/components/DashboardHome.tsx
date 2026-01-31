@@ -162,7 +162,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       {/* Professional KPI Ribbon - Growth moved to right */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Global Places"
+          title="Total Places"
           value={stats?.places?.total || 0}
           change={2.4}
           isPositive={true}
@@ -170,7 +170,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           color="blue"
         />
         <StatCard
-          title="Active Events"
+          title="Total Events"
           value={stats?.events?.total || 0}
           change={5.1}
           isPositive={true}
@@ -178,7 +178,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           color="purple"
         />
         <StatCard
-          title="Platform Tickets"
+          title="Total Tickets"
           value={stats?.events?.totalIssued || stats?.totalOrders || 0}
           change={stats?.orderGrowth || 8.4}
           isPositive={(stats?.orderGrowth || 0) >= 0}
@@ -186,7 +186,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           color="emerald"
         />
         <StatCard
-          title="Verified Nodes"
+          title="Total Users"
           value={stats?.users?.touristCount || 0}
           change={12.5}
           isPositive={true}
@@ -199,8 +199,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2">
           <ChartContainer
-            title="Transactional Velocity"
-            sub="Credential issuance flow over time"
+            title="Bookings Growth"
+            sub="Bookings flow over time"
             icon={Ticket}
             iconColor="text-emerald-500"
           >
@@ -257,8 +257,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         </div>
 
         <ChartContainer
-          title="Node Expansion"
-          sub="New entity registrations"
+          title="Users Growth"
+          sub="New Users registrations"
           icon={Users}
           iconColor="text-blue-500"
         >
@@ -345,10 +345,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           <div className="space-y-0.5">
             <CardTitle className="text-base font-black flex items-center gap-2 uppercase tracking-tighter">
               <History className="text-orange-500" size={18} />
-              Tickets Activity
+              Recent Bookings
             </CardTitle>
             <CardDescription className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">
-              Recent ticket activity
+              Recent bookings activity
             </CardDescription>
           </div>
           <Button
@@ -357,7 +357,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             onClick={() => onNavigate?.("/tickets")}
             className="rounded-xl h-8 px-4 font-black text-[9px] uppercase tracking-widest gap-2 bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-700"
           >
-            Access Portal <ChevronRight size={14} />
+            More <ChevronRight size={14} />
           </Button>
         </CardHeader>
         <CardContent className="p-0">
@@ -389,7 +389,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                       colSpan={4}
                       className="p-10 text-center text-gray-400 font-bold uppercase text-[10px] tracking-widest opacity-30"
                     >
-                      Node registry idle.
+                      No recent bookings.
                     </td>
                   </tr>
                 ) : (

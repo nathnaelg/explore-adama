@@ -1,47 +1,47 @@
 "use client";
 
 import {
-    AlertCircle,
-    ArrowUpRight,
-    Ban,
-    Calendar,
-    CheckCircle,
-    CircleDollarSign,
-    Clock,
-    Download,
-    History,
-    Loader2,
-    ShieldCheck,
-    Ticket,
-    TrendingUp,
-    Users,
-    Zap
+  AlertCircle,
+  ArrowUpRight,
+  Ban,
+  Calendar,
+  CheckCircle,
+  CircleDollarSign,
+  Clock,
+  Download,
+  History,
+  Loader2,
+  ShieldCheck,
+  Ticket,
+  TrendingUp,
+  Users,
+  Zap,
 } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    Area,
-    AreaChart,
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Cell,
-    Legend,
-    Pie,
-    PieChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import { analyticsApi } from "../services/analytics/analytics.api";
 import { cn } from "../utils";
 import { Button } from "./ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "./ui/card";
 import { Select } from "./ui/select";
 
@@ -175,21 +175,17 @@ const AnalyticsDashboard: React.FC<{ isDarkMode: boolean }> = ({
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-[10px]">
               <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-              <span className="text-gray-400 font-bold uppercase">
-                Commenced:
-              </span>
+              <span className="text-gray-400 font-bold uppercase">Start:</span>
               <span className="font-black">{data.start}</span>
             </div>
             <div className="flex items-center gap-2 text-[10px]">
               <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-              <span className="text-gray-400 font-bold uppercase">
-                Terminated:
-              </span>
+              <span className="text-gray-400 font-bold uppercase">End:</span>
               <span className="font-black">{data.end}</span>
             </div>
             <div className="pt-2 mt-2 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center">
               <span className="text-[10px] font-black uppercase text-gray-400">
-                Total window:
+                Duration :
               </span>
               <span className="text-xs font-black text-purple-500">
                 {data.duration} Hours
@@ -208,10 +204,11 @@ const AnalyticsDashboard: React.FC<{ isDarkMode: boolean }> = ({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-xl font-bold dark:text-white flex items-center gap-2">
-            <TrendingUp className="text-blue-500" /> System Intelligence
+            <TrendingUp className="text-blue-500" />
+            Data Analytics
           </h2>
           <p className="text-sm text-gray-500">
-            Holistic Platform Monitoring & Growth Analysis
+            Platform Monitoring & Growth Analysis
           </p>
         </div>
 
@@ -237,30 +234,30 @@ const AnalyticsDashboard: React.FC<{ isDarkMode: boolean }> = ({
       {/* Primary Metric Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricTile
-          title="System Earnings"
+          title="Total Earnings"
           value={`ETB ${(stats.totalRevenue || 0).toLocaleString()}`}
-          sub="Cumulative Ticket Revenue"
+          sub="Total Earnings From Ticket Sales"
           icon={CircleDollarSign}
           color="green"
         />
         <MetricTile
-          title="System Admins"
+          title="Total Admins"
           value={stats.users?.adminCount || 0}
-          sub="Privileged Oversight Team"
+          sub="Total System Admins"
           icon={ShieldCheck}
           color="blue"
         />
         <MetricTile
-          title="User Registry"
+          title="Total Users"
           value={stats.users?.total || 0}
           sub="Total Registered Accounts"
           icon={Users}
           color="purple"
         />
         <MetricTile
-          title="Event Hub"
+          title="Total Events"
           value={stats.events?.total || 0}
-          sub="Active Global Events"
+          sub="Total Registered Events"
           icon={Calendar}
           color="orange"
         />
@@ -424,8 +421,8 @@ const AnalyticsDashboard: React.FC<{ isDarkMode: boolean }> = ({
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <CardTitle className="text-xl font-black flex items-center gap-2">
-                <Zap className="text-purple-500" size={24} /> Strategic Event
-                Activation Logic
+                <Zap className="text-purple-500" size={24} />
+                Events Duration Time
               </CardTitle>
               <CardDescription>
                 Visualizing event deployment windows and termination schedules
@@ -434,7 +431,7 @@ const AnalyticsDashboard: React.FC<{ isDarkMode: boolean }> = ({
             <div className="flex items-center gap-2 bg-gray-50 dark:bg-zinc-800 px-4 py-2 rounded-2xl border border-gray-100 dark:border-zinc-700">
               <Clock size={16} className="text-purple-500" />
               <span className="text-[10px] font-black uppercase text-gray-400">
-                Total Deployment Window
+                Total Duration Time
               </span>
             </div>
           </div>
@@ -510,7 +507,7 @@ const AnalyticsDashboard: React.FC<{ isDarkMode: boolean }> = ({
                 <div className="space-y-4">
                   <div>
                     <p className="text-[9px] font-bold text-gray-400 uppercase">
-                      Avg. Deployment
+                      Avg. Duration Time
                     </p>
                     <p className="text-xl font-black">
                       {activationChartData.length > 0
@@ -527,7 +524,7 @@ const AnalyticsDashboard: React.FC<{ isDarkMode: boolean }> = ({
                   <div className="h-px bg-gray-100 dark:bg-zinc-800" />
                   <div>
                     <p className="text-[9px] font-bold text-gray-400 uppercase">
-                      Longest Window
+                      Longest Duration Time
                     </p>
                     <p className="text-xl font-black text-purple-500">
                       {activationChartData.length > 0
@@ -541,7 +538,7 @@ const AnalyticsDashboard: React.FC<{ isDarkMode: boolean }> = ({
                   <div className="h-px bg-gray-100 dark:bg-zinc-800" />
                   <div>
                     <p className="text-[9px] font-bold text-gray-400 uppercase">
-                      Active Nodes
+                      Active Events
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -552,7 +549,7 @@ const AnalyticsDashboard: React.FC<{ isDarkMode: boolean }> = ({
                               d.status === "ONGOING" || d.status === "UPCOMING",
                           ).length
                         }{" "}
-                        Node(s)
+                        Events
                       </p>
                     </div>
                   </div>

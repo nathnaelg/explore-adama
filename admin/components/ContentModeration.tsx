@@ -1,19 +1,19 @@
 "use client";
 
 import {
-    AlertCircle,
-    Check,
-    CheckCircle,
-    ChevronLeft,
-    ChevronRight,
-    Clock,
-    FileText,
-    Loader2,
-    MessageSquare,
-    ShieldCheck,
-    Trash2,
-    X,
-    XCircle
+  AlertCircle,
+  Check,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  FileText,
+  Loader2,
+  MessageSquare,
+  ShieldCheck,
+  Trash2,
+  X,
+  XCircle,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
@@ -21,12 +21,12 @@ import { cn } from "../utils";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Select } from "./ui/select";
@@ -281,10 +281,11 @@ const ContentModeration: React.FC<ContentModerationProps> = ({
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h2 className="text-xl font-bold dark:text-white flex items-center gap-2">
-              <ShieldCheck className="text-blue-500" /> Content Moderation
+              <ShieldCheck className="text-blue-500" />
+              Moderation Management
             </h2>
             <p className="text-sm text-gray-500">
-              Review and approve user-submitted content.
+              Review and approve user-submitted Blog content.
             </p>
           </div>
           <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">

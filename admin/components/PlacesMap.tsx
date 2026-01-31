@@ -2,29 +2,29 @@
 
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import {
-    AlertCircle,
-    ArrowDown,
-    ArrowUp,
-    Calendar,
-    CheckCircle,
-    ChevronLeft,
-    ChevronRight,
-    Crosshair,
-    Eye,
-    Hash,
-    Image as ImageIcon,
-    Info,
-    LayoutGrid,
-    Loader2,
-    Locate,
-    Map as MapIcon,
-    MapPin,
-    Pencil,
-    Plus,
-    Star,
-    Ticket,
-    Trash2,
-    X,
+  AlertCircle,
+  ArrowDown,
+  ArrowUp,
+  Calendar,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Crosshair,
+  Eye,
+  Hash,
+  Image as ImageIcon,
+  Info,
+  LayoutGrid,
+  Loader2,
+  Locate,
+  Map as MapIcon,
+  MapPin,
+  Pencil,
+  Plus,
+  Star,
+  Ticket,
+  Trash2,
+  X,
 } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../services/api";
@@ -34,12 +34,12 @@ import { getMapOptions, mapConfig } from "../utils/map.config";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -522,7 +522,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-xl font-bold dark:text-white flex items-center gap-2">
-            <MapPin className="text-blue-500" /> Places Directory
+            <MapPin className="text-blue-500" /> Places Management
           </h2>
           <p className="text-sm text-gray-500">
             Manage and curate platform locations.
@@ -1023,7 +1023,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
                   </>
                 ) : (
-                  "Save Location"
+                  "Save Place"
                 )}
               </Button>
             </DialogFooter>

@@ -1,21 +1,21 @@
 "use client";
 
 import {
-    BrainCircuit,
-    Calendar,
-    ChevronLeft,
-    ChevronRight,
-    FileText,
-    Layers,
-    LayoutGrid,
-    LogOut,
-    MapPin,
-    PieChart,
-    Settings,
-    ShieldAlert,
-    Ticket,
-    Users,
-    X,
+  BrainCircuit,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Layers,
+  LayoutGrid,
+  LogOut,
+  MapPin,
+  PieChart,
+  Settings,
+  ShieldAlert,
+  Ticket,
+  Users,
+  X,
 } from "lucide-react";
 import React from "react";
 import { cn } from "../utils";
@@ -44,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   currentPath,
 }) => {
   const menuItems = [
-    { id: "dashboard", label: "Overview", icon: LayoutGrid, href: "/" },
+    { id: "dashboard", label: "Dashboard", icon: LayoutGrid, href: "/" },
     { id: "users", label: "Users", icon: Users, href: "/users" },
     { id: "places", label: "Places", icon: MapPin, href: "/places" },
     {
