@@ -56,11 +56,25 @@ export class TicketService {
 
   // List all tickets for a user
   static async listTickets(userId: string, page = 1, perPage = 20) {
+    // 1️⃣ Get user role from DB
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
     const skip = (page - 1) * perPage;
 
+    // 2️⃣ Admin sees all, user sees own
+    const whereCondition = user.role === "ADMIN" ? {} : { userId };
+
+    // 3️⃣ Query tickets
     const [data, total] = await Promise.all([
       prisma.ticket.findMany({
-        where: { userId },
+        where: whereCondition,
         include: {
           booking: true,
           event: true,
@@ -69,7 +83,9 @@ export class TicketService {
         skip,
         take: perPage,
       }),
-      prisma.ticket.count({ where: { userId } }),
+      prisma.ticket.count({
+        where: whereCondition,
+      }),
     ]);
 
     return { data, total, page, perPage };

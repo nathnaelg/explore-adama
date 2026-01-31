@@ -62,11 +62,19 @@ export class BookingService {
   }
 
   static async listBookings(userId: string, page = 1, perPage = 20) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+
+    const isAdmin = user?.role === "ADMIN";
     const skip = (page - 1) * perPage;
+
+    const whereCondition = isAdmin ? {} : { userId };
 
     const [data, total] = await Promise.all([
       prisma.booking.findMany({
-        where: { userId },
+        where: whereCondition,
         include: {
           event: true,
           tickets: true,
@@ -75,7 +83,7 @@ export class BookingService {
         skip,
         take: perPage,
       }),
-      prisma.booking.count({ where: { userId } }),
+      prisma.booking.count({ where: whereCondition }),
     ]);
 
     return { data, total, page, perPage };
