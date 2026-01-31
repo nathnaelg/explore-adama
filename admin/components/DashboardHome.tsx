@@ -1,42 +1,42 @@
 "use client";
 
 import {
-    Activity,
-    Calendar,
-    ChevronRight,
-    History,
-    Loader2,
-    MapPin,
-    Ticket,
-    TrendingDown,
-    TrendingUp,
-    User,
-    Users,
-    Zap
+  Activity,
+  Calendar,
+  ChevronRight,
+  History,
+  Loader2,
+  MapPin,
+  Ticket,
+  TrendingDown,
+  TrendingUp,
+  User,
+  Users,
+  Zap,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import {
-    Area,
-    AreaChart,
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Line,
-    LineChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import { analyticsApi, api } from "../services/api";
 import { cn } from "../utils";
 import { Button } from "./ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "./ui/card";
 
 interface DashboardHomeProps {
@@ -143,11 +143,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-xl font-bold dark:text-white flex items-center gap-2">
-            <Activity className="text-blue-500" /> Operational Intelligence
+            <Activity className="text-blue-500" /> Dashboard Panel
           </h2>
-          <p className="text-sm text-gray-500">
-            Holistic Platform Monitoring & Metrics
-          </p>
+          <p className="text-sm text-gray-500">Explore Adama Dashboard Panel</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2 mr-4 bg-emerald-50 dark:bg-emerald-900/10 px-3 py-1 rounded-full border border-emerald-100 dark:border-emerald-900/30">
@@ -346,10 +344,11 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         <CardHeader className="p-6 flex flex-row items-center justify-between border-b border-gray-50 dark:border-zinc-800 bg-gray-50/30 dark:bg-zinc-950/30">
           <div className="space-y-0.5">
             <CardTitle className="text-base font-black flex items-center gap-2 uppercase tracking-tighter">
-              <History className="text-orange-500" size={18} /> Global Trace Log
+              <History className="text-orange-500" size={18} />
+              Tickets Activity
             </CardTitle>
             <CardDescription className="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400">
-              Real-time system state monitoring
+              Recent ticket activity
             </CardDescription>
           </div>
           <Button
@@ -367,16 +366,19 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               <thead>
                 <tr className="bg-gray-50 dark:bg-zinc-950 text-gray-400 font-black uppercase text-[9px] tracking-[0.2em]">
                   <th className="p-4 pl-8 border-b border-gray-100 dark:border-zinc-800">
-                    Process Ref
+                    Id
                   </th>
                   <th className="p-4 border-b border-gray-100 dark:border-zinc-800">
-                    Initiator
+                    User
                   </th>
                   <th className="p-4 border-b border-gray-100 dark:border-zinc-800">
-                    Entity Path
+                    Event
                   </th>
-                  <th className="p-4 text-right pr-8 border-b border-gray-100 dark:border-zinc-800">
+                  <th className="p-4 text-center pr-8 border-b border-gray-100 dark:border-zinc-800">
                     Value (ETB)
+                  </th>
+                  <th className="p-4 text-left pr-8 border-b border-gray-100 dark:border-zinc-800">
+                    Status
                   </th>
                 </tr>
               </thead>
@@ -405,9 +407,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                             <User size={14} />
                           </div>
                           <span className="font-bold text-gray-800 dark:text-zinc-200 truncate">
-                            {b.user?.profile?.name ||
-                              b.user?.email ||
-                              "Anonymous"}
+                            {b.userId || "Anonymous"}
                           </span>
                         </div>
                       </td>
@@ -422,22 +422,24 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                           </span>
                         </div>
                       </td>
-                      <td className="p-4 text-right pr-8">
-                        <div className="flex flex-col items-end">
+                      <td className="p-4 text-left pr-8">
+                        <div className="flex flex-col items-center">
                           <span className="font-black text-sm">
                             {(b.total || 0).toLocaleString()}
                           </span>
-                          <span
-                            className={cn(
-                              "text-[8px] font-black uppercase px-2 py-0.5 rounded-full border mt-1",
-                              ["CONFIRMED", "SUCCESS"].includes(b.status)
-                                ? "bg-emerald-50 border-emerald-100 text-emerald-600 dark:bg-emerald-900/20 dark:border-emerald-800"
-                                : "bg-yellow-50 border-yellow-100 text-yellow-600 dark:bg-yellow-900/20 dark:border-yellow-800",
-                            )}
-                          >
-                            {b.status || "PENDING"}
-                          </span>
                         </div>
+                      </td>
+                      <td className="p-4 text-left pr-8">
+                        <span
+                          className={cn(
+                            "text-[8px] font-black uppercase px-2 py-0.5 rounded-full border mt-1",
+                            ["CONFIRMED", "SUCCESS"].includes(b.status)
+                              ? "bg-emerald-50 border-emerald-100 text-emerald-600 dark:bg-emerald-900/20 dark:border-emerald-800"
+                              : "bg-yellow-50 border-yellow-100 text-yellow-600 dark:bg-yellow-900/20 dark:border-yellow-800",
+                          )}
+                        >
+                          {b.status || "PENDING"}
+                        </span>
                       </td>
                     </tr>
                   ))
