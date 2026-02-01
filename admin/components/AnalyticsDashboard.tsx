@@ -1,47 +1,47 @@
 "use client";
 
 import {
-  AlertCircle,
-  ArrowUpRight,
-  Ban,
-  Calendar,
-  CheckCircle,
-  CircleDollarSign,
-  Clock,
-  Download,
-  History,
-  Loader2,
-  ShieldCheck,
-  Ticket,
-  TrendingUp,
-  Users,
-  Zap,
+    AlertCircle,
+    ArrowUpRight,
+    Ban,
+    Calendar,
+    CheckCircle,
+    CircleDollarSign,
+    Clock,
+    Download,
+    History,
+    Loader2,
+    ShieldCheck,
+    Ticket,
+    TrendingUp,
+    Users,
+    Zap,
 } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+    Area,
+    AreaChart,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    Legend,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from "recharts";
 import { analyticsApi } from "../services/analytics/analytics.api";
 import { cn } from "../utils";
 import { Button } from "./ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "./ui/card";
 import { Select } from "./ui/select";
 
@@ -191,6 +191,41 @@ const AnalyticsDashboard: React.FC<{ isDarkMode: boolean }> = ({
                 {data.duration} Hours
               </span>
             </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md p-3 rounded-xl shadow-2xl border border-gray-100 dark:border-zinc-800 animate-in fade-in zoom-in duration-200 space-y-2">
+          <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-0.5 border-b pb-1 border-gray-100 dark:border-zinc-800">
+            {payload[0].payload.name}
+          </p>
+          <div className="flex flex-col gap-1">
+            {payload.map((entry: any, index: number) => (
+              <div
+                key={index}
+                className="flex items-baseline justify-between gap-4"
+              >
+                <span className="text-[10px] font-bold text-gray-500 uppercase flex items-center gap-1.5">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: entry.stroke }}
+                  />
+                  {entry.name}
+                </span>
+                <p
+                  className="text-sm font-black"
+                  style={{ color: entry.stroke }}
+                >
+                  {entry.value.toLocaleString()}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       );
@@ -414,6 +449,81 @@ const AnalyticsDashboard: React.FC<{ isDarkMode: boolean }> = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Bookings vs Tickets Graph */}
+      <Card className="rounded-[2.5rem] overflow-hidden border-none shadow-sm bg-white dark:bg-zinc-900">
+        <CardHeader className="p-8 pb-0">
+          <CardTitle className="text-xl font-black uppercase tracking-widest text-gray-400">
+            Bookings vs Tickets
+          </CardTitle>
+          <CardDescription>
+            Analytics of bookings and ticket sales
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="h-[350px] p-8">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={growthData}>
+              <defs>
+                <linearGradient
+                  id="colorBookingsDocs"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient
+                  id="colorTicketsDocs"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke={isDarkMode ? "#27272a" : "#f0f0f0"}
+              />
+              <XAxis
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 10, fontWeight: "bold" }}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 10, fontWeight: "bold" }}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Area
+                name="Tickets"
+                type="monotone"
+                dataKey="tickets"
+                stroke="#8b5cf6"
+                fillOpacity={1}
+                fill="url(#colorTicketsDocs)"
+                strokeWidth={3}
+              />
+              <Area
+                name="Bookings"
+                type="monotone"
+                dataKey="bookings"
+                stroke="#10b981"
+                fillOpacity={1}
+                fill="url(#colorBookingsDocs)"
+                strokeWidth={3}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
       {/* Strategic Event Activation Graph */}
       <Card className="rounded-[2.5rem] border-gray-100 dark:border-zinc-800 overflow-hidden shadow-sm">

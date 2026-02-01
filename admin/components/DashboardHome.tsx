@@ -199,8 +199,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2">
           <ChartContainer
-            title="Bookings Growth"
-            sub="Bookings flow over time"
+            title="Bookings vs Tickets"
+            sub="Analytics of bookings and ticket sales"
             icon={Ticket}
             iconColor="text-emerald-500"
           >
@@ -216,6 +216,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                   >
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorTickets" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -241,6 +245,15 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                     strokeWidth: 1,
                     strokeDasharray: "4 4",
                   }}
+                />
+                <Area
+                  name="Tickets"
+                  type="monotone"
+                  dataKey="tickets"
+                  stroke="#8b5cf6"
+                  fillOpacity={1}
+                  fill="url(#colorTickets)"
+                  strokeWidth={3}
                 />
                 <Area
                   name="Bookings"
@@ -294,8 +307,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
         <div className="xl:col-span-3">
           <ChartContainer
-            title="Event Activation Trace"
-            sub="Registry deployment and life-cycle analytics"
+            title="Event Registration Statistics"
+            sub="Registered Events Over Time"
             icon={Calendar}
             iconColor="text-purple-500"
             height="h-[320px]"
@@ -489,17 +502,28 @@ const ChartContainer = ({
 const CustomTooltip = ({ active, payload, isDarkMode }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md p-3 rounded-xl shadow-2xl border border-gray-100 dark:border-zinc-800 animate-in fade-in zoom-in duration-200">
-        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-0.5">
+      <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md p-3 rounded-xl shadow-2xl border border-gray-100 dark:border-zinc-800 animate-in fade-in zoom-in duration-200 space-y-2">
+        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-0.5 border-b pb-1 border-gray-100 dark:border-zinc-800">
           {payload[0].payload.name}
         </p>
-        <div className="flex items-baseline gap-1.5">
-          <p className="text-lg font-black text-blue-600 dark:text-blue-400">
-            {payload[0].value.toLocaleString()}
-          </p>
-          <span className="text-[8px] font-bold text-gray-400 uppercase">
-            Entries
-          </span>
+        <div className="flex flex-col gap-1">
+          {payload.map((entry: any, index: number) => (
+            <div
+              key={index}
+              className="flex items-baseline justify-between gap-4"
+            >
+              <span className="text-[10px] font-bold text-gray-500 uppercase flex items-center gap-1.5">
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: entry.stroke }}
+                />
+                {entry.name}
+              </span>
+              <p className="text-sm font-black" style={{ color: entry.stroke }}>
+                {entry.value.toLocaleString()}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     );

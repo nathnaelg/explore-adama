@@ -88,14 +88,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* Logo Area */}
         <div
           className={cn(
-            "p-6 flex items-center h-24 transition-all duration-300 relative border-b border-gray-100 dark:border-zinc-800",
+            "p-2 flex items-center h-24 transition-all duration-300 relative border-b border-gray-100 dark:border-zinc-800",
             isCollapsed ? "justify-center" : "gap-3",
           )}
         >
           <img
             src="/icon.png"
             alt="Logo"
-            className="w-12 h-12 rounded-xl object-contain shadow-lg shadow-blue-500/20 shrink-0 bg-white"
+            className="w-16 h-16 rounded-xl object-contain shadow-lg shadow-blue-500/20 shrink-0 bg-white"
           />
           <div
             className={cn(
