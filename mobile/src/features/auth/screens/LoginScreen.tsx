@@ -3,6 +3,7 @@ import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useAuth } from '@/src/features/auth/contexts/AuthContext';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -34,6 +35,7 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login, isLoading: authLoading } = useAuth();
 
@@ -121,19 +123,32 @@ export default function LoginScreen() {
               <ThemedText type="default" style={[styles.label, { color: muted }]}>
                 {t('auth.password')}
               </ThemedText>
-              <TextInput
-                style={[styles.input, {
-                  backgroundColor: card,
-                  borderColor: chip,
-                  color: text
-                }]}
-                placeholder={t('auth.enterPassword')}
-                placeholderTextColor={muted}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                editable={!isLoading}
-              />
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={[styles.input, {
+                    backgroundColor: card,
+                    borderColor: chip,
+                    color: text,
+                    paddingRight: 50
+                  }]}
+                  placeholder={t('auth.enterPassword')}
+                  placeholderTextColor={muted}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  editable={!isLoading}
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons
+                    name={showPassword ? 'eye-off' : 'eye'}
+                    size={24}
+                    color={muted}
+                  />
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 style={styles.forgotPassword}
                 onPress={() => router.push('/(auth)/forgot-password')}
@@ -264,6 +279,14 @@ const styles = StyleSheet.create({
   signupLink: {
     alignItems: 'center',
     marginBottom: 32,
+  },
+  passwordContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 16,
   },
 
 });
