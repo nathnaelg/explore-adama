@@ -37,6 +37,7 @@ export default function RegisterScreen() {
     role: 'TOURIST',
     acceptTerms: false,
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
 
@@ -143,19 +144,32 @@ export default function RegisterScreen() {
             <ThemedText type="default" style={[styles.inputLabel, { color: muted }]}>
               {t('auth.passwordMin')}
             </ThemedText>
-            <TextInput
-              style={[styles.input, {
-                backgroundColor: card,
-                borderColor: chip,
-                color: text
-              }]}
-              placeholder={t('auth.enterPassword')}
-              placeholderTextColor={muted}
-              value={user.password}
-              onChangeText={(text) => setUser({ ...user, password: text })}
-              secureTextEntry
-              editable={!isLoading}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[styles.input, {
+                  backgroundColor: card,
+                  borderColor: chip,
+                  color: text,
+                  paddingRight: 50
+                }]}
+                placeholder={t('auth.enterPassword')}
+                placeholderTextColor={muted}
+                value={user.password}
+                onChangeText={(text) => setUser({ ...user, password: text })}
+                secureTextEntry={!showPassword}
+                editable={!isLoading}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-off' : 'eye'}
+                  size={24}
+                  color={muted}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.termsContainer}>
@@ -293,5 +307,13 @@ const styles = StyleSheet.create({
   loginLink: {
     alignItems: 'center',
     paddingVertical: 20,
+  },
+  passwordContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 16,
   },
 });
