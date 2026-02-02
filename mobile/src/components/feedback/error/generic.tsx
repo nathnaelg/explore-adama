@@ -55,7 +55,7 @@ export default function GenericErrorScreen() {
         {/* Support Link */}
         <TouchableOpacity
           style={styles.supportLink}
-          onPress={() => router.push('/help')}
+          onPress={() => router.push('/help' as any)}
         >
           <ThemedText type="link">Contact Support</ThemedText>
         </TouchableOpacity>
