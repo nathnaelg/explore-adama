@@ -243,6 +243,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
     try {
       await api.put(`/users/${user.id}`, { banned: newBannedStatus });
       await fetchUserDetail(user.id);
+      await fetchUsers(); // Refresh the list to sync status
       showFeedback(
         "success",
         `User successfully ${actionLabel === "BLOCK" ? "suspended" : "restored"}.`,
