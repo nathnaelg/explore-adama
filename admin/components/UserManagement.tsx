@@ -57,6 +57,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [isBlocking, setIsBlocking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{
     type: "success" | "error" | "delete";
@@ -239,6 +240,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
     const currentlyBanned = isUserBanned(user);
     const newBannedStatus = !currentlyBanned;
     const actionLabel = currentlyBanned ? "UNBAN" : "BLOCK";
+    setIsBlocking(true);
 
     try {
       await api.put(`/users/${user.id}`, { banned: newBannedStatus });
@@ -250,6 +252,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
       );
     } catch (error) {
       showFeedback("error", `Failed to ${actionLabel.toLowerCase()} user.`);
+    } finally {
+      setIsBlocking(false);
     }
   };
 
@@ -391,18 +395,27 @@ const UserManagement: React.FC<UserManagementProps> = ({
                   size="sm"
                   onClick={() => handleBlockToggle(selectedUserDetail)}
                   disabled={
-                    detailLoading || isProtectedAdmin(selectedUserDetail)
+                    detailLoading ||
+                    isBlocking ||
+                    isProtectedAdmin(selectedUserDetail)
                   }
                   className={cn(
                     "shadow-sm transition-all",
                     isUserBanned(selectedUserDetail)
                       ? "bg-green-600 hover:bg-green-700"
                       : "bg-red-600 hover:bg-red-700",
-                    isProtectedAdmin(selectedUserDetail) &&
+                    (detailLoading ||
+                      isBlocking ||
+                      isProtectedAdmin(selectedUserDetail)) &&
                       "opacity-50 grayscale cursor-not-allowed",
                   )}
                 >
-                  {isUserBanned(selectedUserDetail) ? (
+                  {isBlocking ? (
+                    <>
+                      <Loader2 size={16} className="mr-2 animate-spin" />
+                      Wait...
+                    </>
+                  ) : isUserBanned(selectedUserDetail) ? (
                     <>
                       <UserCheck size={16} className="mr-2" />
                       Unban
