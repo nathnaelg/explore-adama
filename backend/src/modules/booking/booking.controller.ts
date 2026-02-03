@@ -113,7 +113,6 @@ export class BookingController {
       return res.status(500).json({ message: "Failed to cancel booking" });
     }
   }
-
   static async list(req: Request, res: Response) {
     try {
       const authUser = (req as any).user;
@@ -128,6 +127,14 @@ export class BookingController {
         limit,
       );
       return res.json(result); // Service now returns standardised { data, total, page, perPage }
+      const { role, sub: userId } = authUser;
+      let where = {};
+      if (role !== "ADMIN") {
+        where = { userId };
+      }
+
+      const bookings = await BookingService.listBookings(where);
+      return res.json({ data: bookings }); // Wrap in data to match standard api response
     } catch (err: any) {
       console.error("List bookings error:", err);
       return res.status(500).json({ message: "Failed to list bookings" });

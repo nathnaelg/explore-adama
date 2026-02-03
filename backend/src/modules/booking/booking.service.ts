@@ -61,10 +61,21 @@ export class BookingService {
     });
   }
 
-  static async listBookings(userId: string, page = 1, perPage = 20) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { role: true },
+  static async listBookings(where: any = {}) {
+    return prisma.booking.findMany({
+      where,
+      include: {
+        event: true,
+        tickets: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            profile: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
     });
 
     const isAdmin = user?.role === "ADMIN";
@@ -88,7 +99,6 @@ export class BookingService {
 
     return { data, total, page, perPage };
   }
-
   // Confirm booking: update status, create tickets atomically and increment event bookingCount
   static async confirmBooking(bookingId: string, paymentId?: string) {
     const booking = await prisma.booking.findUnique({

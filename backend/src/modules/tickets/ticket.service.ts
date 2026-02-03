@@ -55,11 +55,14 @@ export class TicketService {
   }
 
   // List all tickets for a user
-  static async listTickets(userId: string, page = 1, perPage = 10) {
-    // 1️⃣ Get user role from DB
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { role: true },
+  static async listTickets(userId: string) {
+    return prisma.ticket.findMany({
+      where: { userId },
+      include: {
+        booking: true,
+        event: true,
+      },
+      orderBy: { createdAt: "desc" },
     });
 
     if (!user) {
@@ -91,5 +94,35 @@ export class TicketService {
     return { data, total, page, perPage };
   }
 
-  // Other ticket operations can be added here
+  // List tickets with optional filtering
+  static async findAll(where: any = {}) {
+    return prisma.ticket.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            profile: {
+              select: {
+                name: true,
+                avatar: true,
+              },
+            },
+          },
+        },
+        event: {
+          select: {
+            id: true,
+            title: true,
+            date: true,
+          },
+        },
+        booking: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
 }
