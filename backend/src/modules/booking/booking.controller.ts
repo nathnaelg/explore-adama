@@ -113,19 +113,21 @@ export class BookingController {
       return res.status(500).json({ message: "Failed to cancel booking" });
     }
   }
+
   static async list(req: Request, res: Response) {
     try {
       const authUser = (req as any).user;
       if (!authUser) return res.status(401).json({ message: "Unauthorized" });
 
-      const { role, sub: userId } = authUser;
-      let where = {};
-      if (role !== "ADMIN") {
-        where = { userId };
-      }
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 20;
 
-      const bookings = await BookingService.listBookings(where);
-      return res.json({ data: bookings }); // Wrap in data to match standard api response
+      const result = await BookingService.listBookings(
+        authUser.sub,
+        page,
+        limit,
+      );
+      return res.json(result); // Service now returns standardised { data, total, page, perPage }
     } catch (err: any) {
       console.error("List bookings error:", err);
       return res.status(500).json({ message: "Failed to list bookings" });

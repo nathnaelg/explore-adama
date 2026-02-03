@@ -16,7 +16,21 @@ export class BlogService {
     return post;
   }
 
-  static async listPosts({ q, category, page = 1, limit = 20, userId, isAdmin }: { q?: string; category?: string; page?: number; limit?: number; userId?: string; isAdmin?: boolean }) {
+  static async listPosts({
+    q,
+    category,
+    page = 1,
+    limit = 10,
+    userId,
+    isAdmin,
+  }: {
+    q?: string;
+    category?: string;
+    page?: number;
+    limit?: number;
+    userId?: string;
+    isAdmin?: boolean;
+  }) {
     const where: any = {};
 
     // Visibility rules:
@@ -26,10 +40,7 @@ export class BlogService {
       // Admin sees everything
     } else if (userId) {
       // Authenticated user sees APPROVED posts OR their OWN posts
-      where.OR = [
-        { status: "APPROVED" },
-        { authorId: userId }
-      ];
+      where.OR = [{ status: "APPROVED" }, { authorId: userId }];
     } else {
       // Guest sees only APPROVED posts
       where.status = "APPROVED";
@@ -45,8 +56,8 @@ export class BlogService {
         OR: [
           { title: { contains: q, mode: "insensitive" } },
           { body: { contains: q, mode: "insensitive" } },
-          { tags: { has: q } }
-        ]
+          { tags: { has: q } },
+        ],
       };
 
       // Merge search condition with visibility condition
@@ -77,11 +88,11 @@ export class BlogService {
     const total = await prisma.blogPost.count({ where });
 
     // Transform to include isLiked and likesCount
-    const transformedPosts = posts.map(p => ({
+    const transformedPosts = posts.map((p) => ({
       ...p,
       likesCount: p.likes.length,
-      isLiked: userId ? p.likes.some(l => l.userId === userId) : false,
-      likes: undefined // hide raw likes array
+      isLiked: userId ? p.likes.some((l) => l.userId === userId) : false,
+      likes: undefined, // hide raw likes array
     }));
 
     return { items: transformedPosts, page, limit, total };
@@ -93,7 +104,12 @@ export class BlogService {
       include: {
         author: { select: { id: true, email: true, profile: true } },
         media: true,
-        comments: { orderBy: { createdAt: "asc" }, include: { user: { select: { id: true, email: true, profile: true } } } },
+        comments: {
+          orderBy: { createdAt: "asc" },
+          include: {
+            user: { select: { id: true, email: true, profile: true } },
+          },
+        },
         likes: true,
       },
     });
@@ -104,22 +120,24 @@ export class BlogService {
     // We only increment if it's a "view" - usually triggered by GET detail.
     // To prevent spam, we might want to check unique visits, but for now simple increment.
     // We'll do this in a separate method or here. Let's do it here asynchronously.
-    prisma.blogPost.update({
-      where: { id },
-      data: { viewCount: { increment: 1 } }
-    }).catch(console.error);
+    prisma.blogPost
+      .update({
+        where: { id },
+        data: { viewCount: { increment: 1 } },
+      })
+      .catch(console.error);
 
     return {
       ...post,
       likesCount: post.likes.length,
-      isLiked: userId ? post.likes.some(l => l.userId === userId) : false,
-      likes: undefined
+      isLiked: userId ? post.likes.some((l) => l.userId === userId) : false,
+      likes: undefined,
     };
   }
 
   static async toggleLike(postId: string, userId: string) {
     const existing = await prisma.like.findFirst({
-      where: { postId, userId }
+      where: { postId, userId },
     });
 
     if (existing) {
@@ -129,13 +147,21 @@ export class BlogService {
     } else {
       // Like
       await prisma.like.create({
-        data: { postId, userId }
+        data: { postId, userId },
       });
       return { liked: true };
     }
   }
 
-  static async updatePost({ id, userId, data }: { id: string; userId: string; data: any }) {
+  static async updatePost({
+    id,
+    userId,
+    data,
+  }: {
+    id: string;
+    userId: string;
+    data: any;
+  }) {
     // Only author or admin can update
     const post = await prisma.blogPost.findUnique({ where: { id } });
     if (!post) return null;
@@ -178,7 +204,7 @@ export class BlogService {
   static async createComment({ postId, userId, content }: any) {
     const comment = await prisma.comment.create({
       data: { postId, userId, content },
-      include: { user: { select: { id: true, email: true, profile: true } } }
+      include: { user: { select: { id: true, email: true, profile: true } } },
     });
 
     // Notify post author
@@ -190,7 +216,7 @@ export class BlogService {
           type: "SOCIAL",
           title: "New Comment",
           message: `${comment.user.profile?.name || "Someone"} commented on your post "${post.title}"`,
-          data: { postId, commentId: comment.id }
+          data: { postId, commentId: comment.id },
         });
       }
     } catch (e) {
@@ -204,7 +230,7 @@ export class BlogService {
     return prisma.comment.findMany({
       where: { postId },
       orderBy: { createdAt: "asc" },
-      include: { user: { select: { id: true, email: true, profile: true } } }
+      include: { user: { select: { id: true, email: true, profile: true } } },
     });
   }
 
@@ -212,7 +238,12 @@ export class BlogService {
   static async moderatePost({ adminId, postId, action, reason }: any) {
     // create moderation record and update post status accordingly
     const actionStr = action.toUpperCase();
-    const status = actionStr === "APPROVE" ? "APPROVED" : actionStr === "REJECT" ? "REJECTED" : "PENDING";
+    const status =
+      actionStr === "APPROVE"
+        ? "APPROVED"
+        : actionStr === "REJECT"
+          ? "REJECTED"
+          : "PENDING";
     const moderation = await prisma.moderation.create({
       data: {
         adminId,
@@ -224,13 +255,19 @@ export class BlogService {
 
     const updated = await prisma.blogPost.update({
       where: { id: postId },
-      data: { status }
+      data: { status },
     });
 
     return { moderation, post: updated };
   }
 
-  static async translatePost({ id, targetLanguage }: { id: string; targetLanguage: string }) {
+  static async translatePost({
+    id,
+    targetLanguage,
+  }: {
+    id: string;
+    targetLanguage: string;
+  }) {
     const post = await this.getPostById(id);
     if (!post) throw new Error("Post not found");
 
@@ -255,28 +292,30 @@ export class BlogService {
       "restaurants",
       "culture",
       "events",
-      "tips"
+      "tips",
     ];
 
     // Get all distinct categories from approved blog posts
     const posts = await prisma.blogPost.findMany({
       where: {
         status: "APPROVED",
-        category: { not: null }
+        category: { not: null },
       },
       select: {
-        category: true
+        category: true,
       },
-      distinct: ['category']
+      distinct: ["category"],
     });
 
     // Extract and filter out null values
     const dbCategories = posts
-      .map(p => p.category)
+      .map((p) => p.category)
       .filter((cat): cat is string => cat !== null);
 
     // Merge default categories with database categories and remove duplicates
-    const allCategories = Array.from(new Set([...defaultCategories, ...dbCategories]));
+    const allCategories = Array.from(
+      new Set([...defaultCategories, ...dbCategories]),
+    );
 
     return allCategories;
   }

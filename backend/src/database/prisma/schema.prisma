@@ -138,6 +138,7 @@ model Category {
   id        String   @id @default(uuid())
   key       String   @unique
   name      String
+  icon      String?  // Ionicons icon name
   places    Place[]
   events    Event[]
   createdAt DateTime @default(now())

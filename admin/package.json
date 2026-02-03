@@ -1,0 +1,35 @@
+{
+  "name": "explore-adama-admin",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@google/genai": "^1.33.0",
+    "@react-google-maps/api": "^2.20.8",
+    "@reduxjs/toolkit": "^2.11.1",
+    "axios": "^1.13.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "html5-qrcode": "^2.3.8",
+    "lucide-react": "^0.561.0",
+    "next": "^16.0.10",
+    "path": "^0.12.7",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-redux": "^9.2.0",
+    "recharts": "^3.5.1",
+    "tailwind-merge": "^3.4.0",
+    "url": "^0.11.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.1.2",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}

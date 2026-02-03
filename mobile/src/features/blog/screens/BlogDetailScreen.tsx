@@ -145,8 +145,12 @@ export default function BlogDetailScreen() {
     const handleShare = async () => {
         if (!post) return;
         try {
+            const deepLink = `smarttourism://blog/${post.id}`;
+            const webLink = `https://exploreadama.com/blog/${post.id}`;
+
             await Share.share({
-                message: `${post.title}\n\n${post.body.substring(0, 100)}...\n\nRead more on Explore Adama App`,
+                message: `${post.title}\n\n${post.body.substring(0, 100)}...\n\nRead more: ${webLink}`,
+                url: webLink, // iOS uses this
             });
         } catch (error: any) {
             Alert.alert(t('common.error'), error.message);

@@ -77,14 +77,6 @@ export default function PlaceDetailsScreen() {
         toggleFavorite({ itemId: placeId || '', itemType: 'PLACE', isFavorite: isFavorited });
     };
 
-    const handleBooking = () => {
-        if (!isAuthenticated) {
-            router.push('/(auth)/login');
-            return;
-        }
-        router.push({ pathname: '/bookings/new', params: { placeId: place.id } } as any);
-    };
-
     const handleReview = () => {
         if (!isAuthenticated) {
             router.push('/(auth)/login');
@@ -92,6 +84,7 @@ export default function PlaceDetailsScreen() {
         }
         router.push({ pathname: '/reviews/add', params: { itemId: place.id, itemType: 'PLACE' } } as any);
     };
+
 
     const features = [
         { icon: 'wifi-outline', label: 'Free WiFi' },
@@ -142,13 +135,19 @@ export default function PlaceDetailsScreen() {
                     </View>
 
                     {/* Location */}
-                    <View style={styles.section}>
+                    <TouchableOpacity
+                        style={styles.section}
+                        onPress={() => router.push({ pathname: '/(tabs)/map', params: { placeId: place.id } } as any)}
+                    >
                         <View style={styles.sectionHeader}>
                             <Ionicons name="location-outline" size={20} color={primary} />
                             <ThemedText type="subtitle" style={styles.sectionTitle}>{t('placeDetails.location')}</ThemedText>
                         </View>
                         <ThemedText style={styles.address}>{place.address || 'Adama, Ethiopia'}</ThemedText>
-                    </View>
+                        <ThemedText style={{ color: primary, fontSize: 14, fontWeight: '600', marginTop: 4 }}>
+                            {t('common.viewOnMap', 'View on Map')}
+                        </ThemedText>
+                    </TouchableOpacity>
 
                     {/* Gallery */}
                     {gallery.length > 0 && (
@@ -197,12 +196,6 @@ export default function PlaceDetailsScreen() {
 
                     {/* Actions */}
                     <View style={styles.actionButtons}>
-                        <TouchableOpacity
-                            style={[styles.bookButton, { backgroundColor: primary }]}
-                            onPress={handleBooking}
-                        >
-                            <ThemedText style={styles.bookButtonText}>{t('placeDetails.bookVisit')}</ThemedText>
-                        </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.reviewButton, { borderColor: primary, borderWidth: 1 }]}
                             onPress={handleReview}

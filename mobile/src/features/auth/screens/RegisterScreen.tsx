@@ -16,7 +16,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { SocialLoginButtons } from '../components/SocialLoginButtons';
+
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
@@ -37,6 +37,7 @@ export default function RegisterScreen() {
     role: 'TOURIST',
     acceptTerms: false,
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
 
@@ -143,19 +144,32 @@ export default function RegisterScreen() {
             <ThemedText type="default" style={[styles.inputLabel, { color: muted }]}>
               {t('auth.passwordMin')}
             </ThemedText>
-            <TextInput
-              style={[styles.input, {
-                backgroundColor: card,
-                borderColor: chip,
-                color: text
-              }]}
-              placeholder={t('auth.enterPassword')}
-              placeholderTextColor={muted}
-              value={user.password}
-              onChangeText={(text) => setUser({ ...user, password: text })}
-              secureTextEntry
-              editable={!isLoading}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[styles.input, {
+                  backgroundColor: card,
+                  borderColor: chip,
+                  color: text,
+                  paddingRight: 50
+                }]}
+                placeholder={t('auth.enterPassword')}
+                placeholderTextColor={muted}
+                value={user.password}
+                onChangeText={(text) => setUser({ ...user, password: text })}
+                secureTextEntry={!showPassword}
+                editable={!isLoading}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-off' : 'eye'}
+                  size={24}
+                  color={muted}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.termsContainer}>
@@ -204,22 +218,7 @@ export default function RegisterScreen() {
             </ThemedText>
           </TouchableOpacity>
 
-          <View style={styles.socialSection}>
-            <View style={styles.divider}>
-              <View style={[styles.dividerLine, { backgroundColor: chip }]} />
-              <ThemedText type="default" style={[styles.dividerText, { color: muted }]}>
-                {t('auth.orRegister')}
-              </ThemedText>
-              <View style={[styles.dividerLine, { backgroundColor: chip }]} />
-            </View>
 
-            <View style={styles.socialButtons}>
-              <SocialLoginButtons
-                onSuccess={() => router.replace('/(tabs)')}
-                onError={(err: string) => Alert.alert(t('auth.registrationFailed'), err)}
-              />
-            </View>
-          </View>
 
           <TouchableOpacity
             style={styles.loginLink}
@@ -304,29 +303,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  socialSection: {
-    marginBottom: 24,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
-  },
-  socialButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-  },
+
   loginLink: {
     alignItems: 'center',
     paddingVertical: 20,
+  },
+  passwordContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 16,
   },
 });

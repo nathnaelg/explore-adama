@@ -32,7 +32,10 @@ export class FavoriteController {
   static async list(req: AuthRequest, res: Response) {
     try {
       const userId = req.user.sub;
-      const data = await FavoriteService.list(userId);
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 20;
+
+      const data = await FavoriteService.list(userId, page, limit);
       res.json(data);
     } catch (err: any) {
       res.status(400).json({ message: err.message });
@@ -47,7 +50,7 @@ export class FavoriteController {
       const data = await FavoriteService.isFavorited(
         userId,
         String(itemId),
-        String(itemType) as RecommendationItemType
+        String(itemType) as RecommendationItemType,
       );
 
       res.json(data);

@@ -55,46 +55,41 @@ export class TicketService {
   }
 
   // List all tickets for a user
-  static async listTickets(userId: string) {
-    return prisma.ticket.findMany({
-      where: { userId },
-      include: {
-        booking: true,
-        event: true,
-      },
-      orderBy: { createdAt: "desc" },
+  static async listTickets(userId: string, page = 1, perPage = 10) {
+    // 1️⃣ Get user role from DB
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
     });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const skip = (page - 1) * perPage;
+
+    // 2️⃣ Admin sees all, user sees own
+    const whereCondition = user.role === "ADMIN" ? {} : { userId };
+
+    // 3️⃣ Query tickets
+    const [data, total] = await Promise.all([
+      prisma.ticket.findMany({
+        where: whereCondition,
+        include: {
+          booking: true,
+          event: true,
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: perPage,
+      }),
+      prisma.ticket.count({
+        where: whereCondition,
+      }),
+    ]);
+
+    return { data, total, page, perPage };
   }
 
-  // List tickets with optional filtering
-  static async findAll(where: any = {}) {
-    return prisma.ticket.findMany({
-      where,
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            profile: {
-              select: {
-                name: true,
-                avatar: true,
-              },
-            },
-          },
-        },
-        event: {
-          select: {
-            id: true,
-            title: true,
-            date: true,
-          },
-        },
-        booking: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-  }
+  // Other ticket operations can be added here
 }

@@ -17,9 +17,7 @@
       "package": "com.exploreadama",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/icon.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -31,7 +29,32 @@
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.INTERNET",
         "android.permission.ACCESS_NETWORK_STATE"
-      ]
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "exploreadama.com",
+              "pathPrefix": "/blog"
+            },
+            {
+              "scheme": "smarttourism"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
+        }
+      }
     },
     "web": {
       "output": "static",
@@ -53,15 +76,7 @@
       ],
       "expo-secure-store",
       "expo-web-browser",
-      "expo-notifications",
-      [
-        "@react-native-firebase/app",
-        {
-          "android": {
-            "googleServicesFile": "./google-services.json"
-          }
-        }
-      ]
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -71,7 +86,8 @@
       "router": {},
       "eas": {
         "projectId": "e09802cb-6a7e-4c63-bc4b-68b6f0917afc"
-      }
+      },
+      "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": "process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
     }
   }
 }

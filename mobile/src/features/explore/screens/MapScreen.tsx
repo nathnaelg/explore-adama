@@ -4,7 +4,7 @@ import { useCategories, usePlaces } from '@/src/features/explore/hooks/useExplor
 import { Place } from '@/src/features/explore/types';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
@@ -17,6 +17,9 @@ export default function MapScreen() {
     const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+    // Get params from navigation
+    const { placeId } = useLocalSearchParams<{ placeId: string }>();
 
     // Debounce search
     useEffect(() => {
@@ -58,6 +61,16 @@ export default function MapScreen() {
         }
     }, [places.length, debouncedSearchQuery, selectedCategory]);
 
+    // Focus on place from params
+    useEffect(() => {
+        if (placeId && places.length > 0) {
+            const placeToFocus = places.find(p => p.id === placeId);
+            if (placeToFocus) {
+                handleMarkerPress(placeToFocus);
+            }
+        }
+    }, [placeId, places.length]);
+
     const bg = useThemeColor({}, 'bg');
     const card = useThemeColor({}, 'card');
     const primary = useThemeColor({}, 'primary');
@@ -74,6 +87,14 @@ export default function MapScreen() {
 
     const handleMarkerPress = (place: Place) => {
         setSelectedPlace(place);
+        if (mapRef.current) {
+            mapRef.current.animateToRegion({
+                latitude: place.latitude,
+                longitude: place.longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+            }, 500);
+        }
     };
 
     const handleNavigate = () => {

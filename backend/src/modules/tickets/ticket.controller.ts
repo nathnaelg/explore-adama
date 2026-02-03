@@ -6,19 +6,18 @@ import { TicketService } from "./ticket.service.ts"; // Import new service
 
 export class TicketController {
   // GET /api/tickets
-  static async list(req: any, res: Response) {
+  static async list(req: Request, res: Response) {
     try {
-      const { role, sub: userId } = req.user;
+      const authUser = (req as any).user;
+      if (!authUser) return res.status(401).json({ message: "Unauthorized" });
 
-      let where = {};
-      if (role !== "ADMIN") {
-        where = { userId };
-      }
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit || req.query.perPage) || 10;
 
-      const tickets = await TicketService.findAll(where);
-      return res.json(tickets);
+      const result = await TicketService.listTickets(authUser.sub, page, limit);
+      return res.json(result); // Service now returns standardised { data, total, page, perPage }
     } catch (err: any) {
-      console.error(err);
+      console.error("List tickets error:", err);
       return res.status(500).json({ message: "Failed to list tickets" });
     }
   }

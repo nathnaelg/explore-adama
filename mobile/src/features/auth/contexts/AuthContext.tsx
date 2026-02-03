@@ -2,14 +2,14 @@ import { setLogoutCallback } from "@/src/core/api/client";
 import { profileService } from "@/src/features/profile/services/profile.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
-    createContext,
-    ReactNode,
-    useContext,
-    useEffect,
-    useState,
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 import { authService } from "../services/auth.service";
-import { AuthResponse, LoginDto, RegisterDto, SocialLoginDto } from "../types";
+import { AuthResponse, LoginDto, RegisterDto } from "../types";
 
 interface AuthContextType {
   user: any | null;
@@ -19,7 +19,6 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (credentials: LoginDto) => Promise<AuthResponse>;
   register: (userData: RegisterDto) => Promise<AuthResponse>;
-  socialLogin: (data: SocialLoginDto) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   updateUser: (user: any) => Promise<void>;
   checkAuth: () => Promise<boolean>;
@@ -105,21 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const socialLogin = async (data: SocialLoginDto): Promise<AuthResponse> => {
-    try {
-      clearError();
-      setIsLoading(true);
-      const response = await authService.socialLogin(data);
-      setUser(response.user);
-      setAccessToken(response.accessToken);
-      return response;
-    } catch (err: any) {
-      setError(err.message || "Social login failed");
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   const logout = async (): Promise<void> => {
     try {
@@ -172,7 +157,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isReady: !isLoading, // Use !isLoading to indicate readiness after initial check
     login,
     register,
-    socialLogin,
     logout,
     updateUser,
     checkAuth,

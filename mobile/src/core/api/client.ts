@@ -2,14 +2,13 @@
 import { env } from "@/src/config/env";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
+import { secureStorage } from "../storage/secure-storage";
 
 if (!env.API_URL) {
   throw new Error("API_URL is missing. Check EXPO_PUBLIC_API_URL");
 }
 
 // Storage Keys
-const TOKEN_KEY = '@auth_token';
-const REFRESH_TOKEN_KEY = '@refresh_token';
 const USER_KEY = '@auth_user';
 
 // Logout Callback Handle
@@ -41,7 +40,7 @@ apiClient.interceptors.request.use(
 
     if (!isAuthEndpoint) {
       try {
-        const token = await AsyncStorage.getItem(TOKEN_KEY);
+        const token = await secureStorage.getToken();
         if (token) {
           config.headers['Authorization'] = `Bearer ${token}`;
           console.log(`[Auth] Attached token: ${token.substring(0, 15)}...`);
@@ -116,7 +115,7 @@ apiClient.interceptors.response.use(
 
       refreshPromise = (async () => {
         try {
-          const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+          const refreshToken = await secureStorage.getRefreshToken();
           if (!refreshToken) {
             console.warn('[Auth] No refresh token found, aborting refresh');
             throw new Error('No refresh token');
@@ -129,7 +128,7 @@ apiClient.interceptors.response.use(
           const { accessToken } = response.data;
           if (!accessToken) throw new Error('No access token in response');
 
-          await AsyncStorage.setItem(TOKEN_KEY, accessToken);
+          await secureStorage.setToken(accessToken);
           apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
           return accessToken;
         } finally {
@@ -142,10 +141,17 @@ apiClient.interceptors.response.use(
         const accessToken = await refreshPromise;
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
-      } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
+      } catch (refreshError: any) {
+        // Only log as error if it's not a missing token (which is expected on expiry)
+        if (refreshError.message === 'No refresh token' || refreshError.message === 'No access token') {
+          console.warn('[Auth] Session expired (no refresh token), logging out.');
+        } else {
+          console.error('Token refresh failed:', refreshError);
+        }
+
         // Clean up and logout
-        await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY]);
+        await secureStorage.clearAuth();
+        await AsyncStorage.removeItem(USER_KEY);
         if (logoutCallback) logoutCallback();
         return Promise.reject(refreshError);
       }
