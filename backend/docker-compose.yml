@@ -27,12 +27,12 @@ services:
       - ../backend/.env
     environment:
       # Fallbacks if not provided in .env
-      PORT: ${PORT:-3000}
+      PORT: ${PORT:-3005}
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/adama_tourism?schema=public}
       ML_SERVICE_URL: ${ML_SERVICE_URL:-http://ml:8000}
       NODE_ENV: ${NODE_ENV:-development}
     ports:
-      - "3000:3000"
+      - "3005:3005"
     volumes:
       # Mount source code for hot-reload (development)
       - ../backend/src:/app/src
@@ -52,7 +52,7 @@ services:
       - ../ml/.env
     environment:
       # Backend URL inside the Docker network
-      EXPRESS_ML_URL: ${EXPRESS_ML_URL:-http://backend:3000}
+      EXPRESS_ML_URL: ${EXPRESS_ML_URL:-http://backend:3005}
     ports:
       - "8000:8000"
     volumes:
@@ -69,4 +69,3 @@ volumes:
 networks:
   adama_network:
     driver: bridge
-
