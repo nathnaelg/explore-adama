@@ -60,7 +60,7 @@ export default function SavedPlacesScreen() {
     const renderPlaceCard = ({ item }: { item: any }) => (
         <TouchableOpacity
             style={[styles.placeCard, { backgroundColor: card }]}
-            onPress={() => router.push(item.itemType === 'EVENT' ? `/booking/${item.itemId}` : `/place/${item.itemId}`)}
+            onPress={() => router.push((item.itemType === 'EVENT' ? `/booking/${item.itemId}` : `/place/${item.itemId}`) as any)}
         >
             <OptimizedImage
                 source={{ uri: item.image || 'https://images.unsplash.com/photo-1501117716987-c8e1ecb210d1' }}
@@ -167,7 +167,7 @@ export default function SavedPlacesScreen() {
                             ))}
                         </ScrollView>
 
-{/*
+                        {/*
 <View style={styles.statsContainer}>
     <View style={styles.statItem}>
         <Ionicons name="bookmark" size={24} color="#007AFF" />

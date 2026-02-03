@@ -60,7 +60,7 @@ export default function HelpCenterScreen() {
             id: 2,
             title: t('public.liveChat'),
             icon: 'chatbubble',
-            action: () => router.push('/chat'),
+            action: () => router.push('/(tabs)/chat'),
         },
         {
             id: 3,
@@ -170,7 +170,7 @@ export default function HelpCenterScreen() {
                 <View style={styles.footer}>
                     <TouchableOpacity
                         style={styles.legalRow}
-                        onPress={() => router.push('/privacy-policy')}
+                        onPress={() => router.push('/legal/privacy-policy' as any)}
                     >
                         <ThemedText style={{ color: textColor }}>{t('public.privacyPolicy')}</ThemedText>
                         <Ionicons name="chevron-forward" size={16} color={mutedColor} />
@@ -178,7 +178,7 @@ export default function HelpCenterScreen() {
 
                     <TouchableOpacity
                         style={styles.legalRow}
-                        onPress={() => router.push('/terms')}
+                        onPress={() => router.push('/legal/terms' as any)}
                     >
                         <ThemedText style={{ color: textColor }}>{t('public.termsOfService')}</ThemedText>
                         <Ionicons name="chevron-forward" size={16} color={mutedColor} />

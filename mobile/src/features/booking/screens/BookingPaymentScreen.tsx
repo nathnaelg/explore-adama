@@ -81,7 +81,7 @@ export default function BookingPaymentScreen() {
     const checkPaymentStatus = async (txRef?: string) => {
         if (!txRef) {
             Alert.alert(t('payment.verification'), t('payment.verifyFailedMsg'));
-            router.replace('/bookings');
+            router.replace('/bookings/history');
             return;
         }
 
@@ -96,7 +96,7 @@ export default function BookingPaymentScreen() {
                         params: { bookingId: booking.id }
                     } as any);
                 } else {
-                    router.replace('/bookings');
+                    router.replace('/bookings/history');
                 }
             } else {
                 Alert.alert(
@@ -104,7 +104,7 @@ export default function BookingPaymentScreen() {
                     t('payment.notVerifiedMsg'),
                     [
                         { text: t('payment.tryAgain'), onPress: () => checkPaymentStatus(txRef) },
-                        { text: t('payment.later'), onPress: () => router.replace('/bookings') }
+                        { text: t('payment.later'), onPress: () => router.replace('/bookings/history') }
                     ]
                 );
             }
