@@ -49,7 +49,17 @@
             "DEFAULT"
           ]
         }
-      ]
+      ],
+      ,
+      "config": {
+        "googleMaps": {
+          "apiKey": "REMOVED_SECRET_IN_HISTORY"
+        }
+      } "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBZ-pljCr0xAuooBBNYwF9SuDXQKSt5lbI"
+        }
+      }
     },
     "web": {
       "output": "static",
@@ -77,7 +87,7 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "extra": {
+    "extra": {REMOVED_ERET_I_HISTOR
       "router": {},
       "eas": {
         "projectId": "e09802cb-6a7e-4c63-bc4b-68b6f0917afc"
