@@ -17,6 +17,7 @@ const swaggerPath = path.join(process.cwd(), "src", "swagger.json");
 const swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, "utf-8"));
 
 const app = express();
+app.disable('etag');
 app.use(cookieParser());
 
 // ---------------------------
