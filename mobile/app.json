@@ -50,14 +50,9 @@
           ]
         }
       ],
-      ,
       "config": {
         "googleMaps": {
-          "apiKey": "REMOVED_SECRET_IN_HISTORY"
-        }
-      } "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyBZ-pljCr0xAuooBBNYwF9SuDXQKSt5lbI"
+          "apiKey": "process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
         }
       }
     },
@@ -87,12 +82,12 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "extra": {REMOVED_ERET_I_HISTOR
+    "extra": {
       "router": {},
       "eas": {
         "projectId": "e09802cb-6a7e-4c63-bc4b-68b6f0917afc"
       },
-      "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": "AIzaSyBZ-pljCr0xAuooBBNYwF9SuDXQKSt5lbI"
+      "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY": "process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
     }
   }
 }
