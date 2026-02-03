@@ -5,6 +5,6 @@ export const API_CONFIG = {
   HEADERS: {
     'Content-Type': 'application/json',
   },
-  ML_API_KEY: 'dKRRcvdNOba288YhduyLRvAADOgFWQi9dwjleNwFlrY',
+  ML_API_KEY: import.meta.env.VITE_ML_API_KEY,
   TIMEOUT: 30000,
 };
