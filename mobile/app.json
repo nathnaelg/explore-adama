@@ -49,7 +49,12 @@
             "DEFAULT"
           ]
         }
-      ]
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBZ-pljCr0xAuooBBNYwF9SuDXQKSt5lbI"
+        }
+      }
     },
     "web": {
       "output": "static",
