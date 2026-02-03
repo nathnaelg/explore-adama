@@ -1,4 +1,4 @@
-import admin from 'firebase-admin';
+import admin from "firebase-admin";
 import app from "./app.ts";
 import { prisma } from "./config/db.ts";
 import { env } from "./config/env.ts";
@@ -14,7 +14,10 @@ if (!admin.apps.length) {
     });
     logger.success("Firebase Admin initialized");
   } catch (error) {
-    logger.warn("Failed to initialize Firebase Admin, social auth may not work:", error);
+    logger.warn(
+      "Failed to initialize Firebase Admin, social auth may not work:",
+      error,
+    );
   }
 }
 
@@ -22,10 +25,11 @@ async function startServer() {
   try {
     await prisma.$connect();
     logger.success("Connected to PostgreSQL database");
+    const PORT = Number(process.env.PORT) || 3005;
 
     // Start server
-    app.listen(env.PORT, () => {
-      logger.success(`Backend running on port ${env.PORT}`);
+    app.listen(PORT, "0.0.0.0", () => {
+      logger.success(`Backend running on port ${PORT}`);
       logger.info(`Environment: ${env.NODE_ENV}`);
     });
   } catch (error) {
