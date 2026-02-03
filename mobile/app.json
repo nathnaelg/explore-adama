@@ -50,14 +50,9 @@
           ]
         }
       ],
-      ,
       "config": {
         "googleMaps": {
           "apiKey": "REMOVED_SECRET_IN_HISTORY"
-        }
-      } "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyBZ-pljCr0xAuooBBNYwF9SuDXQKSt5lbI"
         }
       }
     },
@@ -83,11 +78,7 @@
       "expo-web-browser",
       "expo-notifications"
     ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
-    },
-    "extra": {REMOVED_ERET_I_HISTOR
+    "extra": {
       "router": {},
       "eas": {
         "projectId": "e09802cb-6a7e-4c63-bc4b-68b6f0917afc"
