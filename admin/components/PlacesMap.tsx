@@ -2,29 +2,28 @@
 
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import {
-  AlertCircle,
-  ArrowDown,
-  ArrowUp,
-  Calendar,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  Crosshair,
-  Eye,
-  Hash,
-  Image as ImageIcon,
-  Info,
-  LayoutGrid,
-  Loader2,
-  Locate,
-  Map as MapIcon,
-  MapPin,
-  Pencil,
-  Plus,
-  Star,
-  Ticket,
-  Trash2,
-  X,
+    AlertCircle,
+    ArrowDown,
+    ArrowUp,
+    Calendar,
+    CheckCircle,
+    ChevronLeft,
+    ChevronRight,
+    Crosshair,
+    Eye,
+    Hash,
+    Image as ImageIcon,
+    LayoutGrid,
+    Loader2,
+    Locate,
+    Map as MapIcon,
+    MapPin,
+    Pencil,
+    Plus,
+    Star,
+    Ticket,
+    Trash2,
+    X
 } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../services/api";
@@ -34,12 +33,12 @@ import { getMapOptions, mapConfig } from "../utils/map.config";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -693,9 +692,11 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
                           <Star size={14} className="fill-yellow-500" />{" "}
                           {place.rating || 0}
                         </span>
-                        <span className="flex items-center gap-1">
-                          ({place.reviewsCount})
-                        </span>
+                        {place.reviewsCount > 0 && (
+                          <span className="flex items-center gap-1">
+                            ({place.reviewsCount})
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity">
@@ -706,7 +707,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
                           onClick={(e) => handleViewDetails(place, e)}
                           title="View Details"
                         >
-                          <Info size={16} />
+                          <Eye size={16} />
                         </Button>
                         <Button
                           size="icon"
@@ -1079,7 +1080,9 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
                       size={16}
                       className="fill-yellow-400 text-yellow-400"
                     />
-                    {placeToView.rating} ({placeToView.reviewsCount} reviews)
+                    {placeToView.rating}{" "}
+                    {placeToView.reviewsCount > 0 &&
+                      `(${placeToView.reviewsCount} reviews)`}
                   </div>
                 </div>
               </div>
@@ -1135,9 +1138,11 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
                       </div>
                       <div className="font-bold text-sm flex items-center gap-1">
                         {placeToView.rating || 0}{" "}
-                        <span className="text-xs font-normal text-gray-500">
-                          ({placeToView.reviewsCount})
-                        </span>
+                        {placeToView.reviewsCount > 0 && (
+                          <span className="text-xs font-normal text-gray-500">
+                            ({placeToView.reviewsCount})
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="p-3 bg-gray-50 dark:bg-zinc-900 rounded-xl border border-gray-100 dark:border-zinc-800">
