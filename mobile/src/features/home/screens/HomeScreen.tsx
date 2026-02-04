@@ -10,9 +10,6 @@ import { HomeSkeleton } from '@/src/features/home/components/HomeSkeleton';
 import { useNotificationStats } from '@/src/features/notifications/hooks/useNotifications';
 import { useProfile } from '@/src/features/profile/hooks/useProfile';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
-import {
-    checkNotificationPermission,
-} from '@/src/services/push.service';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -55,14 +52,8 @@ export default function HomeScreen() {
     const unreadCount = notificationStats?.unreadCount || 0;
 
     /** 🔔 Notification Icon Handler */
-    const openNotifications = async () => {
-        const granted = await checkNotificationPermission();
-
-        if (!granted) {
-            router.push('/permissions/notifications');
-        } else {
-            router.push('/notifications');
-        }
+    const openNotifications = () => {
+        router.push('/notifications');
     };
 
     const { data: userProfile } = useProfile(authUser?.id, !!authUser);
