@@ -2,19 +2,21 @@ import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { authService } from '@/src/features/auth/services/auth.service';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
     ActivityIndicator,
-    Alert,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
     StyleSheet,
     TextInput,
     TouchableOpacity,
-    View
+    View,
 } from 'react-native';
+
+type ScreenState = 'INPUT' | 'SUCCESS' | 'ERROR';
 
 export default function ForgotPasswordScreen() {
     const bg = useThemeColor({}, 'bg');
@@ -26,36 +28,194 @@ export default function ForgotPasswordScreen() {
 
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [screenState, setScreenState] = useState<ScreenState>('INPUT');
+    const [lastAttemptedEmail, setLastAttemptedEmail] = useState('');
 
     const handleSendCode = async () => {
-        if (!email.trim()) {
-            Alert.alert('Error', 'Please enter your email address');
-            return;
-        }
+        if (!email.trim()) return;
 
         setIsLoading(true);
+        setLastAttemptedEmail(email);
         try {
             await authService.forgotPassword({ email });
-            Alert.alert(
-                'Code Sent',
-                'If a user with this email exists, a reset code has been sent to it.',
-                [
-                    {
-                        text: 'OK',
-                        onPress: () => router.push({
-                            pathname: '/(auth)/reset-password',
-                            params: { email }
-                        })
-                    }
-                ]
-            );
+            setScreenState('SUCCESS');
         } catch (error: any) {
             console.error('Forgot password error:', error);
-            Alert.alert('Error', error.response?.data?.message || 'Failed to send reset code');
+            // Assuming any error here effectively means "we couldn't process this email" 
+            // which usually maps to "Email not found" in this specific UI flow context,
+            // or we could check explicit error status if available.
+            setScreenState('ERROR');
         } finally {
             setIsLoading(false);
         }
     };
+
+    const handleRetry = () => {
+        setScreenState('INPUT');
+        // Keep the email field populated so they can correct it
+    };
+
+    const renderHeader = () => {
+        if (screenState === 'SUCCESS') return 'Reset Link Sent';
+        if (screenState === 'ERROR') return 'Forgot Password'; // Or 'Reset Failed' based on design header
+        return 'Forgot Password';
+    };
+
+    // Sub-components for different states to keep main render clean
+    const renderInputState = () => (
+        <>
+            <View style={styles.header}>
+                <ThemedText type="title" style={[styles.appTitle, { color: text }]}>
+                    Forgot Password
+                </ThemedText>
+                <ThemedText type="default" style={[styles.description, { color: muted }]}>
+                    Enter your email address and we'll send you a 6-digit code to reset your password.
+                </ThemedText>
+            </View>
+
+            <View style={styles.form}>
+                <View style={styles.inputContainer}>
+                    <ThemedText type="default" style={[styles.label, { color: muted }]}>
+                        Email Address
+                    </ThemedText>
+                    <TextInput
+                        style={[styles.input, {
+                            backgroundColor: card,
+                            borderColor: chip,
+                            color: text
+                        }]}
+                        placeholder="Enter your email"
+                        placeholderTextColor={muted}
+                        value={email}
+                        onChangeText={setEmail}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        editable={!isLoading}
+                    />
+                </View>
+
+                <TouchableOpacity
+                    style={[
+                        styles.button,
+                        { backgroundColor: isLoading || !email ? chip : primary }
+                    ]}
+                    onPress={handleSendCode}
+                    disabled={isLoading || !email}
+                >
+                    {isLoading ? (
+                        <ActivityIndicator color="#FFFFFF" size="small" />
+                    ) : (
+                        <ThemedText type="default" style={styles.buttonText}>
+                            Send Code →
+                        </ThemedText>
+                    )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.backLink}
+                    onPress={() => router.back()}
+                    disabled={isLoading}
+                >
+                    <ThemedText type="link" lightColor={primary} darkColor={primary}>
+                        Back to Login
+                    </ThemedText>
+                </TouchableOpacity>
+            </View>
+        </>
+    );
+
+    const renderSuccessState = () => (
+        <View style={styles.centerContent}>
+            <View style={[styles.iconCircle, { backgroundColor: '#FEF3C7' }]}>
+                <View style={[styles.iconInner, { backgroundColor: primary }]}>
+                    <Ionicons name="checkmark" size={40} color="#FFFFFF" />
+                </View>
+            </View>
+
+            <ThemedText type="title" style={[styles.stateTitle, { color: text }]}>
+                Check Your Email
+            </ThemedText>
+
+            <ThemedText type="default" style={[styles.stateDescription, { color: muted }]}>
+                We have sent a password reset link to your registered email address. Please follow the instructions to reset your password.
+            </ThemedText>
+
+            <View style={styles.spacer} />
+
+            <ThemedText type="default" style={{ color: muted, marginBottom: 8 }}>
+                Didn't receive the email?
+            </ThemedText>
+            <TouchableOpacity onPress={handleSendCode} disabled={isLoading}>
+                <ThemedText type="link" lightColor={primary} darkColor={primary} style={{ fontWeight: 'bold' }}>
+                    Resend Email
+                </ThemedText>
+            </TouchableOpacity>
+
+            <View style={styles.spacer} />
+            <View style={styles.spacer} />
+
+            <TouchableOpacity
+                style={[styles.button, { backgroundColor: primary, width: '100%' }]}
+                onPress={() => router.push({
+                    pathname: '/(auth)/reset-password',
+                    params: { email }
+                })}
+            >
+                <ThemedText type="default" style={styles.buttonText}>
+                    Enter Code
+                </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.whiteButton, { borderColor: 'transparent', marginTop: 10 }]}
+                onPress={() => router.replace('/(auth)/login')}
+            >
+                <ThemedText type="default" style={[styles.whiteButtonText, { color: muted }]}>
+                    Back to Login
+                </ThemedText>
+            </TouchableOpacity>
+        </View>
+    );
+
+    const renderErrorState = () => (
+        <View style={styles.centerContent}>
+            {/* Large faint circle background for error - simulated with opacity or lighter shade */}
+            <View style={[styles.iconLargeCircle, { backgroundColor: '#FEFCE8' }]}>
+                <View style={[styles.iconInner, { backgroundColor: primary, width: 80, height: 80, borderRadius: 40 }]}>
+                    <Ionicons name="alert-outline" size={40} color="#FFFFFF" />
+                    {/* Using exclamation or alert icon. Design has a simple exclamation point. */}
+                </View>
+            </View>
+
+            <ThemedText type="title" style={[styles.stateTitle, { color: text }]}>
+                Email not found
+            </ThemedText>
+
+            <ThemedText type="default" style={[styles.stateDescription, { color: muted }]}>
+                We couldn't find an account associated with <ThemedText type="default" style={{ fontWeight: 'bold', color: text }}>{lastAttemptedEmail}</ThemedText>. Please check for typos or try a different email address.
+            </ThemedText>
+
+            <View style={styles.spacer} />
+
+            <TouchableOpacity
+                style={[styles.button, { backgroundColor: primary, width: '100%' }]}
+                onPress={handleRetry}
+            >
+                <ThemedText type="default" style={styles.buttonText}>
+                    Try Again
+                </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.whiteButton, { borderColor: chip }]}
+                onPress={() => router.push('/(auth)/register')}
+            >
+                <ThemedText type="default" style={[styles.whiteButtonText, { color: text }]}>
+                    Create New Account
+                </ThemedText>
+            </TouchableOpacity>
+        </View>
+    );
 
     return (
         <ThemedView style={[styles.container, { backgroundColor: bg }]}>
@@ -64,63 +224,12 @@ export default function ForgotPasswordScreen() {
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
                 <ScrollView contentContainerStyle={styles.scrollContent}>
-                    <View style={styles.header}>
-                        <ThemedText type="title" style={[styles.appTitle, { color: text }]}>
-                            Forgot Password
-                        </ThemedText>
-                        <ThemedText type="default" style={[styles.description, { color: muted }]}>
-                            Enter your email address and we&apos;ll send you a 6-digit code to reset your password.
-                        </ThemedText>
-                    </View>
+                    {/* Consistent top header/nav could go here if global, but for states we might want it inside or conditional */}
 
-                    <View style={styles.form}>
-                        <View style={styles.inputContainer}>
-                            <ThemedText type="default" style={[styles.label, { color: muted }]}>
-                                Email Address
-                            </ThemedText>
-                            <TextInput
-                                style={[styles.input, {
-                                    backgroundColor: card,
-                                    borderColor: chip,
-                                    color: text
-                                }]}
-                                placeholder="Enter your email"
-                                placeholderTextColor={muted}
-                                value={email}
-                                onChangeText={setEmail}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                editable={!isLoading}
-                            />
-                        </View>
+                    {screenState === 'INPUT' && renderInputState()}
+                    {screenState === 'SUCCESS' && renderSuccessState()}
+                    {screenState === 'ERROR' && renderErrorState()}
 
-                        <TouchableOpacity
-                            style={[
-                                styles.button,
-                                { backgroundColor: isLoading || !email ? chip : primary }
-                            ]}
-                            onPress={handleSendCode}
-                            disabled={isLoading || !email}
-                        >
-                            {isLoading ? (
-                                <ActivityIndicator color="#FFFFFF" size="small" />
-                            ) : (
-                                <ThemedText type="default" style={styles.buttonText}>
-                                    Send Code →
-                                </ThemedText>
-                            )}
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.backLink}
-                            onPress={() => router.back()}
-                            disabled={isLoading}
-                        >
-                            <ThemedText type="link" lightColor={primary} darkColor={primary}>
-                                Back to Login
-                            </ThemedText>
-                        </TouchableOpacity>
-                    </View>
                 </ScrollView>
             </KeyboardAvoidingView>
         </ThemedView>
@@ -130,7 +239,7 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, paddingHorizontal: 20 },
     keyboard: { flex: 1 },
-    scrollContent: { flexGrow: 1, paddingVertical: 20 },
+    scrollContent: { flexGrow: 1, paddingVertical: 20, justifyContent: 'center' },
     header: { alignItems: 'center', marginTop: 80, marginBottom: 40 },
     appTitle: { fontSize: 28, fontWeight: 'bold', marginBottom: 12 },
     description: { textAlign: 'center', lineHeight: 22 },
@@ -141,4 +250,15 @@ const styles = StyleSheet.create({
     button: { paddingVertical: 18, borderRadius: 12, alignItems: 'center', marginBottom: 24 },
     buttonText: { fontWeight: '600', fontSize: 16, color: '#FFFFFF' },
     backLink: { alignItems: 'center' },
+
+    // State specific styles
+    centerContent: { alignItems: 'center', width: '100%', paddingHorizontal: 10, paddingTop: 40 },
+    iconCircle: { width: 100, height: 100, borderRadius: 50, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
+    iconLargeCircle: { width: 200, height: 200, borderRadius: 100, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
+    iconInner: { width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center' },
+    stateTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
+    stateDescription: { textAlign: 'center', lineHeight: 24, fontSize: 16, marginBottom: 24 },
+    spacer: { height: 20 },
+    whiteButton: { paddingVertical: 18, borderRadius: 12, alignItems: 'center', width: '100%', borderWidth: 1, backgroundColor: 'transparent' },
+    whiteButtonText: { fontWeight: '600', fontSize: 16 },
 });

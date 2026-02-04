@@ -1,3 +1,4 @@
+import { PasswordRequirements } from '@/src/components/auth/PasswordRequirements';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useAuth } from '@/src/features/auth/hooks/index';
@@ -38,7 +39,10 @@ export default function RegisterScreen() {
     acceptTerms: false,
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | undefined>(undefined);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
   const { register } = useAuth();
 
   const handleRegister = async () => {
@@ -52,10 +56,11 @@ export default function RegisterScreen() {
       return;
     }
 
-    if (user.password.length < 6) {
-      Alert.alert(t('common.error'), t('auth.passwordShort'));
-      return;
-    }
+    // Validate password format
+    /*
+    Removed strict client-side validation to align with Login behavior.
+    backend will handle validation.
+    */
 
     setIsLoading(true);
     try {
@@ -148,14 +153,20 @@ export default function RegisterScreen() {
               <TextInput
                 style={[styles.input, {
                   backgroundColor: card,
-                  borderColor: chip,
+                  // Dynamic Border: Red if error, Primary if focused, Chip (default) otherwise
+                  borderColor: passwordError ? '#EF4444' : (isPasswordFocused ? primary : chip),
                   color: text,
                   paddingRight: 50
                 }]}
                 placeholder={t('auth.enterPassword')}
                 placeholderTextColor={muted}
                 value={user.password}
-                onChangeText={(text) => setUser({ ...user, password: text })}
+                onChangeText={(text) => {
+                  setUser({ ...user, password: text });
+                  if (passwordError) setPasswordError(undefined);
+                }}
+                onFocus={() => setIsPasswordFocused(true)}
+                onBlur={() => setIsPasswordFocused(false)}
                 secureTextEntry={!showPassword}
                 editable={!isLoading}
               />
@@ -170,6 +181,9 @@ export default function RegisterScreen() {
                 />
               </TouchableOpacity>
             </View>
+            {(isPasswordFocused || passwordError) && (
+              <PasswordRequirements error={passwordError} />
+            )}
           </View>
 
           <View style={styles.termsContainer}>
@@ -217,8 +231,6 @@ export default function RegisterScreen() {
               {isLoading ? t('auth.creatingAccount') : t('auth.registerNow')}
             </ThemedText>
           </TouchableOpacity>
-
-
 
           <TouchableOpacity
             style={styles.loginLink}

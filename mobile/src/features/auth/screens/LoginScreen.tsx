@@ -1,8 +1,10 @@
 // /home/natye/smart-tourism/src/features/auth/screens/LoginScreen.tsx
+import { PasswordRequirements } from '@/src/components/auth/PasswordRequirements';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useAuth } from '@/src/features/auth/contexts/AuthContext';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
+import { validatePassword } from '@/src/utils/validation';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -36,6 +38,9 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | undefined>(undefined);
+  const [loginError, setLoginError] = useState<string | undefined>(undefined);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login, isLoading: authLoading } = useAuth();
 
@@ -46,21 +51,30 @@ export default function LoginScreen() {
       return;
     }
 
+    // Validate password format (optional, but good for user feedback)
+    /* 
+    Restoring client-side validation as visual feedback per user request.
+    */
+    const validation = validatePassword(password);
+    if (!validation.isValid) {
+      setPasswordError(validation.error || t('auth.invalidCredentials'));
+      return;
+    }
+
+    // Clear errors on new submission
+    setLoginError(undefined);
     setIsLoading(true);
     try {
       await login({ email, password });
       router.replace('/(tabs)');
     } catch (error: any) {
-      console.error('Login error:', error);
+
       const backendMessage = error.response?.data?.message;
       const errorMessage = Array.isArray(backendMessage)
         ? backendMessage.join('\n')
         : backendMessage;
 
-      Alert.alert(
-        t('auth.loginFailed'),
-        errorMessage || error.message || t('auth.invalidCredentials')
-      );
+      setLoginError(errorMessage || error.message || t('auth.invalidCredentials'));
     } finally {
       setIsLoading(false);
     }
@@ -99,6 +113,12 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.form}>
+            {loginError && (
+              <View style={styles.errorContainer}>
+                <Ionicons name="alert-circle" size={20} color="#EF4444" />
+                <ThemedText style={styles.errorText}>{loginError}</ThemedText>
+              </View>
+            )}
             <View style={styles.inputContainer}>
               <ThemedText type="default" style={[styles.label, { color: muted }]}>
                 {t('auth.emailOrPhone')}
@@ -127,14 +147,19 @@ export default function LoginScreen() {
                 <TextInput
                   style={[styles.input, {
                     backgroundColor: card,
-                    borderColor: chip,
+                    borderColor: passwordError ? '#EF4444' : (isPasswordFocused ? primary : chip),
                     color: text,
                     paddingRight: 50
                   }]}
                   placeholder={t('auth.enterPassword')}
                   placeholderTextColor={muted}
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    if (passwordError) setPasswordError(undefined);
+                  }}
+                  onFocus={() => setIsPasswordFocused(true)}
+                  onBlur={() => setIsPasswordFocused(false)}
                   secureTextEntry={!showPassword}
                   editable={!isLoading}
                 />
@@ -149,6 +174,9 @@ export default function LoginScreen() {
                   />
                 </TouchableOpacity>
               </View>
+              {(isPasswordFocused || passwordError) && (
+                <PasswordRequirements error={passwordError} />
+              )}
               <TouchableOpacity
                 style={styles.forgotPassword}
                 onPress={() => router.push('/(auth)/forgot-password')}
@@ -288,5 +316,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 16,
   },
-
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+    gap: 8,
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 14,
+    flex: 1,
+  },
 });
