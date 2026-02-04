@@ -35,6 +35,7 @@ export default function ExploreScreen() {
 
     /* ---------------- state ---------------- */
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+    const [sortBy, setSortBy] = useState<string | undefined>(undefined);
 
     /* ---------------- data ---------------- */
     const { data: categories, isLoading: categoriesLoading } = useCategories();
@@ -53,10 +54,15 @@ export default function ExploreScreen() {
 
     const { data: placesData, isLoading: placesLoading } = usePlaces({
         categoryId: selectedCategoryId || undefined,
-        perPage: 20
+        perPage: 20,
+        sort: sortBy
     });
 
-    const filters = [t('explore.distance'), t('explore.rating'), t('explore.price')];
+    const filters = [
+        { label: t('explore.rating'), value: 'rating' },
+        { label: t('explore.popular'), value: 'popular' },
+        { label: t('explore.new'), value: 'newest' }
+    ];
     const places = placesData?.data || [];
 
     const displayCategories = categories ? [{ id: 'all', name: t('explore.all') }, ...categories] : [];
@@ -129,20 +135,19 @@ export default function ExploreScreen() {
 
                         let rawKey = ((cat as any).key || (cat as any).name || '').toLowerCase().trim();
                         // Handle "Hotel" -> "hotels"
-                        console.log(`[DEBUG_TRANSLATE] Name: '${cat.name}', Initial RawKey: '${rawKey}'`);
+                        // console.log(`[DEBUG_TRANSLATE] Name: '${cat.name}', Initial RawKey: '${rawKey}'`);
 
                         if (KEY_MAP[rawKey]) {
                             rawKey = KEY_MAP[rawKey];
-                            console.log(`[DEBUG_TRANSLATE] Mapped to: '${rawKey}'`);
+                            // console.log(`[DEBUG_TRANSLATE] Mapped to: '${rawKey}'`);
                         } else {
                             rawKey = rawKey.replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
-                            console.log(`[DEBUG_TRANSLATE] Normalized to: '${rawKey}'`);
+                            // console.log(`[DEBUG_TRANSLATE] Normalized to: '${rawKey}'`);
                         }
 
                         const finalKey = `explore.categories.${rawKey}`;
                         const translated = t(finalKey, { defaultValue: cat.name });
-                        console.log(`[DEBUG_TRANSLATE] Final: '${finalKey}' -> '${translated}'`);
-
+                        // console.log(`[DEBUG_TRANSLATE] Final: '${finalKey}' -> '${translated}'`);
 
 
                         return (
@@ -171,21 +176,22 @@ export default function ExploreScreen() {
 
                 {/* ================= Filters ================= */}
                 <View style={styles.filters}>
-                    {filters.map((filter) => (
-                        <TouchableOpacity
-                            key={filter}
-                            style={[styles.filter, { backgroundColor: card }]}
-                        >
-                            <ThemedText style={{ color: text, fontSize: 14 }}>
-                                {filter}
-                            </ThemedText>
-                            <Ionicons
-                                name="chevron-down"
-                                size={14}
-                                color={muted}
-                            />
-                        </TouchableOpacity>
-                    ))}
+                    {filters.map((filter) => {
+                        const active = sortBy === filter.value;
+                        return (
+                            <TouchableOpacity
+                                key={filter.value}
+                                style={[styles.filter, { backgroundColor: active ? primary : card }]}
+                                onPress={() => setSortBy(active ? undefined : filter.value)}
+                            >
+                                <ThemedText style={{ color: active ? accent : text, fontSize: 14 }}>
+                                    {filter.label}
+                                </ThemedText>
+                                {/* Only show chevron if not active or maybe checkmark? Keeping simple */}
+                                {active && <Ionicons name="checkmark" size={14} color={accent} />}
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
 
                 {/* ================= Cards ================= */}
