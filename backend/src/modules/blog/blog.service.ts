@@ -57,6 +57,7 @@ export class BlogService {
           { title: { contains: q, mode: "insensitive" } },
           { body: { contains: q, mode: "insensitive" } },
           { tags: { has: q } },
+          { category: { contains: q, mode: "insensitive" } }, // Allow finding posts by category name via search
         ],
       };
 
@@ -318,5 +319,116 @@ export class BlogService {
     );
 
     return allCategories;
+  }
+  static async advancedSearch(query: string) {
+    if (!query || query.trim().length === 0) {
+      return { intent: "list", results: [], meta: { total: 0 } };
+    }
+
+    const normalizedQuery = query.toLowerCase().trim();
+
+    // 1. Check for Category Match (High Intent)
+    // We fetch categories and check if query matches exactly or closely
+    const categories = await this.getCategories();
+    const matchedCategory = categories.find(
+      (c) => c.toLowerCase() === normalizedQuery,
+    );
+
+    if (matchedCategory) {
+      const posts = await this.listPosts({
+        category: matchedCategory,
+        limit: 20,
+      });
+      return {
+        intent: "category",
+        results: posts.items,
+        matchedCategory,
+        meta: { total: posts.total, source: "category_match" },
+      };
+    }
+
+    // 2. Perform Weighted Search (Title > Tag > Body)
+    // We fetch broader results then score them in memory
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        status: "APPROVED",
+        OR: [
+          { title: { contains: query, mode: "insensitive" } },
+          { body: { contains: query, mode: "insensitive" } },
+          { tags: { has: query } }, // Exact tag match is high value
+          { category: { contains: query, mode: "insensitive" } },
+        ],
+      },
+      include: {
+        author: { select: { id: true, email: true, profile: true } },
+        media: true,
+      },
+      take: 50, // Fetch pool of candidates
+    });
+
+    if (posts.length === 0) {
+      return { intent: "list", results: [], meta: { total: 0 } };
+    }
+
+    // 3. Scoring Algorithm
+    const scoredPosts = posts.map((post) => {
+      let score = 0;
+      const title = post.title.toLowerCase();
+      const body = post.body.toLowerCase();
+      const tags = post.tags.map((t) => t.toLowerCase());
+
+      // Exact phrase match in title (Highest)
+      if (title === normalizedQuery) score += 50;
+      // Partial title match
+      else if (title.includes(normalizedQuery)) score += 20;
+
+      // Tag match
+      if (tags.includes(normalizedQuery)) score += 15;
+
+      // Exact phrase match in body
+      if (body.includes(normalizedQuery)) score += 5;
+
+      // Keyword frequency in body (Basic)
+      const keywordCount = (body.match(new RegExp(normalizedQuery, "g")) || [])
+        .length;
+      score += Math.min(keywordCount, 5); // Cap at 5 points
+
+      return { ...post, score };
+    });
+
+    // Sort by score desc
+    scoredPosts.sort((a, b) => b.score - a.score);
+
+    const topMatch = scoredPosts[0];
+    const bestScore = topMatch.score;
+
+    // 4. Intent Detection
+    // If top match is significantly better and has high absolute score -> Navigate
+    let intent = "list";
+    if (bestScore >= 50) {
+      // Extremely high confidence (e.g., exact title match)
+      intent = "navigate";
+    } else if (
+      bestScore >= 20 &&
+      (scoredPosts.length === 1 ||
+        bestScore > (scoredPosts[1]?.score || 0) * 1.5)
+    ) {
+      // High confidence unique result
+      intent = "navigate";
+    }
+
+    // Clean up score before returning if not needed, or keep for debugging
+    const cleanedResults = scoredPosts.slice(0, 20); // Return top 20
+
+    return {
+      intent,
+      bestMatch: intent === "navigate" ? topMatch : null,
+      results: cleanedResults,
+      meta: {
+        total: scoredPosts.length,
+        source: "smart_search",
+        bestScore,
+      },
+    };
   }
 }

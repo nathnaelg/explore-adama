@@ -283,10 +283,7 @@ export default function SettingsScreen() {
                 {/* App Version */}
                 <View style={styles.versionContainer}>
                     <ThemedText type="default" style={[styles.versionText, { color: muted }]}>
-                        Adama Smart Tourism v2.4.0
-                    </ThemedText>
-                    <ThemedText type="default" style={[styles.copyrightText, { color: muted }]}>
-                        {t('settings.madeWithLove')}
+                        Adama Smart Tourism v 1.0.1
                     </ThemedText>
                 </View>
             </ScrollView>

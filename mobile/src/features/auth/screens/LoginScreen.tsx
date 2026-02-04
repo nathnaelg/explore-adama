@@ -121,7 +121,7 @@ export default function LoginScreen() {
             )}
             <View style={styles.inputContainer}>
               <ThemedText type="default" style={[styles.label, { color: muted }]}>
-                {t('auth.emailOrPhone')}
+                {t('auth.email')}
               </ThemedText>
               <TextInput
                 style={[styles.input, {

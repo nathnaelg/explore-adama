@@ -25,6 +25,7 @@ export interface Booking {
     status: string;
     createdAt: string;
     event?: Event;
+    tickets?: Ticket[];
 }
 
 export interface Ticket {

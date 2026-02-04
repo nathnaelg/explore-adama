@@ -13,6 +13,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import QRCodeStyled from 'react-native-qrcode-styled';
 import { BookingDetailsSkeleton } from '../components/BookingDetailsSkeleton';
 import { useBooking, useCancelBooking } from '../hooks/useBooking';
 
@@ -111,6 +112,21 @@ export default function BookingViewScreen() {
                             ETB {booking.total?.toLocaleString()}
                         </ThemedText>
                     </View>
+
+                    {/* QR Code */}
+                    {booking?.tickets?.[0]?.qrToken && (
+                        <View style={styles.qrCodeContainer}>
+                            <ThemedText type="default" style={[styles.qrCodeLabel, { color: muted }]}>
+                                Ticket QR Code
+                            </ThemedText>
+                            <View style={styles.qrCodeWrapper}>
+                                <QRCodeStyled
+                                    data={booking.tickets[0].qrToken}
+                                    style={styles.qrCodeStyle}
+                                />
+                            </View>
+                        </View>
+                    )}
                 </View>
 
                 {/* Actions */}
@@ -158,4 +174,25 @@ const styles = StyleSheet.create({
     actions: { marginTop: 20 },
     button: { paddingVertical: 12, paddingHorizontal: 30, borderRadius: 25, alignItems: 'center' },
     cancelButton: { paddingVertical: 14, borderRadius: 15, alignItems: 'center', borderWidth: 1 },
+    qrCodeContainer: {
+        marginTop: 20,
+        paddingTop: 20,
+        borderTopWidth: 1,
+        borderTopColor: '#E0E0E0',
+        alignItems: 'center',
+    },
+    qrCodeLabel: {
+        fontSize: 14,
+        marginBottom: 12,
+        fontWeight: '600',
+    },
+    qrCodeWrapper: {
+        padding: 12,
+        backgroundColor: 'white',
+        borderRadius: 12,
+    },
+    qrCodeStyle: {
+        width: 120,
+        height: 120,
+    },
 });

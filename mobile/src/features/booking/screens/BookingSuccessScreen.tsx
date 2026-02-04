@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
+import QRCodeStyled from 'react-native-qrcode-styled';
 import { useBooking } from '../hooks/useBooking';
 
 export default function BookingSuccessScreen() {
@@ -53,6 +54,20 @@ export default function BookingSuccessScreen() {
                     <ThemedText type="default" style={[styles.bookingDate, { color: text }]}>
                         {date}
                     </ThemedText>
+
+
+                    {/* QR Code */}
+                    {booking?.tickets?.[0]?.qrToken && (
+                        <View style={styles.qrContainer}>
+                            <QRCodeStyled
+                                data={booking.tickets[0].qrToken}
+                                style={styles.qrCode}
+                            />
+                            <ThemedText type="default" style={[styles.qrLabel, { color: muted }]}>
+                                Show this QR code at the venue
+                            </ThemedText>
+                        </View>
+                    )}
                 </View>
 
                 <View style={styles.buttonsContainer}>
@@ -123,6 +138,19 @@ const styles = StyleSheet.create({
     },
     bookingDate: {
         fontSize: 14,
+    },
+    qrContainer: {
+        marginTop: 24,
+        alignItems: 'center',
+        gap: 12,
+    },
+    qrCode: {
+        width: 200,
+        height: 200,
+    },
+    qrLabel: {
+        fontSize: 12,
+        textAlign: 'center',
     },
     buttonsContainer: {
         width: '100%',

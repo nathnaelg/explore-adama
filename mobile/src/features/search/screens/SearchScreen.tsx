@@ -1,10 +1,14 @@
 
+import { HighlightText } from '@/src/components/common/HighlightText';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useAuth } from '@/src/features/auth/contexts/AuthContext';
 import { useCategories } from '@/src/features/explore/hooks/useExplore';
+import { RichResultCard } from '@/src/features/search/components/RichResultCard';
 import { SearchSkeleton } from '@/src/features/search/components/SearchSkeleton';
-import { useDebouncedSearch } from '@/src/features/search/hooks/useSearch';
+import { SearchSuggestions } from '@/src/features/search/components/SearchSuggestions';
+import { useDebouncedSearchWithType } from '@/src/features/search/hooks/useSearch';
+import { searchHistoryService } from '@/src/features/search/services/searchHistory.service';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList as ShopifyFlashList } from '@shopify/flash-list';
@@ -13,18 +17,49 @@ import { useLocalSearchParams } from 'expo-router/build/hooks';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+    ActivityIndicator,
+    Keyboard,
+    ScrollView,
     StyleSheet,
     TextInput,
     TouchableOpacity,
-    View
+    View,
 } from 'react-native';
 const FlashList = ShopifyFlashList as any;
 
 export default function SearchScreen() {
     const { t } = useTranslation();
-    const { q, type } = useLocalSearchParams<{ q: string; type: string }>();
+    const { q, type } = useLocalSearchParams<{ q: string; type: 'all' | 'place' | 'event' | 'blog' }>();
     const [query, setQuery] = useState(q || '');
-    const { debouncedQuery, data: searchResults, isLoading } = useDebouncedSearch(query, 500);
+
+    // State for search type (Tab)
+    const [searchType, setSearchType] = useState<'all' | 'place' | 'event' | 'blog'>(type || 'all');
+
+    // Update when params change
+    useEffect(() => {
+        if (type) setSearchType(type);
+    }, [type]);
+
+    const tabs = [
+        { id: 'all', label: t('search.tabs.all', { defaultValue: 'All' }) },
+        { id: 'blog', label: t('search.tabs.posts', { defaultValue: 'Posts' }) },
+        { id: 'place', label: t('search.tabs.places', { defaultValue: 'Places' }) },
+        { id: 'event', label: t('search.tabs.events', { defaultValue: 'Events' }) },
+    ] as const;
+
+    // Use the new hook with type filtering
+    const {
+        debouncedQuery,
+        data: searchResults,
+        isLoading,
+        isError,
+        error,
+        smartSearchData
+    } = useDebouncedSearchWithType(
+        query,
+        searchType,
+        500
+    );
     const { isAuthenticated } = useAuth();
     const { data: categoriesData } = useCategories();
     const categories = categoriesData || [];
@@ -37,11 +72,62 @@ export default function SearchScreen() {
     const chip = useThemeColor({}, 'chip');
     const tint = useThemeColor({}, 'tint');
 
+    const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+    // Navigation guard to prevent double navigation
+    const hasNavigatedRef = React.useRef(false);
+
+    // Reset navigation guard when query changes
+    useEffect(() => {
+        hasNavigatedRef.current = false;
+    }, [debouncedQuery]);
+
+    // Handle Smart Search Intent (Auto-Navigate)
+    useEffect(() => {
+        if (!isLoading && smartSearchData && searchType === 'blog' && !hasNavigatedRef.current) {
+            if (smartSearchData.intent === 'navigate' && smartSearchData.bestMatch) {
+                console.log('[SearchScreen] Auto-navigating to blog:', smartSearchData.bestMatch.title);
+                hasNavigatedRef.current = true;
+                router.push(`/blog/${smartSearchData.bestMatch.id}`);
+            }
+        }
+    }, [smartSearchData, isLoading, searchType]);
+
+    // Load recent searches on mount
+    useEffect(() => {
+        searchHistoryService.getRecentSearches().then(setRecentSearches);
+    }, []);
+
+    // Save search when user searches
+    useEffect(() => {
+        if (debouncedQuery && debouncedQuery.length > 0) {
+            searchHistoryService.addSearch(debouncedQuery);
+            searchHistoryService.getRecentSearches().then(setRecentSearches);
+        }
+    }, [debouncedQuery]);
+
     useEffect(() => {
         if (q) {
             setQuery(q);
         }
     }, [q]);
+
+    const handleClearRecent = async () => {
+        await searchHistoryService.clearRecentSearches();
+        setRecentSearches([]);
+    };
+
+    const handleSelectSuggestion = (suggestion: string) => {
+        setQuery(suggestion);
+    };
+
+    // Popular searches based on search type
+    const getPopularSearches = () => {
+        if (searchType === 'blog') {
+            return ['travel tips', 'culture', 'food', 'adventure', 'hotels'];
+        }
+        return ['hotels', 'restaurants', 'attractions', 'events', 'spa'];
+    };
 
     const handleResultPress = (result: any) => {
         if (result.type === 'place') {
@@ -53,97 +139,155 @@ export default function SearchScreen() {
             }
             router.push({ pathname: '/bookings/new', params: { eventId: result.id } } as any);
         } else if (result.type === 'blog') {
+            // Check intent from smart search if available
+            if (smartSearchData?.intent === 'navigate' && smartSearchData.bestMatch?.id === result.id) {
+                // Already handled? 
+            }
             router.push(`/blog/${result.id}`);
         }
     };
 
-    const renderResultItem = ({ item }: { item: any }) => (
-        <TouchableOpacity
-            style={[styles.resultCard, { backgroundColor: card }]}
-            onPress={() => handleResultPress(item)}
-        >
-            <View style={styles.resultHeader}>
-                <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <ThemedText type="title" style={[styles.resultName, { color: text }]}>
-                            {item.name}
-                        </ThemedText>
-                        <View style={[styles.typeBadge, { backgroundColor: chip }]}>
-                            <ThemedText style={{ fontSize: 10, color: primary, fontWeight: '600' }}>
-                                {item.type.toUpperCase()}
-                            </ThemedText>
+    const renderResultItem = ({ item }: { item: any }) => {
+        if (item.type === 'blog') {
+            return (
+                <RichResultCard
+                    post={item.data}
+                    searchQuery={debouncedQuery}
+                    onPress={() => handleResultPress(item)}
+                />
+            );
+        }
+
+        // Default card for Places/Events
+        return (
+            <TouchableOpacity
+                style={[styles.resultCard, { backgroundColor: card }]}
+                onPress={() => handleResultPress(item)}
+            >
+                <View style={styles.resultHeader}>
+                    <View style={{ flex: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                            <HighlightText
+                                text={item.name}
+                                term={debouncedQuery}
+                                style={[styles.resultName, { color: text }]}
+                            />
+                            <View style={[styles.typeBadge, { backgroundColor: chip }]}>
+                                <ThemedText style={{ fontSize: 10, color: primary, fontWeight: '600' }}>
+                                    {item.type.toUpperCase()}
+                                </ThemedText>
+                            </View>
                         </View>
                     </View>
+                    {item.rating && (
+                        <View style={[styles.ratingBadge, { backgroundColor: 'rgba(150,150,150,0.1)' }]}>
+                            <Ionicons name="star" size={14} color="#FFD700" />
+                            <ThemedText type="default" style={[styles.ratingText, { color: text }]}>
+                                {item.rating.toFixed(1)}
+                            </ThemedText>
+                        </View>
+                    )}
                 </View>
-                {item.rating && (
-                    <View style={[styles.ratingBadge, { backgroundColor: 'rgba(150,150,150,0.1)' }]}>
-                        <Ionicons name="star" size={14} color="#FFD700" />
-                        <ThemedText type="default" style={[styles.ratingText, { color: text }]}>
-                            {item.rating.toFixed(1)}
-                        </ThemedText>
-                    </View>
-                )}
-            </View>
 
-            {item.description && (
-                <ThemedText type="default" style={[styles.resultDescription, { color: muted }]} numberOfLines={2}>
-                    {item.description}
-                </ThemedText>
-            )}
+                {item.description && (
+                    <HighlightText
+                        text={item.description}
+                        term={debouncedQuery}
+                        style={[styles.resultDescription, { color: muted }]}
+                        numberOfLines={2}
+                    />
+                )}
 
-            <View style={styles.resultDetails}>
-                {item.address && (
-                    <View style={styles.detailItem}>
-                        <Ionicons name="location-outline" size={14} color={muted} />
-                        <ThemedText type="default" style={[styles.detailText, { color: muted }]} numberOfLines={1}>
-                            {item.address}
-                        </ThemedText>
-                    </View>
-                )}
-                {item.time && (
-                    <View style={styles.detailItem}>
-                        <Ionicons name="time-outline" size={14} color={muted} />
-                        <ThemedText type="default" style={[styles.detailText, { color: muted }]}>
-                            {new Date(item.time).toLocaleDateString()}
-                        </ThemedText>
-                    </View>
-                )}
-            </View>
-        </TouchableOpacity>
-    );
+                <View style={styles.resultDetails}>
+                    {item.address && (
+                        <View style={styles.detailItem}>
+                            <Ionicons name="location-outline" size={14} color={muted} />
+                            <HighlightText
+                                text={item.address}
+                                term={debouncedQuery}
+                                style={[styles.detailText, { color: muted }]}
+                                numberOfLines={1}
+                            />
+                        </View>
+                    )}
+                    {item.time && (
+                        <View style={styles.detailItem}>
+                            <Ionicons name="time-outline" size={14} color={muted} />
+                            <ThemedText type="default" style={[styles.detailText, { color: muted }]}>
+                                {new Date(item.time).toLocaleDateString()}
+                            </ThemedText>
+                        </View>
+                    )}
+                </View>
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <ThemedView style={styles.container}>
             {/* Search Header */}
-            <View style={[styles.searchHeader, { backgroundColor: card }]}>
-                <View style={[styles.searchContainer, { backgroundColor: bg }]}>
-                    <Ionicons name="search" size={20} color={muted} />
-                    <TextInput
-                        style={[styles.searchInput, { color: text }]}
-                        placeholder={t('search.placeholder')}
-                        placeholderTextColor={muted}
-                        value={query}
-                        onChangeText={setQuery}
-                        autoFocus
-                    />
-                    {query.length > 0 && (
-                        <TouchableOpacity onPress={() => setQuery('')}>
-                            <Ionicons name="close-circle" size={20} color={muted} />
-                        </TouchableOpacity>
-                    )}
+            <View style={[styles.searchHeader, { backgroundColor: card, paddingBottom: 0 }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                    <View style={[styles.searchContainer, { backgroundColor: bg, flex: 1 }]}>
+                        <Ionicons name="search" size={20} color={muted} />
+                        <TextInput
+                            style={[styles.searchInput, { color: text }]}
+                            placeholder={t('search.placeholder')}
+                            placeholderTextColor={muted}
+                            value={query}
+                            onChangeText={setQuery}
+                            autoFocus
+                            returnKeyType="search"
+                            onSubmitEditing={() => Keyboard.dismiss()}
+                        />
+                        {isLoading && (
+                            <ActivityIndicator size="small" color={primary} style={{ marginRight: 5 }} />
+                        )}
+                        {!isLoading && query.length > 0 && (
+                            <TouchableOpacity onPress={() => setQuery('')}>
+                                <Ionicons name="close-circle" size={20} color={muted} />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                    <TouchableOpacity onPress={() => router.back()}>
+                        <ThemedText style={{ color: primary, fontWeight: '600' }}>{t('common.cancel')}</ThemedText>
+                    </TouchableOpacity>
                 </View>
-                <TouchableOpacity onPress={() => router.back()}>
-                    <ThemedText style={{ color: primary, fontWeight: '600' }}>{t('common.cancel')}</ThemedText>
-                </TouchableOpacity>
+
+                {/* Tabs */}
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ gap: 8, paddingBottom: 12 }}
+                >
+                    {tabs.map(tab => (
+                        <TouchableOpacity
+                            key={tab.id}
+                            style={[
+                                styles.tab,
+                                {
+                                    backgroundColor: searchType === tab.id ? primary : chip,
+                                    borderWidth: 1,
+                                    borderColor: searchType === tab.id ? primary : 'transparent'
+                                }
+                            ]}
+                            onPress={() => setSearchType(tab.id)}
+                        >
+                            <ThemedText style={{
+                                color: searchType === tab.id ? 'white' : text,
+                                fontWeight: searchType === tab.id ? '600' : '400',
+                                fontSize: 13
+                            }}>
+                                {tab.label}
+                            </ThemedText>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
             </View>
 
             <FlashList
                 data={query.length > 0 && !isLoading && debouncedQuery === query ? searchResults : []}
-                renderItem={({ item }: { item: any }) => (
-                    <View style={{ paddingHorizontal: 20 }}>
-                        {renderResultItem({ item })}
-                    </View>
-                )}
+                renderItem={renderResultItem}
                 estimatedItemSize={120}
                 keyExtractor={(item: any) => `${item.type}-${item.id}`}
                 keyboardDismissMode="on-drag"
@@ -152,6 +296,15 @@ export default function SearchScreen() {
                     <>
                         {query.length === 0 ? (
                             <>
+                                {/* Search Suggestions */}
+                                <SearchSuggestions
+                                    recentSearches={recentSearches}
+                                    popularSearches={getPopularSearches()}
+                                    onSelectSuggestion={handleSelectSuggestion}
+                                    onClearRecent={handleClearRecent}
+                                    searchType={searchType}
+                                />
+
                                 {/* Popular Categories */}
                                 <View style={styles.section}>
                                     <ThemedText type="subtitle" style={[styles.sectionTitle, { color: text }]}>
@@ -167,7 +320,7 @@ export default function SearchScreen() {
                                                 <View style={[styles.categoryIcon, { backgroundColor: chip }]}>
                                                     <Ionicons name="location" size={24} color={primary} />
                                                 </View>
-                                                <ThemedText type="default" style={[styles.categoryName, { color: text }]} numberOfLines={1}>
+                                                <ThemedText style={styles.categoryName} numberOfLines={1}>
                                                     {category.name}
                                                 </ThemedText>
                                             </TouchableOpacity>
@@ -203,13 +356,32 @@ export default function SearchScreen() {
                                     <SearchSkeleton />
                                 )}
 
-                                {/* Search Results Header */}
-                                {!isLoading && debouncedQuery === query && searchResults && searchResults.length > 0 && (
-                                    <View style={[styles.section, { paddingBottom: 0 }]}>
-                                        <ThemedText type="subtitle" style={[styles.sectionTitle, { color: text }]}>
-                                            {t('search.resultsCount', { count: searchResults.length })}
+                                {/* Error State */}
+                                {!isLoading && isError ? (
+                                    <View style={{ padding: 20, alignItems: 'center', marginTop: 20 }}>
+                                        <Ionicons name="cloud-offline-outline" size={48} color={primary} />
+                                        <ThemedText style={{ color: text, marginTop: 10, textAlign: 'center', fontWeight: 'bold' }}>
+                                            {t('common.networkError', { defaultValue: 'Connection Failed' })}
                                         </ThemedText>
+                                        <ThemedText style={{ color: muted, marginTop: 5, textAlign: 'center' }}>
+                                            {(error as Error)?.message || 'Please check your internet connection'}
+                                        </ThemedText>
+                                        <TouchableOpacity
+                                            style={{ marginTop: 15, padding: 10, backgroundColor: card, borderRadius: 8 }}
+                                            onPress={() => setQuery(query + ' ')} // Trick to re-trigger search
+                                        >
+                                            <ThemedText style={{ color: primary }}>{t('common.retry', { defaultValue: 'Retry' })}</ThemedText>
+                                        </TouchableOpacity>
                                     </View>
+                                ) : (
+                                    /* Search Results Header */
+                                    !isLoading && debouncedQuery === query && searchResults && searchResults.length > 0 && (
+                                        <View style={[styles.section, { paddingBottom: 0 }]}>
+                                            <ThemedText type="subtitle" style={[styles.sectionTitle, { color: text }]}>
+                                                {t('search.resultsCount', { count: searchResults.length })}
+                                            </ThemedText>
+                                        </View>
+                                    )
                                 )}
                             </>
                         )}
@@ -231,7 +403,7 @@ export default function SearchScreen() {
             />
 
 
-        </ThemedView>
+        </ThemedView >
     );
 }
 
@@ -306,12 +478,28 @@ const styles = StyleSheet.create({
     ratingText: { fontSize: 12, fontWeight: '600' },
     resultDescription: { fontSize: 14, lineHeight: 20, marginBottom: 12 },
     resultDetails: { flexDirection: 'row', alignItems: 'center', gap: 16, flexWrap: 'wrap' },
-    detailItem: { flexDirection: 'row', alignItems: 'center', gap: 4, maxWidth: '45%' },
-    detailText: { fontSize: 12 },
-    noResultsContainer: {
-        alignItems: 'center',
-        paddingVertical: 40,
-        paddingHorizontal: 20,
+    tab: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
     },
-    noResultsText: { fontSize: 16, marginTop: 16, textAlign: 'center' },
+    detailItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6
+    },
+    detailText: {
+        fontSize: 12
+    },
+    noResultsContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 60
+    },
+    noResultsText: {
+        fontSize: 18,
+        fontWeight: '600',
+        marginTop: 16
+    }
 });

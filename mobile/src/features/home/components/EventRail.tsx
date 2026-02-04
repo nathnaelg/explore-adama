@@ -19,7 +19,17 @@ export function EventRail({ events }: EventRailProps) {
     const muted = useThemeColor({}, 'muted');
     const card = useThemeColor({}, 'card');
 
-    if (!events || events.length === 0) return null;
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const upcomingEvents = events
+        ? events.filter(event => {
+            const eventDate = event.date ? new Date(event.date) : new Date();
+            return eventDate >= startOfToday;
+        })
+        : [];
+
+    if (!upcomingEvents || upcomingEvents.length === 0) return null;
 
     return (
         <View style={styles.container}>
@@ -31,7 +41,7 @@ export function EventRail({ events }: EventRailProps) {
             </View>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.list}>
-                {events.map((event) => {
+                {upcomingEvents.map((event) => {
                     const date = event.date ? new Date(event.date) : new Date();
                     const day = date.getDate();
                     const month = date.toLocaleDateString(i18n.language === 'am' ? 'am-ET' : i18n.language === 'om' ? 'om-ET' : 'en-US', { month: 'short' }).toUpperCase();

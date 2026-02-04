@@ -97,12 +97,7 @@ export default function BlogScreen() {
           <Ionicons name="add-outline" size={22} color={text} />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.iconCircle, { backgroundColor: card }]}
-          onPress={() => router.push("/search?type=blog")}
-        >
-          <Ionicons name="search-outline" size={22} color={text} />
-        </TouchableOpacity>
+
       </View>
     </View>
   );

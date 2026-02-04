@@ -1,6 +1,6 @@
 // backend/src/api/services/event.service.ts
-import {prisma} from "../../config/db.ts";
 import { Prisma } from "@prisma/client";
+import { prisma } from "../../config/db.ts";
 
 export type EventCreateInput = {
   title: string;
@@ -74,6 +74,7 @@ export class EventService {
   static async listEvents(opts: {
     page?: number;
     perPage?: number;
+    limit?: number;
     q?: string;
     categoryId?: string;
     dateFrom?: string; // ISO
@@ -84,7 +85,7 @@ export class EventService {
     sort?: "trending" | "price_asc" | "price_desc" | "rating" | "newest";
   }) {
     const page = Math.max(1, opts.page || 1);
-    const perPage = Math.max(1, Math.min(100, opts.perPage || 20));
+    const perPage = Math.max(1, Math.min(100, opts.limit || opts.perPage || 20));
     const skip = (page - 1) * perPage;
     const where: any = {};
 

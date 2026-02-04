@@ -115,22 +115,31 @@ apiClient.interceptors.response.use(
 
       refreshPromise = (async () => {
         try {
+          console.log('[Auth] Starting token refresh...');
           const refreshToken = await secureStorage.getRefreshToken();
           if (!refreshToken) {
             console.warn('[Auth] No refresh token found, aborting refresh');
             throw new Error('No refresh token');
           }
 
+          console.log('[Auth] Refresh token found, requesting new access token...');
           const response = await axios.post(`${env.API_URL}/auth/refresh`, {
             refreshToken,
           });
 
           const { accessToken } = response.data;
-          if (!accessToken) throw new Error('No access token in response');
+          if (!accessToken) {
+            console.error('[Auth] No access token in refresh response');
+            throw new Error('No access token in response');
+          }
 
+          console.log('[Auth] Token refresh successful');
           await secureStorage.setToken(accessToken);
           apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
           return accessToken;
+        } catch (error: any) {
+          console.error('[Auth] Token refresh failed:', error.message || error);
+          throw error;
         } finally {
           isRefreshing = false;
           refreshPromise = null; // Clear promise so next retry starts fresh if needed

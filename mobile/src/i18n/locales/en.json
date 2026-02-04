@@ -29,9 +29,9 @@
   "auth": {
     "welcomeBack": "Welcome Back",
     "loginDescription": "Explore Adama. Discover the best hotels, parks, and hidden gems.",
-    "emailOrPhone": "Email or Phone Number",
+    "email": "Email",
     "password": "Password",
-    "enterEmail": "Enter your email or phone",
+    "enterEmail": "Enter your email",
     "enterPassword": "Enter your password",
     "forgotPassword": "Forgot Password?",
     "login": "Log In",
@@ -44,7 +44,6 @@
     "registerTitle": "Join Adama Tourism",
     "registerHero": "Discover the best hotels, parks, and culture in the heart of Oromia.",
     "fullName": "Full Name",
-    "email": "Email",
     "passwordMin": "Password * (min. 6 characters)",
     "enterName": "Enter your name",
     "agreeTerms": "I agree to the",
@@ -67,7 +66,7 @@
     "adamaEthiopia": "Adama, Ethiopia",
     "categories": "Categories",
     "popularPlaces": "Popular Places",
-    "nearbyPlaces": "Nearby Places",
+    "nearbyPlaces": "Places",
     "blogsStories": "Community Stories",
     "view": "View",
     "happeningSoon": "Happening Soon",
@@ -138,8 +137,7 @@
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "aiTransparency": "AI Transparency",
-    "appVersion": "App Version",
-    "madeWithLove": "Made with ❤️ for Adama"
+    "appVersion": "App Version"
   },
   "placeDetails": {
     "placeNotFound": "Place not found",

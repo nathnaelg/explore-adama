@@ -1,6 +1,6 @@
 // src/modules/review/review.service.ts
+import { ReviewStatus } from "@prisma/client";
 import { prisma } from "../../config/db.ts";
-import { Prisma, ReviewStatus } from "@prisma/client";
 
 
 type ItemType = "PLACE" | "EVENT";
@@ -59,9 +59,9 @@ export class ReviewService {
       throw new Error("Duplicate review content detected");
     }
 
-    // decide initial status (simple heuristic: short comments may be PENDING)
+    // decide initial status
     let status: ReviewStatus = "APPROVED";
-    if (!comment || comment.trim().length < 10) status = "PENDING";
+    // if (!comment || comment.trim().length < 10) status = "PENDING"; // Disable auto-pending for now
 
     // create review
     const review = await prisma.review.create({

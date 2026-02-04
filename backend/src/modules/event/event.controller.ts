@@ -1,8 +1,8 @@
 // backend/src/api/controllers/event.controller.ts
 import type { Request, Response } from "express";
-import { EventService } from "./event.service.ts";
-import { UploadService } from "../file-management/upload.service.ts";
 import { distanceKm } from "../../utils/geo.ts";
+import { UploadService } from "../file-management/upload.service.ts";
+import { EventService } from "./event.service.ts";
 
 export class EventController {
   static async create(req: Request, res: Response) {
@@ -63,7 +63,7 @@ export class EventController {
     try {
       const id = req.params.id;
       // increment view count
-      EventService.incrementViewCount(id).catch(() => {});
+      EventService.incrementViewCount(id).catch(() => { });
       const event = await EventService.getEventById(id);
       if (!event) return res.status(404).json({ message: "Event not found" });
       return res.json(event);
@@ -77,6 +77,7 @@ export class EventController {
     try {
       const page = Number(req.query.page || 1);
       const perPage = Number(req.query.perPage || 20);
+      const limit = Number(req.query.limit || 0);
       const q = req.query.q as string | undefined;
       const categoryId = req.query.categoryId as string | undefined;
       const dateFrom = req.query.dateFrom as string | undefined;
@@ -89,6 +90,7 @@ export class EventController {
       const result = await EventService.listEvents({
         page,
         perPage,
+        limit,
         q,
         categoryId,
         dateFrom,

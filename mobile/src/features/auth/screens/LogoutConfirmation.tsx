@@ -1,13 +1,27 @@
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
+import { useAuth } from '@/src/features/auth/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function LogoutConfirmationScreen() {
-  const handleLogout = () => {
-    // Perform logout logic here
-    router.replace('/(auth)/login');
+  const { logout } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await logout();
+      router.replace('/(auth)/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if logout fails, redirect to login
+      router.replace('/(auth)/login');
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleCancel = () => {
@@ -72,17 +86,24 @@ export default function LogoutConfirmationScreen() {
 
         {/* Action Buttons */}
         <View style={styles.actionsContainer}>
-          <TouchableOpacity 
-            style={styles.logoutButton}
+          <TouchableOpacity
+            style={[styles.logoutButton, isLoggingOut && styles.logoutButtonDisabled]}
             onPress={handleLogout}
+            disabled={isLoggingOut}
           >
-            <Ionicons name="log-out" size={20} color="white" />
-            <ThemedText type="default" style={styles.logoutButtonText}>
-              Yes, Logout
-            </ThemedText>
+            {isLoggingOut ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <>
+                <Ionicons name="log-out" size={20} color="white" />
+                <ThemedText type="default" style={styles.logoutButtonText}>
+                  Yes, Logout
+                </ThemedText>
+              </>
+            )}
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.cancelButton}
             onPress={handleCancel}
           >
@@ -186,6 +207,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF3B30',
     paddingVertical: 18,
     borderRadius: 12,
+  },
+  logoutButtonDisabled: {
+    opacity: 0.6,
   },
   logoutButtonText: {
     color: 'white',

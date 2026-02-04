@@ -1,6 +1,6 @@
 // backend/src/api/services/place.service.ts
-import {prisma} from "../../config/db.ts";
 import { Prisma } from "@prisma/client";
+import { prisma } from "../../config/db.ts";
 
 export type PlaceCreateInput = {
   name: string;
@@ -49,6 +49,12 @@ export class PlaceService {
   }
 
   static async getPlaceById(id: string) {
+    // Increment view count
+    await prisma.place.update({
+      where: { id },
+      data: { viewCount: { increment: 1 } }
+    }).catch(err => console.error("Failed to increment view count", err));
+
     return prisma.place.findUnique({
       where: { id },
       include: {
@@ -64,12 +70,13 @@ export class PlaceService {
   static async listPlaces(opts: {
     page?: number;
     perPage?: number;
+    limit?: number;
     categoryId?: string;
     q?: string;
     sort?: "popular" | "rating" | "newest";
   }) {
     const page = Math.max(1, opts.page || 1);
-    const perPage = Math.max(1, Math.min(100, opts.perPage || 20));
+    const perPage = Math.max(1, Math.min(100, opts.limit || opts.perPage || 20));
     const skip = (page - 1) * perPage;
     const where: any = {};
 

@@ -1,3 +1,4 @@
+import { SuccessModal } from '@/src/components/common/SuccessModal';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useCreateReview } from '@/src/features/reviews/hooks/useReviews';
@@ -24,6 +25,7 @@ export default function AddReviewScreen() {
 
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState('');
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const primary = useThemeColor({}, 'primary');
     const text = useThemeColor({}, 'text');
@@ -44,8 +46,7 @@ export default function AddReviewScreen() {
             comment,
         }, {
             onSuccess: () => {
-                Alert.alert(t('common.success'), t('reviews.reviewSubmitted'));
-                router.back();
+                setShowSuccessModal(true);
             },
             onError: (err: any) => {
                 Alert.alert(t('common.error'), err?.response?.data?.message || t('common.error'));
@@ -53,8 +54,21 @@ export default function AddReviewScreen() {
         });
     };
 
+    const handleSuccessClose = () => {
+        setShowSuccessModal(false);
+        router.back();
+    };
+
     return (
         <ThemedView style={styles.container}>
+            <SuccessModal
+                visible={showSuccessModal}
+                title={t('common.success')}
+                message={t('reviews.reviewSubmitted')}
+                onClose={handleSuccessClose}
+                buttonText="OK"
+            />
+
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={[styles.header, { backgroundColor: card }]}>
                     <TouchableOpacity onPress={() => router.back()}><Ionicons name="arrow-back" size={24} color={text} /></TouchableOpacity>
