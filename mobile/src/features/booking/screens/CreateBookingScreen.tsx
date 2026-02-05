@@ -93,7 +93,9 @@ export default function CreateBookingScreen() {
                     <ScrollView contentContainerStyle={styles.listContent}>
                         {placeEventsData.data.map((evt) => {
                             const eventDate = new Date(evt.date);
-                            const isPast = eventDate < new Date();
+                            const startOfToday = new Date();
+                            startOfToday.setHours(0, 0, 0, 0);
+                            const isPast = eventDate < startOfToday;
                             if (isPast) return null;
 
                             return (
@@ -143,7 +145,12 @@ export default function CreateBookingScreen() {
         );
     }
 
-    const isEventPassed = selectedEvent ? new Date(selectedEvent.date) < new Date() : false;
+    const isEventPassed = selectedEvent ? (() => {
+        const eventDate = new Date(selectedEvent.date);
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        return eventDate < startOfToday;
+    })() : false;
 
     if (isEventPassed) {
         return (

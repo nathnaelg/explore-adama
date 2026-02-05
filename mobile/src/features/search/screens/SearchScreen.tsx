@@ -112,40 +112,49 @@ export default function SearchScreen() {
         </TouchableOpacity>
     );
 
-    const renderEventItem = (event: any) => (
-        <TouchableOpacity
-            key={event.id}
-            style={[styles.resultItem, { backgroundColor: cardColor }]}
-            onPress={() => router.push({ pathname: '/bookings/new', params: { eventId: event.id } } as any)}
-        >
-            {/* Use Calendar icon placeholder if no image */}
-            {event.images?.[0]?.url ? (
-                <OptimizedImage
-                    source={{ uri: event.images[0].url }}
-                    style={styles.resultImage}
-                    contentFit="cover"
-                />
-            ) : (
-                <View style={[styles.resultImage, { backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }]}>
-                    <Ionicons name="calendar" size={24} color={primary} />
-                </View>
-            )}
+    const renderEventItem = (event: any) => {
+        const eventDate = new Date(event.date);
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const isPast = eventDate < startOfToday;
+        return (
+            <TouchableOpacity
+                key={event.id}
+                style={[styles.resultItem, { backgroundColor: cardColor, opacity: isPast ? 0.7 : 1 }]}
+                onPress={() => router.push({ pathname: '/bookings/new', params: { eventId: event.id } } as any)}
+            >
+                {/* Use Calendar icon placeholder if no image */}
+                {event.images?.[0]?.url ? (
+                    <OptimizedImage
+                        source={{ uri: event.images[0].url }}
+                        style={styles.resultImage}
+                        contentFit="cover"
+                    />
+                ) : (
+                    <View style={[styles.resultImage, { backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }]}>
+                        <Ionicons name="calendar" size={24} color={primary} />
+                    </View>
+                )}
 
-            <View style={styles.resultContent}>
-                <ThemedText style={[styles.resultTitle, { color: text }]} numberOfLines={1}>{event.title}</ThemedText>
-                <ThemedText style={{ color: primary, fontSize: 12, fontWeight: '500', marginBottom: 4 }}>
-                    {new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                </ThemedText>
-                <View style={[styles.miniBadge, { backgroundColor: bg }]}>
-                    <Ionicons name="ticket" size={10} color={accent} />
-                    <ThemedText style={{ color: text, fontSize: 10, fontWeight: '600' }}>Event</ThemedText>
+                <View style={styles.resultContent}>
+                    <ThemedText style={[styles.resultTitle, { color: text }]} numberOfLines={1}>{event.title}</ThemedText>
+                    <ThemedText style={{ color: isPast ? muted : primary, fontSize: 12, fontWeight: '500', marginBottom: 4 }}>
+                        {new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        {isPast && " (Passed)"}
+                    </ThemedText>
+                    <View style={[styles.miniBadge, { backgroundColor: isPast ? muted + '20' : bg }]}>
+                        <Ionicons name={isPast ? "time" : "ticket"} size={10} color={isPast ? muted : accent} />
+                        <ThemedText style={{ color: isPast ? muted : text, fontSize: 10, fontWeight: '600' }}>
+                            {isPast ? "Past Event" : "Event"}
+                        </ThemedText>
+                    </View>
                 </View>
-            </View>
-            <View style={{ justifyContent: 'center', paddingRight: 10 }}>
-                <Ionicons name="chevron-forward" size={16} color={muted} />
-            </View>
-        </TouchableOpacity>
-    );
+                <View style={{ justifyContent: 'center', paddingRight: 10 }}>
+                    <Ionicons name="chevron-forward" size={16} color={muted} />
+                </View>
+            </TouchableOpacity>
+        );
+    };
 
     const renderUserItem = (user: any) => (
         <TouchableOpacity

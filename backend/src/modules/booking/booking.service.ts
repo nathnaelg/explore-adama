@@ -25,7 +25,12 @@ export class BookingService {
       throw new AppError("Event not found", 404);
     }
 
-    if (new Date(event.date) < new Date()) {
+    // Compare event date to start of today (not current time)
+    const eventDate = new Date(event.date);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    if (eventDate < startOfToday) {
       throw new AppError("Cannot book past events", 400);
     }
     const booking = await prisma.booking.create({
