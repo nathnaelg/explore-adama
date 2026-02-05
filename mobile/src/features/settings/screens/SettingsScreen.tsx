@@ -6,16 +6,18 @@ import { SettingsSkeleton } from '@/src/features/settings/components/SettingsSke
 import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ExpoLocation from 'expo-location';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+    Alert,
     Image,
     ScrollView,
     StyleSheet,
     Switch,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -74,6 +76,27 @@ export default function SettingsScreen() {
             },
         ];
 
+    // Check location service status on mount
+    useEffect(() => {
+        checkLocationServiceStatus();
+    }, []);
+
+    const checkLocationServiceStatus = async () => {
+        try {
+            const { status } = await ExpoLocation.getForegroundPermissionsAsync();
+            const isLocationEnabled = await ExpoLocation.hasServicesEnabledAsync();
+
+            // If location is disabled or permission not granted, turn off nearby attractions
+            if (!isLocationEnabled || status !== 'granted') {
+                if (notifications.nearbyAttractions) {
+                    setNotifications(prev => ({ ...prev, nearbyAttractions: false }));
+                }
+            }
+        } catch (error) {
+            console.error('Error checking location status:', error);
+        }
+    };
+
     const handleResetOnboarding = async () => {
         try {
             await AsyncStorage.removeItem('@adama_onboarding_seen');
@@ -82,6 +105,50 @@ export default function SettingsScreen() {
         } catch (error) {
             console.error('[Settings] Error resetting onboarding:', error);
             alert('Failed to reset onboarding');
+        }
+    };
+
+    const handleNearbyAttractionsToggle = async (value: boolean) => {
+        if (value) {
+            // First check if location services are enabled on the device
+            const isLocationEnabled = await ExpoLocation.hasServicesEnabledAsync();
+
+            if (!isLocationEnabled) {
+                // Location services are turned off on the device
+                Alert.alert(
+                    t('settings.locationDisabled', { defaultValue: 'Location Services Disabled' }),
+                    t('settings.locationDisabledDesc', { defaultValue: 'Please enable location services in your device settings to use Nearby Attractions.' }),
+                    [
+                        { text: t('common.ok', { defaultValue: 'OK' }), style: 'cancel' }
+                    ]
+                );
+                return; // Don't enable the toggle
+            }
+
+            // Location services are enabled, now request permission
+            const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
+
+            if (status === 'granted') {
+                // Permission granted, enable the feature
+                setNotifications({ ...notifications, nearbyAttractions: true });
+                Alert.alert(
+                    t('settings.locationEnabled', { defaultValue: 'Location Enabled' }),
+                    t('settings.locationEnabledDesc', { defaultValue: 'You will now receive notifications about nearby attractions.' })
+                );
+            } else {
+                // Permission denied
+                Alert.alert(
+                    t('settings.locationRequired', { defaultValue: 'Location Required' }),
+                    t('settings.locationRequiredDesc', { defaultValue: 'Please enable location permissions in your device settings to use this feature.' }),
+                    [
+                        { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
+                        { text: t('settings.openSettings', { defaultValue: 'Open Settings' }), onPress: () => ExpoLocation.requestForegroundPermissionsAsync() }
+                    ]
+                );
+            }
+        } else {
+            // User is disabling - just turn it off
+            setNotifications({ ...notifications, nearbyAttractions: false });
         }
     };
 
@@ -216,9 +283,7 @@ export default function SettingsScreen() {
                         </ThemedText>
                         <Switch
                             value={notifications.nearbyAttractions}
-                            onValueChange={(value) =>
-                                setNotifications({ ...notifications, nearbyAttractions: value })
-                            }
+                            onValueChange={handleNearbyAttractionsToggle}
                             trackColor={{ false: muted + '40', true: primary }}
                             thumbColor="#fff"
                         />
