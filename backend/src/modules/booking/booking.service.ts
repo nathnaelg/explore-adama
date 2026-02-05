@@ -4,6 +4,8 @@ import crypto from "crypto";
 import { prisma } from "../../config/db.ts";
 import { NotificationService } from "../notifications/notification.service.ts";
 
+import { AppError } from "../../middleware/error-handler.ts";
+
 export class BookingService {
   static async createBooking(data: {
     userId: string;
@@ -14,6 +16,18 @@ export class BookingService {
     fees: number;
     total: number;
   }) {
+    // Validate event
+    const event = await prisma.event.findUnique({
+      where: { id: data.eventId },
+    });
+
+    if (!event) {
+      throw new AppError("Event not found", 404);
+    }
+
+    if (new Date(event.date) < new Date()) {
+      throw new AppError("Cannot book past events", 400);
+    }
     const booking = await prisma.booking.create({
       data: {
         userId: data.userId,
