@@ -18,6 +18,7 @@ import ticketRoutes from "./ticket.routes.ts";
 import userRoutes from "./user.routes.ts";
 
 
+import searchRoutes from "../modules/search/search.routes.ts";
 import notificationRoutes from "./notification.routes.ts";
 
 const router = Router();
@@ -42,5 +43,6 @@ router.use("/interactions", interactionRoutes);
 router.use("/ml", MlRoutes);
 router.use("/chat", chatRoutes);
 router.use("/blog", blogRoutes);
+router.use("/search", searchRoutes);
 
 export default router;
