@@ -170,7 +170,7 @@ export default function HelpCenterScreen() {
                 <View style={styles.footer}>
                     <TouchableOpacity
                         style={styles.legalRow}
-                        onPress={() => router.push('/privacy-policy')}
+                        onPress={() => router.push('/(public)/legal/privacy-policy')}
                     >
                         <ThemedText style={{ color: textColor }}>{t('public.privacyPolicy')}</ThemedText>
                         <Ionicons name="chevron-forward" size={16} color={mutedColor} />
@@ -178,7 +178,7 @@ export default function HelpCenterScreen() {
 
                     <TouchableOpacity
                         style={styles.legalRow}
-                        onPress={() => router.push('/terms')}
+                        onPress={() => router.push('/(public)/legal/terms')}
                     >
                         <ThemedText style={{ color: textColor }}>{t('public.termsOfService')}</ThemedText>
                         <Ionicons name="chevron-forward" size={16} color={mutedColor} />
@@ -193,7 +193,7 @@ export default function HelpCenterScreen() {
                             Adama Smart Tourism v1.0.2
                         </ThemedText>
                         <ThemedText style={[styles.copyrightText, { color: mutedColor }]}>
-                            © 2023 Adama City Administration
+                            © 2026 Adama City Administration
                         </ThemedText>
                     </View>
                 </View>
