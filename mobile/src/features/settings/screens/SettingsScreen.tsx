@@ -1,3 +1,4 @@
+import { LocationPermissionModal } from '@/src/components/common/LocationPermissionModal';
 import { ThemedText } from '@/src/components/themed/ThemedText';
 import { ThemedView } from '@/src/components/themed/ThemedView';
 import { useAuth } from '@/src/features/auth/contexts/AuthContext';
@@ -11,7 +12,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Alert,
+    // Alert, (removed)
     Image,
     ScrollView,
     StyleSheet,
@@ -42,6 +43,11 @@ export default function SettingsScreen() {
         promotions: true,
         nearbyAttractions: false,
     });
+
+    const [locationModal, setLocationModal] = useState<{
+        visible: boolean;
+        type: 'disabled' | 'denied';
+    }>({ visible: false, type: 'disabled' });
 
     const settingsItems: Array<{
         id: number;
@@ -115,13 +121,7 @@ export default function SettingsScreen() {
 
             if (!isLocationEnabled) {
                 // Location services are turned off on the device
-                Alert.alert(
-                    t('settings.locationDisabled', { defaultValue: 'Location Services Disabled' }),
-                    t('settings.locationDisabledDesc', { defaultValue: 'Please enable location services in your device settings to use Nearby Attractions.' }),
-                    [
-                        { text: t('common.ok', { defaultValue: 'OK' }), style: 'cancel' }
-                    ]
-                );
+                setLocationModal({ visible: true, type: 'disabled' });
                 return; // Don't enable the toggle
             }
 
@@ -131,20 +131,10 @@ export default function SettingsScreen() {
             if (status === 'granted') {
                 // Permission granted, enable the feature
                 setNotifications({ ...notifications, nearbyAttractions: true });
-                Alert.alert(
-                    t('settings.locationEnabled', { defaultValue: 'Location Enabled' }),
-                    t('settings.locationEnabledDesc', { defaultValue: 'You will now receive notifications about nearby attractions.' })
-                );
+                // Optional: Show success toast/modal if needed, but simple toggle switch is usually enough feedback
             } else {
                 // Permission denied
-                Alert.alert(
-                    t('settings.locationRequired', { defaultValue: 'Location Required' }),
-                    t('settings.locationRequiredDesc', { defaultValue: 'Please enable location permissions in your device settings to use this feature.' }),
-                    [
-                        { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
-                        { text: t('settings.openSettings', { defaultValue: 'Open Settings' }), onPress: () => ExpoLocation.requestForegroundPermissionsAsync() }
-                    ]
-                );
+                setLocationModal({ visible: true, type: 'denied' });
             }
         } else {
             // User is disabling - just turn it off
@@ -352,6 +342,23 @@ export default function SettingsScreen() {
                     </ThemedText>
                 </View>
             </ScrollView>
+
+            <LocationPermissionModal
+                visible={locationModal.visible}
+                type={locationModal.type}
+                onClose={() => setLocationModal(prev => ({ ...prev, visible: false }))}
+                onSettings={() => {
+                    setLocationModal(prev => ({ ...prev, visible: false }));
+                    if (locationModal.type === 'denied') {
+                        ExpoLocation.requestForegroundPermissionsAsync();
+                    } else {
+                        // For disabled location services, we can try to open settings or just close
+                        // React Native doesn't have a direct "Open Location Settings" without linking
+                        // But on Expo we can try Linking to settings if needed, or just let user do it manually
+                        // For now, we'll try to re-request which might trigger system prompt or just close.
+                    }
+                }}
+            />
         </ThemedView>
     );
 }
