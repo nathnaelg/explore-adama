@@ -122,46 +122,54 @@ export default function HomeScreen() {
                     {categoriesLoading ? (
                         <ActivityIndicator size="small" color={primary} />
                     ) : (
-                        categories?.slice(0, 6).map((cat: any) => (
-                            <TouchableOpacity
-                                key={cat.id}
-                                style={[styles.category, { backgroundColor: card }]}
-                                onPress={() => router.push({ pathname: '/search', params: { categoryId: cat.id } })}
-                            >
-                                <Ionicons
-                                    name={(cat.icon || CATEGORY_ICONS[cat.key] || 'grid-outline') as any}
-                                    size={22}
-                                    color={primary}
-                                />
-                                <Text style={{ color: text, fontSize: 12 }} numberOfLines={1}>
-                                    {(() => {
-                                        const KEY_MAP: Record<string, string> = {
-                                            'hotel': 'hotels',
-                                            'hotels': 'hotels',
-                                            'restaurant': 'restaurants',
-                                            'restaurants': 'restaurants',
-                                            'event': 'events',
-                                            'events': 'events',
-                                            'attraction': 'attractions',
-                                            'attractions': 'attractions',
-                                            'historical site': 'historicalsites',
-                                            'historical sites': 'historicalsites',
-                                            'nature & wildlife': 'natureandwildlife',
-                                            'nature and wildlife': 'natureandwildlife',
-                                            'relaxation & spa': 'relaxationandspa',
-                                            'relaxation and spa': 'relaxationandspa',
-                                            'shopping': 'shopping',
-                                            'nightlife': 'nightlife'
-                                        };
-                                        let rawKey = ((cat as any).key || (cat as any).name || '').toLowerCase().trim();
-                                        if (KEY_MAP[rawKey]) rawKey = KEY_MAP[rawKey];
-                                        else rawKey = rawKey.replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+                        categories?.slice(0, 6).map((cat: any) => {
+                            const KEY_MAP: Record<string, string> = {
+                                'hotel': 'hotels',
+                                'hotels': 'hotels',
+                                'restaurant': 'restaurants',
+                                'restaurants': 'restaurants',
+                                'event': 'events',
+                                'events': 'events',
+                                'attraction': 'attractions',
+                                'attractions': 'attractions',
+                                'historical site': 'historicalsites',
+                                'historical sites': 'historicalsites',
+                                'nature & wildlife': 'natureandwildlife',
+                                'nature and wildlife': 'natureandwildlife',
+                                'relaxation & spa': 'relaxationandspa',
+                                'relaxation and spa': 'relaxationandspa',
+                                'shopping': 'shopping',
+                                'nightlife': 'nightlife'
+                            };
+                            let rawKey = ((cat as any).key || (cat as any).name || '').toLowerCase().trim();
+                            if (KEY_MAP[rawKey]) rawKey = KEY_MAP[rawKey];
+                            else rawKey = rawKey.replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
 
-                                        return t(`explore.categories.${rawKey}`, { defaultValue: cat.name });
-                                    })()}
-                                </Text>
-                            </TouchableOpacity>
-                        ))
+                            const title = t(`explore.categories.${rawKey}`, { defaultValue: cat.name });
+
+                            return (
+                                <TouchableOpacity
+                                    key={cat.id}
+                                    style={[styles.category, { backgroundColor: card }]}
+                                    onPress={() => router.push({
+                                        pathname: '/places',
+                                        params: {
+                                            categoryId: cat.id,
+                                            title: title
+                                        }
+                                    })}
+                                >
+                                    <Ionicons
+                                        name={(cat.icon || CATEGORY_ICONS[cat.key] || 'grid-outline') as any}
+                                        size={22}
+                                        color={primary}
+                                    />
+                                    <Text style={{ color: text, fontSize: 12 }} numberOfLines={1}>
+                                        {title}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })
                     )}
                 </View>
 
@@ -250,8 +258,8 @@ export default function HomeScreen() {
 
 
                 <View style={{ height: 120 }} />
-            </ScrollView>
-        </View>
+            </ScrollView >
+        </View >
     );
 }
 
