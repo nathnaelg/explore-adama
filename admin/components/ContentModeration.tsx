@@ -1,19 +1,19 @@
 "use client";
 
 import {
-  AlertCircle,
-  Check,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  FileText,
-  Loader2,
-  MessageSquare,
-  ShieldCheck,
-  Trash2,
-  X,
-  XCircle,
+    AlertCircle,
+    Check,
+    CheckCircle,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    FileText,
+    Loader2,
+    MessageSquare,
+    ShieldCheck,
+    Trash2,
+    X,
+    XCircle,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
@@ -21,12 +21,12 @@ import { cn } from "../utils";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Select } from "./ui/select";
@@ -264,7 +264,7 @@ const ContentModeration: React.FC<ContentModerationProps> = ({
         else await api.delete(`/reviews/${itemToDeleteId}`);
       }
       setItems((prev) => prev.filter((item) => item.id !== itemToDeleteId));
-      showFeedback("delete", "Item permanently removed.");
+      showFeedback("delete", "Item deleted successfully");
     } catch (e) {
       console.error("Delete failed", e);
       showFeedback("error", "Failed to delete item.");

@@ -268,7 +268,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
         await api.delete(`/users/${selectedUserDetail.id}`);
         setUsers((prev) => prev.filter((u) => u.id !== selectedUserDetail.id));
         setSelectedUserId(null);
-        showFeedback("delete", "User account permanently removed.");
+        showFeedback("delete", "User deleted successfully");
       } catch (error) {
         showFeedback("error", "Failed to delete account.");
       }
@@ -298,7 +298,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
           editPayload.role = formData.role;
         }
         await api.users.update(editingId, editPayload);
-        showFeedback("success", "Account updated successful.");
+        showFeedback("success", "User updated successfully");
       } else {
         // ADD USER: email, password, name required. role only if super admin
         const payload = {
@@ -308,7 +308,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
           role: isSuperAdmin ? formData.role : "TOURIST",
         };
         await api.users.create(payload);
-        showFeedback("success", "New User registered.");
+        showFeedback("success", "User added successfully");
       }
 
       await fetchUsers();

@@ -5,6 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: "Explore Adama",
   slug: "Explore-Adama",
   version: "1.0.1",
+  owner: "ami1321",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: "smarttourism",
@@ -83,7 +84,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     router: {},
     eas: {
-      projectId: "2607ab89-bb5c-4a96-bb7d-6344e2905fe2",
+      projectId: "",
     },
     EXPO_PUBLIC_GOOGLE_MAPS_API_KEY:
       process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,

@@ -1,29 +1,31 @@
 "use client";
 
+import { GoogleGenAI } from "@google/genai";
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import {
-    AlertCircle,
-    ArrowDown,
-    ArrowUp,
-    Calendar,
-    CheckCircle,
-    ChevronLeft,
-    ChevronRight,
-    Crosshair,
-    Eye,
-    Hash,
-    Image as ImageIcon,
-    LayoutGrid,
-    Loader2,
-    Locate,
-    Map as MapIcon,
-    MapPin,
-    Pencil,
-    Plus,
-    Star,
-    Ticket,
-    Trash2,
-    X
+  AlertCircle,
+  ArrowDown,
+  ArrowUp,
+  Calendar,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Crosshair,
+  Eye,
+  Hash,
+  Image as ImageIcon,
+  LayoutGrid,
+  Loader2,
+  Locate,
+  Map as MapIcon,
+  MapPin,
+  Pencil,
+  Plus,
+  Sparkles,
+  Star,
+  Ticket,
+  Trash2,
+  X,
 } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../services/api";
@@ -33,12 +35,12 @@ import { getMapOptions, mapConfig } from "../utils/map.config";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -59,7 +61,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"list" | "map">("list");
   const [feedback, setFeedback] = useState<{
-    type: "success" | "error" | "delete";
+    type: "success" | "error" | "delete" | "info";
     message: string;
   } | null>(null);
 
@@ -78,7 +80,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const showFeedback = (
-    type: "success" | "error" | "delete",
+    type: "success" | "error" | "delete" | "info",
     message: string,
   ) => {
     setFeedback({ type, message });
@@ -108,6 +110,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [placeToDelete, setPlaceToDelete] = useState<Place | null>(null);
@@ -289,6 +292,40 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
     }
   };
 
+  const handleGenerateDescription = async () => {
+    if (!formData.name) {
+      showFeedback(
+        "info",
+        "Please provide a name to generate relevant content.",
+      );
+      return;
+    }
+    setIsGeneratingAI(true);
+    try {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) throw new Error("VITE_GEMINI_API_KEY is not set");
+      const ai = new GoogleGenAI({ apiKey });
+      const categoryName =
+        categories.find((c: any) => c.id === formData.categoryId)?.name ||
+        "General";
+      const prompt = `Write a short, compelling description for a place called "${formData.name}" located in Adama, Ethiopia. Category: ${categoryName}. Keep it under 50 words.`;
+      const response = await ai.models.generateContent({
+        model: "gemini-flash-latest",
+        contents: prompt,
+      });
+      const text = response.text;
+      if (text) {
+        setFormData((prev) => ({ ...prev, description: text }));
+        showFeedback("success", "Description generated successfully!");
+      }
+    } catch (error) {
+      console.error("AI Generation failed", error);
+      showFeedback("error", "Failed to generate AI description.");
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -341,7 +378,10 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
 
       await fetchData();
       setIsDialogOpen(false);
-      showFeedback("success", "Location data synchronized successfully.");
+      showFeedback(
+        "success",
+        `${editingId ? "Place updated" : "Place added"} successfully`,
+      );
     } catch (error: any) {
       console.error("Failed to save place", error);
       showFeedback(
@@ -362,7 +402,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
         if (placeToDelete.id === selectedPlaceId) {
           setSelectedPlaceId(null);
         }
-        showFeedback("delete", "Place removed successfully.");
+        showFeedback("delete", "Place deleted successfully");
       } catch (error) {
         console.error("Failed to delete place", error);
         showFeedback("error", "Deletion failed.");
@@ -647,18 +687,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
                         <MapPin size={32} />
                       </div>
                     )}
-                    <div className="absolute top-3 right-3">
-                      <span
-                        className={cn(
-                          "px-2 py-1 rounded-lg text-[10px] font-bold uppercase backdrop-blur-md shadow-sm",
-                          place.status === "OPEN"
-                            ? "bg-green-500/90 text-white"
-                            : "bg-red-500/90 text-white",
-                        )}
-                      >
-                        {place.status}
-                      </span>
-                    </div>
+
                     <div className="absolute bottom-3 left-3">
                       <span
                         className={cn(
@@ -971,13 +1000,15 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
               <div className="space-y-2">
                 <Label>Cover Image</Label>
                 <div className="flex flex-col gap-3">
-                  <label className="cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-200 bg-white hover:bg-gray-100 hover:text-gray-900 h-10 w-full px-3">
-                    <ImageIcon size={18} className="mr-2" />
-                    {fileToUpload
-                      ? fileToUpload.name
-                      : previewImage && editingId
-                        ? "Change Image"
-                        : "Upload Image"}
+                  <label className="cursor-pointer flex items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-zinc-700 h-10 w-full px-3 text-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors bg-white dark:bg-zinc-900">
+                    <ImageIcon size={18} className="mr-2 text-gray-400" />
+                    <span className="text-gray-500">
+                      {fileToUpload
+                        ? fileToUpload.name
+                        : previewImage && editingId
+                          ? "Change Image"
+                          : "Upload Image"}
+                    </span>
                     <input
                       type="file"
                       className="hidden"
@@ -998,7 +1029,24 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
               </div>
 
               <div className="space-y-2">
-                <Label>Description</Label>
+                <div className="flex justify-between items-center">
+                  <Label>Description</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleGenerateDescription}
+                    disabled={isGeneratingAI}
+                    className="h-6 text-xs text-purple-600 hover:text-purple-700"
+                  >
+                    {isGeneratingAI ? (
+                      <Loader2 size={12} className="animate-spin mr-1" />
+                    ) : (
+                      <Sparkles size={12} className="mr-1" />
+                    )}{" "}
+                    AI Gen
+                  </Button>
+                </div>
                 <textarea
                   className="w-full h-24 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-zinc-800 dark:bg-zinc-950 resize-none"
                   value={formData.description}
@@ -1247,20 +1295,24 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
       {feedback && (
         <div
           className={cn(
-            "fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-5 fade-in z-[9999] text-white",
+            "fixed bottom-6 right-6 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in z-[9999] text-white border backdrop-blur-md",
             feedback.type === "error"
-              ? "bg-red-600"
+              ? "bg-red-500/90 border-red-400/50"
               : feedback.type === "delete"
-                ? "bg-red-500"
-                : "bg-green-600",
+                ? "bg-orange-500/90 border-orange-400/50"
+                : feedback.type === "info"
+                  ? "bg-blue-500/90 border-blue-400/50"
+                  : "bg-green-500/90 border-green-400/50",
           )}
         >
           {feedback.type === "error" ? (
             <AlertCircle size={20} />
+          ) : feedback.type === "info" ? (
+            <AlertCircle size={20} className="rotate-180" />
           ) : (
             <CheckCircle size={20} />
           )}
-          <span className="font-medium">{feedback.message}</span>
+          <span className="font-bold tracking-tight">{feedback.message}</span>
         </div>
       )}
     </div>

@@ -1,19 +1,19 @@
 "use client";
 
 import {
-  AlertCircle,
-  ArrowDown,
-  ArrowUp,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  Copy,
-  Edit,
-  Layers,
-  Loader2,
-  Plus,
-  Tag,
-  Trash2,
+    AlertCircle,
+    ArrowDown,
+    ArrowUp,
+    CheckCircle,
+    ChevronLeft,
+    ChevronRight,
+    Copy,
+    Edit,
+    Layers,
+    Loader2,
+    Plus,
+    Tag,
+    Trash2,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
@@ -21,19 +21,19 @@ import { Category } from "../types";
 import { cn } from "../utils";
 import { Button } from "./ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "./ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -164,10 +164,10 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     try {
       if (editingId) {
         await api.categories.update(editingId, formData);
-        showFeedback("success", "Category updated.");
+        showFeedback("success", "Category updated successfully");
       } else {
         await api.categories.create(formData);
-        showFeedback("success", "New category added.");
+        showFeedback("success", "Category added successfully");
       }
       await fetchCategories();
       setIsDialogOpen(false);
@@ -187,7 +187,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     try {
       await api.categories.delete(categoryToDelete.id);
       setCategories((prev) => prev.filter((c) => c.id !== categoryToDelete.id));
-      showFeedback("delete", "Category removed.");
+      showFeedback("delete", "Category deleted successfully");
     } catch (error) {
       console.error("Failed to delete category", error);
       showFeedback("error", "Failed to delete.");

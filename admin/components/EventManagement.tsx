@@ -63,7 +63,7 @@ const EventManagement: React.FC<EventManagementProps> = ({
   const [placesList, setPlacesList] = useState<any[]>([]);
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [feedback, setFeedback] = useState<{
-    type: "success" | "error" | "delete";
+    type: "success" | "error" | "delete" | "info";
     message: string;
   } | null>(null);
 
@@ -129,7 +129,7 @@ const EventManagement: React.FC<EventManagementProps> = ({
   });
 
   const showFeedback = (
-    type: "success" | "error" | "delete",
+    type: "success" | "error" | "delete" | "info",
     message: string,
   ) => {
     setFeedback({ type, message });
@@ -183,9 +183,17 @@ const EventManagement: React.FC<EventManagementProps> = ({
             title: e.title,
             description: e.description,
             category: e.category?.name || "General",
-            status:
-              e.status ||
-              (new Date(e.date) < new Date() ? "COMPLETED" : "UPCOMING"),
+            status: (() => {
+              if (
+                e.status &&
+                e.status !== "UPCOMING" &&
+                e.status !== "COMPLETED"
+              )
+                return e.status;
+              const now = new Date();
+              if (now >= startDateObj && now <= endDateObj) return "ONGOING";
+              return now > endDateObj ? "COMPLETED" : "UPCOMING";
+            })(),
             date: startDateObj.toISOString(),
             endDate: endDateObj.toISOString(),
             time: startDateObj.toTimeString().substring(0, 5),
@@ -306,22 +314,34 @@ const EventManagement: React.FC<EventManagementProps> = ({
   };
 
   const handleGenerateDescription = async () => {
-    if (!formData.title) return;
+    if (!formData.title) {
+      showFeedback(
+        "info",
+        "Please provide a title to generate relevant content.",
+      );
+      return;
+    }
     setIsGeneratingAI(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) throw new Error("VITE_GEMINI_API_KEY is not set");
+      const ai = new GoogleGenAI({ apiKey });
       const categoryName =
         categoriesList.find((c) => c.id === formData.categoryId)?.name ||
         "General";
       const prompt = `Write a compelling description for an event: "${formData.title}" (${categoryName}). Approx 50 words.`;
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-flash-latest",
         contents: prompt,
       });
       const text = response.text;
-      if (text) setFormData((prev) => ({ ...prev, description: text }));
+      if (text) {
+        setFormData((prev) => ({ ...prev, description: text }));
+        showFeedback("success", "Description generated successfully!");
+      }
     } catch (error) {
       console.error("AI Generation failed", error);
+      showFeedback("error", "Failed to generate AI description.");
     } finally {
       setIsGeneratingAI(false);
     }
@@ -388,7 +408,10 @@ const EventManagement: React.FC<EventManagementProps> = ({
       }
       await fetchData();
       setIsDialogOpen(false);
-      showFeedback("success", "Event logistics updated.");
+      showFeedback(
+        "success",
+        `${editingId ? "Event updated" : "Event added"} successfully`,
+      );
     } catch (error: any) {
       showFeedback(
         "error",
@@ -405,7 +428,7 @@ const EventManagement: React.FC<EventManagementProps> = ({
       try {
         await api.delete(`/events/${eventToDelete.id}`);
         setEvents(events.filter((e) => e.id !== eventToDelete.id));
-        showFeedback("delete", "Event deleted.");
+        showFeedback("delete", "Event deleted successfully");
         setIsDeleteDialogOpen(false);
         setEventToDelete(null);
       } catch (error) {
@@ -1229,20 +1252,24 @@ const EventManagement: React.FC<EventManagementProps> = ({
       {feedback && (
         <div
           className={cn(
-            "fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-5 fade-in z-[9999] text-white",
+            "fixed bottom-6 right-6 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in z-[9999] text-white border backdrop-blur-md",
             feedback.type === "error"
-              ? "bg-red-600"
+              ? "bg-red-500/90 border-red-400/50"
               : feedback.type === "delete"
-                ? "bg-red-500"
-                : "bg-green-600",
+                ? "bg-orange-500/90 border-orange-400/50"
+                : feedback.type === "info"
+                  ? "bg-blue-500/90 border-blue-400/50"
+                  : "bg-green-500/90 border-green-400/50",
           )}
         >
           {feedback.type === "error" ? (
             <AlertCircle size={20} />
+          ) : feedback.type === "info" ? (
+            <AlertCircle size={20} className="rotate-180" />
           ) : (
             <CheckCircle size={20} />
           )}
-          <span className="font-medium">{feedback.message}</span>
+          <span className="font-bold tracking-tight">{feedback.message}</span>
         </div>
       )}
     </div>

@@ -344,7 +344,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
           showFeedback("delete", "Post deleted successfully.");
         } else {
           await api.delete(`/blog/comments/${itemToDelete.id}`);
-          showFeedback("delete", "Comment removed successfully.");
+          showFeedback("delete", "Comment deleted successfully");
         }
       } catch (error) {
         handleError(error, "delete item");
