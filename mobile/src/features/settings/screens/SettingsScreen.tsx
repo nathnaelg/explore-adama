@@ -5,6 +5,7 @@ import { useAuth } from '@/src/features/auth/contexts/AuthContext';
 import { useProfile } from '@/src/features/profile/hooks/useProfile';
 import { SettingsSkeleton } from '@/src/features/settings/components/SettingsSkeleton';
 import { useThemeColor } from '@/src/hooks/use-theme-color';
+import { useTheme } from '@/src/providers/ThemeProvider';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ExpoLocation from 'expo-location';
@@ -14,11 +15,13 @@ import { useTranslation } from 'react-i18next';
 import {
     // Alert, (removed)
     Image,
+    Modal,
     ScrollView,
     StyleSheet,
     Switch,
     TouchableOpacity,
-    View
+    TouchableWithoutFeedback,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -28,7 +31,9 @@ export default function SettingsScreen() {
     const { t, i18n } = useTranslation();
     const { user: authUser, logout, isAuthenticated } = useAuth();
     const { data: user, isLoading } = useProfile(authUser?.id, isAuthenticated);
+
     const insets = useSafeAreaInsets();
+    const { themePreference, setThemePreference } = useTheme();
 
     const primary = useThemeColor({}, 'primary');
     const text = useThemeColor({}, 'text');
@@ -48,6 +53,8 @@ export default function SettingsScreen() {
         visible: boolean;
         type: 'disabled' | 'denied';
     }>({ visible: false, type: 'disabled' });
+
+    const [themeModalVisible, setThemeModalVisible] = useState(false);
 
     const settingsItems: Array<{
         id: number;
@@ -219,6 +226,25 @@ export default function SettingsScreen() {
                         </View>
                     </TouchableOpacity>
 
+
+
+                    {/* Theme */}
+                    <TouchableOpacity
+                        style={styles.settingItem}
+                        onPress={() => setThemeModalVisible(true)}
+                    >
+                        <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
+                            {t('settings.theme')}
+                        </ThemedText>
+                        <View style={styles.settingValue}>
+                            <ThemedText type="default" style={[styles.settingValueText, { color: muted }]}>
+                                {themePreference === 'system' ? 'System' :
+                                    themePreference === 'dark' ? 'Dark' : 'Light'}
+                            </ThemedText>
+                            <Ionicons name="chevron-forward" size={20} color={muted} />
+                        </View>
+                    </TouchableOpacity>
+
                     {/* Country */}
                     <TouchableOpacity style={styles.settingItem}>
                         <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
@@ -341,7 +367,7 @@ export default function SettingsScreen() {
                         Adama Smart Tourism v 1.0.1
                     </ThemedText>
                 </View>
-            </ScrollView>
+            </ScrollView >
 
             <LocationPermissionModal
                 visible={locationModal.visible}
@@ -359,7 +385,49 @@ export default function SettingsScreen() {
                     }
                 }}
             />
-        </ThemedView>
+
+            <Modal
+                transparent
+                visible={themeModalVisible}
+                animationType="fade"
+                onRequestClose={() => setThemeModalVisible(false)}
+            >
+                <TouchableWithoutFeedback onPress={() => setThemeModalVisible(false)}>
+                    <View style={styles.modalOverlay}>
+                        <TouchableWithoutFeedback>
+                            <View style={[styles.modalContent, { backgroundColor: card }]}>
+                                <ThemedText type="subtitle" style={[styles.modalTitle, { color: text }]}>
+                                    {t('settings.theme')}
+                                </ThemedText>
+
+                                {(['system', 'light', 'dark'] as const).map((mode) => (
+                                    <TouchableOpacity
+                                        key={mode}
+                                        style={[styles.modalOption, { borderBottomColor: muted + '20' }]}
+                                        onPress={() => {
+                                            setThemePreference(mode);
+                                            setThemeModalVisible(false);
+                                        }}
+                                    >
+                                        <ThemedText style={[
+                                            styles.modalOptionText,
+                                            { color: text },
+                                            themePreference === mode && { color: primary, fontWeight: 'bold' }
+                                        ]}>
+                                            {mode === 'system' ? 'System Default' :
+                                                mode.charAt(0).toUpperCase() + mode.slice(1)}
+                                        </ThemedText>
+                                        {themePreference === mode && (
+                                            <Ionicons name="checkmark" size={20} color={primary} />
+                                        )}
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </TouchableWithoutFeedback>
+                    </View>
+                </TouchableWithoutFeedback>
+            </Modal>
+        </ThemedView >
     );
 }
 
@@ -461,5 +529,31 @@ const styles = StyleSheet.create({
     },
     copyrightText: {
         fontSize: 14,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        borderRadius: 16,
+        padding: 24,
+        maxHeight: '80%',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 16,
+    },
+    modalOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+    },
+    modalOptionText: {
+        fontSize: 16,
     },
 });

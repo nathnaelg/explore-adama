@@ -138,7 +138,8 @@
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "aiTransparency": "AI Transparency",
-    "appVersion": "App Version"
+    "appVersion": "App Version",
+    "theme": "Theme"
   },
   "placeDetails": {
     "placeNotFound": "Place not found",
