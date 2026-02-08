@@ -86,8 +86,8 @@
     "views": "{{count}} views",
     "new": "New",
     "categories": {
-      "historicalsites": "Historical Sites",
-      "natureandwildlife": "Nature and Wildlife",
+      "historical": "Historical Sites",
+      "nature": "Nature and Wildlife",
       "relaxationandspa": "Relaxation and Spa",
       "attractions": "Attractions",
       "hotels": "Hotels",
@@ -101,7 +101,7 @@
       "coffeehouse": "Coffee house",
       "education": "Education",
       "festival": "Festival",
-      "governmentalservice": "Governmental Service",
+      "governmental": "Governmental Service",
       "health": "Health",
       "hospital": "Hospital"
     }

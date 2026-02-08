@@ -87,8 +87,8 @@
     "views": "{{count}} እይታዎች",
     "new": "አዲስ",
     "categories": {
-      "historicalsites": "ታሪካዊ ቦታዎች",
-      "natureandwildlife": "ተፈጥሮ እና የዱር እንስሳት",
+      "historical": "ታሪካዊ ቦታዎች",
+      "nature": "ተፈጥሮ እና የዱር እንስሳት",
       "relaxationandspa": "መዝናኛ እና እስፓ",
       "attractions": "የጉብኝት ቦታዎች",
       "hotels": "ሆቴሎች",
@@ -102,7 +102,7 @@
       "coffeehouse": "የቡና ቤት",
       "education": "ትምህርት",
       "festival": "በዓል",
-      "governmentalservice": "የመንግስት አገልግሎት",
+      "governmental": "የመንግስት አገልግሎት",
       "health": "ጤና",
       "hospital": "ሆስፒታል"
     }
