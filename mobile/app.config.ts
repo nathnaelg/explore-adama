@@ -84,7 +84,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     router: {},
     eas: {
-      projectId: "",
+      projectId: "2607ab89-bb5c-4a96-bb7d-6344e2905fe2",
     },
     EXPO_PUBLIC_GOOGLE_MAPS_API_KEY:
       process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,

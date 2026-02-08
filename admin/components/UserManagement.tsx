@@ -1,13 +1,11 @@
 "use client";
 
 import {
-    AlertCircle,
     ArrowDown,
     ArrowLeft,
     ArrowUp,
     Ban,
     Calendar,
-    CheckCircle,
     ChevronLeft,
     ChevronRight,
     ExternalLink,
@@ -23,13 +21,16 @@ import {
     Trash2,
     UserCheck,
     User as UserIcon,
-    UserX,
+    UserX
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { BlogPost, Booking, User } from "../types";
 import { cn } from "../utils";
 import ErrorAlert from "./ErrorAlert";
+import { ActionButton } from "./shared/ActionButton";
+import { DeleteConfirmDialog } from "./shared/DeleteConfirmDialog";
+import { FeedbackToast } from "./shared/FeedbackToast";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import {
@@ -58,6 +59,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [isBlocking, setIsBlocking] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{
     type: "success" | "error" | "delete";
@@ -264,15 +266,18 @@ const UserManagement: React.FC<UserManagementProps> = ({
         setIsDeleteDialogOpen(false);
         return;
       }
+      setIsDeleting(true);
       try {
         await api.delete(`/users/${selectedUserDetail.id}`);
         setUsers((prev) => prev.filter((u) => u.id !== selectedUserDetail.id));
         setSelectedUserId(null);
         showFeedback("delete", "User deleted successfully");
+        setIsDeleteDialogOpen(false);
       } catch (error) {
         showFeedback("error", "Failed to delete account.");
+      } finally {
+        setIsDeleting(false);
       }
-      setIsDeleteDialogOpen(false);
     }
   };
 
@@ -388,62 +393,44 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
             <div className="ml-0 md:ml-auto flex gap-2">
               {selectedUserDetail && (
-                <Button
+                <ActionButton
                   variant={
                     isUserBanned(selectedUserDetail) ? "default" : "destructive"
                   }
                   size="sm"
                   onClick={() => handleBlockToggle(selectedUserDetail)}
+                  loading={isBlocking}
                   disabled={
-                    detailLoading ||
-                    isBlocking ||
-                    isProtectedAdmin(selectedUserDetail)
+                    detailLoading || isProtectedAdmin(selectedUserDetail)
                   }
+                  icon={isUserBanned(selectedUserDetail) ? UserCheck : UserX}
+                  label={isUserBanned(selectedUserDetail) ? "Unban" : "Ban"}
                   className={cn(
-                    "shadow-sm transition-all",
+                    "shadow-sm transition-all min-w-[100px]",
                     isUserBanned(selectedUserDetail)
                       ? "bg-green-600 hover:bg-green-700"
                       : "bg-red-600 hover:bg-red-700",
-                    (detailLoading ||
-                      isBlocking ||
-                      isProtectedAdmin(selectedUserDetail)) &&
-                      "opacity-50 grayscale cursor-not-allowed",
                   )}
-                >
-                  {isBlocking ? (
-                    <>
-                      <Loader2 size={16} className="mr-2 animate-spin" />
-                      Wait...
-                    </>
-                  ) : isUserBanned(selectedUserDetail) ? (
-                    <>
-                      <UserCheck size={16} className="mr-2" />
-                      Unban
-                    </>
-                  ) : (
-                    <>
-                      <UserX size={16} className="mr-2" /> Ban
-                    </>
-                  )}
-                </Button>
+                />
               )}
               <Button
                 variant="outline"
                 size="sm"
+                className="rounded-xl"
                 onClick={() =>
                   selectedUserDetail && handleOpenEdit(selectedUserDetail)
                 }
               >
                 <Pencil size={16} className="mr-2" /> Edit
               </Button>
-              <Button
+              <ActionButton
                 variant="ghost"
                 size="sm"
-                className="text-red-500"
+                actionType="delete"
                 onClick={() => setIsDeleteDialogOpen(true)}
-              >
-                <Trash2 size={16} className="mr-2" /> Delete
-              </Button>
+                loading={isDeleting}
+                label="Delete"
+              />
             </div>
           </div>
 
@@ -1035,63 +1022,17 @@ const UserManagement: React.FC<UserManagementProps> = ({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent
-          className="sm:max-w-[400px]"
-          onClose={() => setIsDeleteDialogOpen(false)}
-        >
-          <DialogHeader>
-            <DialogTitle className="text-red-600 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" /> Delete User
-            </DialogTitle>
-            <DialogDescription>
-              Proceeding will permanently delete this user from the database.
-              Irreversible action.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteUser}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...
-                </>
-              ) : (
-                "Confirm Delete"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDeleteUser}
+        isDeleting={isDeleting}
+        itemType="User Account"
+        title="Delete User"
+        description="This action cannot be undone. This will permanently delete the user account and all associated data."
+      />
 
-      {feedback && (
-        <div
-          className={cn(
-            "fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-5 fade-in z-[9999] text-white",
-            feedback.type === "error"
-              ? "bg-red-600"
-              : feedback.type === "delete"
-                ? "bg-red-500"
-                : "bg-green-600",
-          )}
-        >
-          {feedback.type === "error" ? (
-            <AlertCircle size={20} />
-          ) : (
-            <CheckCircle size={20} />
-          )}
-          <span className="font-medium">{feedback.message}</span>
-        </div>
-      )}
+      <FeedbackToast feedback={feedback} />
     </>
   );
 };

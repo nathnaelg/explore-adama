@@ -1,0 +1,14 @@
+/* CSS hack to hide the Google Maps "Development Only" error popup */
+.gm-err-container {
+  display: none !important;
+}
+
+/* Hide the "Map data ©2026 Google" error message that sometimes appears as a secondary overlay */
+.gm-err-content {
+  display: none !important;
+}
+
+/* Ensure the map stays interactive even if an invisible overlay exists */
+.gm-style div[style*="z-index: 1000001"] {
+  display: none !important;
+}

@@ -1,24 +1,22 @@
 "use client";
 
 import {
-    AlertCircle,
     ArrowDown,
     ArrowUp,
-    CheckCircle,
-    ChevronLeft,
-    ChevronRight,
     Copy,
     Edit,
     Layers,
     Loader2,
     Plus,
     Tag,
-    Trash2,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { Category } from "../types";
-import { cn } from "../utils";
+import { ActionButton } from "./shared/ActionButton";
+import { DeleteConfirmDialog } from "./shared/DeleteConfirmDialog";
+import { FeedbackToast } from "./shared/FeedbackToast";
+import { Pagination } from "./shared/Pagination";
 import { Button } from "./ui/button";
 import {
     Card,
@@ -184,16 +182,19 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
 
   const handleDelete = async () => {
     if (!categoryToDelete) return;
+    setIsDeleting(true);
     try {
       await api.categories.delete(categoryToDelete.id);
       setCategories((prev) => prev.filter((c) => c.id !== categoryToDelete.id));
       showFeedback("delete", "Category deleted successfully");
+      setIsDeleteDialogOpen(false);
+      setCategoryToDelete(null);
     } catch (error) {
       console.error("Failed to delete category", error);
       showFeedback("error", "Failed to delete.");
+    } finally {
+      setIsDeleting(false);
     }
-    setIsDeleteDialogOpen(false);
-    setCategoryToDelete(null);
   };
 
   const copyToClipboard = (text: string) => {
@@ -325,7 +326,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                           </td>
 
                           <td className="p-6 text-right pr-8">
-                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -334,14 +335,16 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                               >
                                 <Edit size={16} />
                               </Button>
-                              <Button
-                                variant="ghost"
+                              <ActionButton
                                 size="sm"
-                                className="h-9 w-9 p-0 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 rounded-xl"
+                                actionType="delete"
+                                className="h-9 w-9 p-0 rounded-xl"
                                 onClick={() => handleOpenDelete(category)}
-                              >
-                                <Trash2 size={16} />
-                              </Button>
+                                loading={
+                                  isDeleting &&
+                                  categoryToDelete?.id === category.id
+                                }
+                              />
                             </div>
                           </td>
                         </tr>
@@ -352,35 +355,13 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
               </div>
 
               {!isLoading && (
-                <div className="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-zinc-800">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(1, prev - 1))
-                    }
-                    disabled={currentPage === 1 || isLoading}
-                    className="gap-2 rounded-xl text-[10px] uppercase font-black tracking-widest px-4"
-                  >
-                    <ChevronLeft size={16} /> Previous
-                  </Button>
-                  <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                    Page {currentPage} of{" "}
-                    {Math.ceil(filteredCategories.length / itemsPerPage)}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
-                    disabled={
-                      currentPage * itemsPerPage >= filteredCategories.length ||
-                      isLoading
-                    }
-                    className="gap-2 rounded-xl text-[10px] uppercase font-black tracking-widest px-4"
-                  >
-                    Next <ChevronRight size={16} />
-                  </Button>
-                </div>
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={filteredCategories.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                  isLoading={isLoading}
+                />
               )}
             </div>
           )}
@@ -482,58 +463,17 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent
-          className="sm:max-w-[400px]"
-          onClose={() => setIsDeleteDialogOpen(false)}
-        >
-          <DialogHeader>
-            <DialogTitle className="text-red-600 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" /> Delete Category
-            </DialogTitle>
-            <DialogDescription>
-              {`Are you sure you want to delete ${categoryToDelete?.name}? Items in this category may be uncategorized.`}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+        isDeleting={isDeleting}
+        itemType="Category"
+        title="Delete Category"
+        description={`Are you sure you want to delete "${categoryToDelete?.name}"? This will permanently remove it from the platform.`}
+      />
 
-      {feedback && (
-        <div
-          className={cn(
-            "fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-5 fade-in z-[9999] text-white",
-            feedback.type === "success" ? "bg-green-600" : "bg-red-600",
-          )}
-        >
-          {feedback.type === "success" ? (
-            <CheckCircle size={20} />
-          ) : (
-            <AlertCircle size={20} />
-          )}
-          <span className="font-medium">{feedback.message}</span>
-        </div>
-      )}
+      <FeedbackToast feedback={feedback} />
     </div>
   );
 };

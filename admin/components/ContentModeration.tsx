@@ -500,8 +500,14 @@ const ContentModeration: React.FC<ContentModerationProps> = ({
                         variant="ghost"
                         className="text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 gap-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
                         onClick={() => confirmDelete(item.id)}
+                        disabled={isDeleting && itemToDeleteId === item.id}
                       >
-                        <Trash2 size={18} /> Delete
+                        {isDeleting && itemToDeleteId === item.id ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                          <Trash2 size={18} />
+                        )}
+                        Delete
                       </Button>
                     </div>
                   </div>

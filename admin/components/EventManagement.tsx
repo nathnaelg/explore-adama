@@ -2,19 +2,17 @@
 
 import { GoogleGenAI } from "@google/genai";
 import {
-    AlertCircle,
     ArrowDown,
     ArrowRight,
     ArrowUp,
     BarChart,
     Calendar,
-    CheckCircle,
     ChevronLeft,
     ChevronRight,
     Clock,
     Eye,
     Hash,
-    Image as ImageIcon,
+    LayoutGrid,
     Loader2,
     MapPin,
     Pencil,
@@ -22,22 +20,25 @@ import {
     Sparkles,
     Tag,
     Trash2,
-    X,
+    X
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { Event } from "../types";
 import { cn } from "../utils";
 import ErrorAlert from "./ErrorAlert";
+import { ActionButton } from "./shared/ActionButton";
+import { DeleteConfirmDialog } from "./shared/DeleteConfirmDialog";
+import { FeedbackToast } from "./shared/FeedbackToast";
+import { Pagination } from "./shared/Pagination";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
     DialogHeader,
-    DialogTitle,
+    DialogTitle
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -301,6 +302,7 @@ const EventManagement: React.FC<EventManagementProps> = ({
   };
 
   const handleOpenDelete = (event: ExtendedEvent) => {
+    if (isDeleting) return;
     setEventToDelete(event);
     setIsDeleteDialogOpen(true);
   };
@@ -701,9 +703,11 @@ const EventManagement: React.FC<EventManagementProps> = ({
                       <h3 className="text-lg font-black mb-1 line-clamp-1">
                         {event.title}
                       </h3>
-                      <p className="text-[10px] text-blue-500 font-black mb-3 uppercase tracking-widest">
-                        {event.category}
-                      </p>
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <span className="text-[10px] text-blue-500 font-black uppercase tracking-widest flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-lg">
+                          <Tag size={10} /> {event.category}
+                        </span>
+                      </div>
 
                       <div className="space-y-2 mb-4 bg-gray-50 dark:bg-zinc-950 p-3 rounded-xl border border-gray-100 dark:border-zinc-800/50 flex-1">
                         <div className="flex items-center gap-3">
@@ -764,20 +768,21 @@ const EventManagement: React.FC<EventManagementProps> = ({
                         <div className="flex gap-2">
                           <Button
                             size="sm"
-                            variant="outline"
-                            className="rounded-xl border-gray-200 dark:border-zinc-700"
+                            variant="ghost"
+                            className="text-blue-500 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/10"
                             onClick={() => handleOpenEdit(event)}
                           >
                             <Pencil size={14} />
                           </Button>
-                          <Button
+                          <ActionButton
                             size="sm"
-                            variant="ghost"
-                            className="text-red-500 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10"
+                            actionType="delete"
+                            className="rounded-xl"
                             onClick={() => handleOpenDelete(event)}
-                          >
-                            <Trash2 size={14} />
-                          </Button>
+                            loading={
+                              isDeleting && eventToDelete?.id === event.id
+                            }
+                          />
                         </div>
                       </div>
                     </CardContent>
@@ -787,35 +792,13 @@ const EventManagement: React.FC<EventManagementProps> = ({
             </div>
 
             {!isLoading && (
-              <div className="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-zinc-800">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(1, prev - 1))
-                  }
-                  disabled={currentPage === 1 || isLoading}
-                  className="gap-2 rounded-xl text-[10px] uppercase font-black tracking-widest px-4"
-                >
-                  <ChevronLeft size={16} /> Previous
-                </Button>
-                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                  Page {currentPage} of {Math.ceil(totalEvents / itemsPerPage)}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => prev + 1)}
-                  disabled={
-                    currentPage >= Math.ceil(totalEvents / itemsPerPage) ||
-                    !hasMore ||
-                    isLoading
-                  }
-                  className="gap-2 rounded-xl text-[10px] uppercase font-black tracking-widest px-4"
-                >
-                  Next <ChevronRight size={16} />
-                </Button>
-              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalItems={totalEvents}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                isLoading={isLoading}
+              />
             )}
           </div>
         )}
@@ -967,7 +950,7 @@ const EventManagement: React.FC<EventManagementProps> = ({
               <div className="space-y-2">
                 <Label>Cover Media</Label>
                 <label className="cursor-pointer flex items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-zinc-700 h-10 w-full px-3 text-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors">
-                  <ImageIcon size={18} className="mr-2 text-gray-400" />
+                  <LayoutGrid size={18} className="mr-2 text-gray-400" />
                   <span className="text-gray-500">
                     {fileToUpload ? fileToUpload.name : "Select Image File"}
                   </span>
@@ -1212,66 +1195,17 @@ const EventManagement: React.FC<EventManagementProps> = ({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent
-          className="sm:max-w-[400px]"
-          onClose={() => setIsDeleteDialogOpen(false)}
-        >
-          <DialogHeader>
-            <DialogTitle className="text-red-600 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" /> Delete Event
-            </DialogTitle>
-            <DialogDescription>
-              {`Confirm removal of ${eventToDelete?.title} from the event directory. This will terminate all visibility and booking interactions.`}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...
-                </>
-              ) : (
-                "Confirm Delete"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+        isDeleting={isDeleting}
+        itemType="Event"
+        title="Delete Event"
+        description={`Are you sure you want to delete "${eventToDelete?.title}"? This will permanently remove it from the database.`}
+      />
 
-      {feedback && (
-        <div
-          className={cn(
-            "fixed bottom-6 right-6 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in z-[9999] text-white border backdrop-blur-md",
-            feedback.type === "error"
-              ? "bg-red-500/90 border-red-400/50"
-              : feedback.type === "delete"
-                ? "bg-orange-500/90 border-orange-400/50"
-                : feedback.type === "info"
-                  ? "bg-blue-500/90 border-blue-400/50"
-                  : "bg-green-500/90 border-green-400/50",
-          )}
-        >
-          {feedback.type === "error" ? (
-            <AlertCircle size={20} />
-          ) : feedback.type === "info" ? (
-            <AlertCircle size={20} className="rotate-180" />
-          ) : (
-            <CheckCircle size={20} />
-          )}
-          <span className="font-bold tracking-tight">{feedback.message}</span>
-        </div>
-      )}
+      <FeedbackToast feedback={feedback} />
     </div>
   );
 };

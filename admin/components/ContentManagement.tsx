@@ -2,23 +2,18 @@
 
 import { GoogleGenAI } from "@google/genai";
 import {
-    AlertCircle,
     ArrowDown,
     ArrowUp,
     Calendar,
-    CheckCircle,
-    ChevronLeft,
-    ChevronRight,
-    Edit,
     FileText,
-    Image as ImageIcon,
+    LayoutGrid,
     Loader2,
     MessageSquare,
+    Pencil,
     Plus,
     Sparkles,
     ThumbsUp,
-    Trash2,
-    User,
+    User
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
@@ -26,6 +21,10 @@ import { BlogPost, Category, Comment } from "../types";
 import { cn } from "../utils";
 import { useAuth } from "./AuthProvider";
 import ErrorAlert from "./ErrorAlert";
+import { ActionButton } from "./shared/ActionButton";
+import { DeleteConfirmDialog } from "./shared/DeleteConfirmDialog";
+import { FeedbackToast } from "./shared/FeedbackToast";
+import { Pagination } from "./shared/Pagination";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import {
@@ -152,7 +151,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
     fetchCategories();
   }, []);
 
-  const [totalItems, setTotalItems] = useState(0); // Add totalItems state
+  const [totalPosts, setTotalPosts] = useState(0); // Add totalPosts state
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -171,7 +170,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
 
       if (res && res.items) {
         setHasMore(res.items.length === itemsPerPage);
-        setTotalItems(res.total || 0); // Set total items from response
+        setTotalPosts(res.total || 0); // Set total items from response
         const mappedPosts: BlogPost[] = res.items.map((item: any) => ({
           id: item.id,
           title: item.title,
@@ -218,7 +217,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
     });
 
   const paginatedPosts = filteredPosts;
-  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  const totalPages = Math.ceil(totalPosts / itemsPerPage) || 1;
 
   const handleOpenAddPost = () => {
     setEditingPostId(null);
@@ -234,7 +233,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
     setIsPostDialogOpen(true);
   };
 
-  const handleOpenEditPost = (post: BlogPost) => {
+  const handleOpenEdit = (post: BlogPost) => {
     setEditingPostId(post.id);
     setFileToUpload(null);
     setPreviewImage(post.image || "");
@@ -310,7 +309,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
         const formData = new FormData();
         formData.append("file", fileToUpload);
         await api.post(`/blog/${savedPostId}/media`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { "Content-Type": "multipart/form-Type" },
         });
       }
 
@@ -330,6 +329,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
   };
 
   const handleOpenDelete = (id: string, type: "post" | "comment") => {
+    if (isDeleting) return;
     setItemToDelete({ id, type });
     setIsDeleteDialogOpen(true);
   };
@@ -451,7 +451,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100 dark:bg-zinc-800">
-                      <ImageIcon size={32} className="opacity-20" />
+                      <LayoutGrid size={32} className="opacity-20" />
                     </div>
                   )}
                   <div className="absolute top-3 right-3">
@@ -502,18 +502,17 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                         size="icon"
                         variant="ghost"
                         className="h-8 w-8 text-blue-500"
-                        onClick={() => handleOpenEditPost(post)}
+                        onClick={() => handleOpenEdit(post)}
                       >
-                        <Edit size={16} />
+                        <Pencil size={16} />
                       </Button>
-                      <Button
+                      <ActionButton
                         size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 text-red-500"
+                        actionType="delete"
+                        className="h-8 w-8"
                         onClick={() => handleOpenDelete(post.id, "post")}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
+                        loading={isDeleting && itemToDelete?.id === post.id}
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -525,29 +524,13 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
 
       {/* Pagination Controls */}
       {!isLoading && (
-        <div className="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-zinc-800">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-            disabled={currentPage === 1 || isLoading}
-            className="gap-2 rounded-xl text-[10px] uppercase font-black tracking-widest px-4"
-          >
-            <ChevronLeft size={16} /> Previous
-          </Button>
-          <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-            Page {currentPage} of {totalPages}
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((prev) => prev + 1)}
-            disabled={currentPage >= totalPages || !hasMore || isLoading}
-            className="gap-2 rounded-xl text-[10px] uppercase font-black tracking-widest px-4"
-          >
-            Next <ChevronRight size={16} />
-          </Button>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={totalPosts}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          isLoading={isLoading}
+        />
       )}
 
       <Dialog open={isPostDialogOpen} onOpenChange={setIsPostDialogOpen}>
@@ -598,7 +581,7 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
                 <Label>Media (Cover Image)</Label>
                 <div className="flex gap-2 items-center">
                   <label className="cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium ring-offset-white transition-colors border border-gray-200 bg-white hover:bg-gray-100 text-gray-500 h-10 w-full px-3 dark:bg-zinc-900 dark:border-zinc-700">
-                    <ImageIcon size={18} className="mr-2" />
+                    <LayoutGrid size={18} className="mr-2" />
                     {fileToUpload
                       ? fileToUpload.name
                       : previewImage
@@ -708,64 +691,17 @@ const ContentManagement: React.FC<ContentManagementProps> = ({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent
-          className="sm:max-w-[400px]"
-          onClose={() => setIsDeleteDialogOpen(false)}
-        >
-          <DialogHeader>
-            <DialogTitle className="text-red-600 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" /> Delete{" "}
-              {itemToDelete?.type === "post" ? "Post" : "Comment"}
-            </DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. This will permanently delete the{" "}
-              {itemToDelete?.type}.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+        isDeleting={isDeleting}
+        itemType={itemToDelete?.type === "post" ? "Blog Post" : "Comment"}
+        title={`Delete ${itemToDelete?.type === "post" ? "Post" : "Comment"}`}
+        description={`Are you sure you want to permanently delete this ${itemToDelete?.type}? This action cannot be undone.`}
+      />
 
-      {feedback && (
-        <div
-          className={cn(
-            "fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-5 fade-in z-[9999] text-white",
-            feedback.type === "error"
-              ? "bg-red-600"
-              : feedback.type === "delete"
-                ? "bg-red-500"
-                : "bg-green-600",
-          )}
-        >
-          {feedback.type === "error" ? (
-            <AlertCircle size={20} />
-          ) : (
-            <CheckCircle size={20} />
-          )}
-          <span className="font-medium">{feedback.message}</span>
-        </div>
-      )}
+      <FeedbackToast feedback={feedback} />
     </div>
   );
 };
