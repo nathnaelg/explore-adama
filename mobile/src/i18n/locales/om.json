@@ -96,7 +96,15 @@
       "events": "Qophiiwwan",
       "shopping": "Bittaa fi Gurgurtaa",
       "nightlife": "Jireenya Halkanii",
-      "spa": "Isphaa"
+      "spa": "Isphaa",
+      "bank": "Baankii",
+      "coffiehouse": "Mana Bunnaa",
+      "coffeehouse": "Mana Bunnaa",
+      "education": "Barnoota",
+      "festival": "Ayyaana",
+      "governmentalservice": "Tajaajila Mootummaa",
+      "health": "Fayyaa",
+      "hospital": "Hospitaala"
     }
   },
   "profile": {
@@ -254,7 +262,11 @@
       "food": "Nyaata",
       "history": "Seenaa",
       "hotels": "Hoteelota",
-      "culture": "Aadaa"
+      "culture": "Aadaa",
+      "travel": "Imala",
+      "restaurants": "Mana Nyaataa",
+      "events": "Qophiiwwan",
+      "tips": "Gorsaawwan"
     },
     "translatedByAi": "AI'n kan hiikame",
     "translationFailed": "Hiikni hin milkoofne"
@@ -358,6 +370,19 @@
     "emailUs": "Imeelii",
     "available247": "Yeroo hunda 24/7 ni jira",
     "faq": "Gaaffiiwwan Yeroo Baay'ee Gaafataman",
+    "frequentlyAskedQuestions": "Gaaffiiwwan Yeroo Baay'ee Gaafataman",
+    "helpCenter": "Giddu-gala Gargaarsaa",
+    "supportMessage": "Baga gara deeggarsa Adaamaa Turiizimii nagaan dhuftan. Gaaffii yoo qabaattan ykn gargaarsa yoo barbaaddan, support@exploreadama.com irratti nu qunnamaa.",
+    "faqQuestion1": "1. Akkamittan bakka qabadha?",
+    "faqAnswer1": "Iddoowwan daawwadhaa, tokko filadhaa, fi 'Amma Qabadhu' kan jedhu cuqaasaa.",
+    "faq1Question": "Adaamaa keessatti daawwannaa akkamittan qabadha?",
+    "faq1Answer": "Gara 'Daawwadhu' ykn Explore deemaa, daawwannaa barbaaddan filadhaa, sana booda 'Amma Qabadhu' kan jedhu cuqaasaa.",
+    "faq2Question": "Qabannaa koo haquu nan danda'aa?",
+    "faq2Answer": "Eeyyee, sa'aatii 24 dura ukkaamsuu dandeessu.",
+    "faq3Question": "Sodere Resort-f qajeelchitoonni (guides) jiruu?",
+    "faq3Answer": "Eeyyee, daawwannaa qajeelchitaa waliin ni dhiyeessina. Appii keenyaan qabachuu dandeessu.",
+    "faq4Question": "Tajaajila yeroo balaa akkamittan argadha?",
+    "faq4Answer": "Bilbiloonni yeroo balaa sajantilee appii keessaa odeeffannoo nageenyaa jala ni argamu.",
     "privacyPolicy": "Imaammata Dhuunfaa",
     "termsOfService": "Waliigaltee Tajaajilaa",
     "termsAndConditions": "Haalawwanii fi Dhimmoota",

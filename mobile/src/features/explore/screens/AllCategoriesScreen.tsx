@@ -86,6 +86,15 @@ export default function AllCategoriesScreen() {
                 "relaxation and spa": "relaxationandspa",
                 shopping: "shopping",
                 nightlife: "nightlife",
+                "governmental service": "governmentalservice",
+                bank: "bank",
+                "coffie house": "coffeehouse",
+                "coffee house": "coffeehouse",
+                coffeehouse: "coffeehouse",
+                education: "education",
+                festival: "festival",
+                health: "health",
+                hospital: "hospital",
               };
               let rawKey = ((cat as any).key || (cat as any).name || "")
                 .toLowerCase()

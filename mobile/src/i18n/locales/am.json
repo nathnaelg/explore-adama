@@ -96,7 +96,15 @@
       "events": "ክስተቶች",
       "shopping": "ግብይት",
       "nightlife": "የምሽት ህይወት",
-      "spa": "እስፓ"
+      "spa": "እስፓ",
+      "bank": "ባንክ",
+      "coffiehouse": "የቡና ቤት",
+      "coffeehouse": "የቡና ቤት",
+      "education": "ትምህርት",
+      "festival": "በዓል",
+      "governmentalservice": "የመንግስት አገልግሎት",
+      "health": "ጤና",
+      "hospital": "ሆስፒታል"
     }
   },
   "profile": {
@@ -259,7 +267,11 @@
       "food": "ምግብ",
       "history": "ታሪክ",
       "hotels": "ሆቴሎች",
-      "culture": "ባህል"
+      "culture": "ባህል",
+      "travel": "ጉዞ",
+      "restaurants": "ምግብ ቤቶች",
+      "events": "ክስተቶች",
+      "tips": "ምክሮች"
     },
     "translatedByAi": "በኤአይ (AI) የተተረጎመ",
     "translationFailed": "ትርጉሙ አልተሳካም"
@@ -363,6 +375,19 @@
     "emailUs": "ኢሜይል",
     "available247": "በ24/7 ይገኛል",
     "faq": "ተዘውትረው የሚጠየቁ ጥያቄዎች",
+    "frequentlyAskedQuestions": "ተዘውትረው የሚጠየቁ ጥያቄዎች",
+    "helpCenter": "የእርዳታ ማዕከል",
+    "supportMessage": "እንኳን ወደ አዳማ ቱሪዝም ድጋፍ በደህና መጡ። ጥያቄ ካለዎት ወይም እርዳታ ከፈለጉ በ support@exploreadama.com ያግኙን።",
+    "faqQuestion1": "1. ቅድመ ማስያዣ እንዴት ማድረግ እችላለሁ?",
+    "faqAnswer1": "ቦታዎችን ይጎብኙ፣ አንዱን ይምረጡ፣ እና 'አሁን ያስይዙ' የሚለውን ይጫኑ።",
+    "faq1Question": "በአዳማ ጉብኝት እንዴት ማዝጋጀት እችላለሁ?",
+    "faq1Answer": "ወደ 'አስስ' ወይም Explore ገጽ ይሂዱ፣ የሚፈልጉትን ጉብኝት ይፈልጉ እና 'አሁን ያስይዙ' የሚለውን ይጫኑ።",
+    "faq2Question": "ማስያዣዬን መሰረዝ እችላለሁ?",
+    "faq2Answer": "አዎ፣ ከቦታ ማስያዣ ሰዓትዎ 24 ሰዓታት በፊት ከመገለጫዎ ገጽ ላይ መሰረዝ ይችላሉ።",
+    "faq3Question": "ለሶደሬ ሪዞርት አስጎብኚዎች አሉ?",
+    "faq3Answer": "አዎ፣ አስጎብኚዎች አሉ። በመተግበሪያችን አድራሻ ማስያዝ ይችላሉ።",
+    "faq4Question": "የአደጋ ጊዜ አገልግሎቶችን እንዴት ማግኘት እችላለሁ?",
+    "faq4Answer": "የአደጋ ጊዜ ስልክ ቁጥሮች በመተግበሪያው ቅንብሮች ውስጥ በደህንነት መረጃ ስር ይገኛሉ።",
     "privacyPolicy": "የግላዊነት ፖሊሲ",
     "termsOfService": "የአጠቃቀም ደንቦች",
     "termsAndConditions": "ውሎች እና ሁኔታዎች",
