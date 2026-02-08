@@ -139,7 +139,17 @@
     "termsOfService": "Terms of Service",
     "aiTransparency": "AI Transparency",
     "appVersion": "App Version",
-    "theme": "Theme"
+    "theme": "Theme",
+    "themeMode": {
+      "system": "System Default",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "languages": {
+      "en": "English",
+      "am": "Amharic",
+      "om": "Afan Oromo"
+    }
   },
   "placeDetails": {
     "placeNotFound": "Place not found",
