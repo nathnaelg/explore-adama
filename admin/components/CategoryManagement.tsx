@@ -1,39 +1,41 @@
 "use client";
 
 import {
-  AlertCircle,
-  ArrowDown,
-  ArrowUp,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  Copy,
-  Edit,
-  Layers,
-  Loader2,
-  Plus,
-  Tag,
-  Trash2,
+    AlertCircle,
+    ArrowDown,
+    ArrowUp,
+    CheckCircle,
+    ChevronLeft,
+    ChevronRight,
+    Copy,
+    Edit,
+    Layers,
+    Loader2,
+    Plus,
+    Tag,
+    Trash2,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { Category } from "../types";
 import { cn } from "../utils";
+import { ICON_MAP } from "../utils/iconMap";
+import { IconPicker } from "./IconPicker";
 import { Button } from "./ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "./ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -290,13 +292,11 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                           <td className="p-6 pl-8">
                             <div className="flex items-center gap-4">
                               <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shadow-sm">
-                                {(category as any).icon ? (
-                                  <span className="text-xs font-mono">
-                                    {(category as any).icon.split("-")[0]}
-                                  </span>
-                                ) : (
-                                  <Tag size={18} />
-                                )}
+                                {(() => {
+                                  const IconComp =
+                                    ICON_MAP[(category as any).icon] || Tag;
+                                  return <IconComp size={20} />;
+                                })()}
                               </div>
                               <span className="font-black text-gray-900 dark:text-white text-sm">
                                 {category.name}
@@ -437,27 +437,12 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                 <Label htmlFor="icon" className="text-right">
                   Icon
                 </Label>
-                <Select
-                  id="icon"
-                  className="col-span-3"
-                  value={formData.icon}
-                  onChange={(e) =>
-                    setFormData({ ...formData, icon: e.target.value })
-                  }
-                >
-                  <option value="grid-outline">Grid (Default)</option>
-                  <option value="location-outline">Location</option>
-                  <option value="bed-outline">Bed (Hotels)</option>
-                  <option value="restaurant-outline">Restaurant</option>
-                  <option value="calendar-outline">Calendar (Events)</option>
-                  <option value="cart-outline">Cart (Shopping)</option>
-                  <option value="moon-outline">Moon (Nightlife)</option>
-                  <option value="leaf-outline">Leaf (Nature)</option>
-                  <option value="water-outline">Water (Spa)</option>
-                  <option value="fitness-outline">Fitness</option>
-                  <option value="camera-outline">Camera (Attractions)</option>
-                  <option value="library-outline">Library (Historical)</option>
-                </Select>
+                <div className="col-span-3">
+                  <IconPicker
+                    value={formData.icon}
+                    onChange={(icon) => setFormData({ ...formData, icon })}
+                  />
+                </div>
               </div>
             </div>
             <DialogFooter>

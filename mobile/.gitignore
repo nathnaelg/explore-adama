@@ -7,3 +7,11 @@ expo-env.d.ts
 *.swp
 *.swo
 *.swn
+.env
+.env.local
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+
