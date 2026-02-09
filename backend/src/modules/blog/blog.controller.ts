@@ -162,4 +162,17 @@ export class BlogController {
       return res.status(500).json({ message: "Failed to fetch categories" });
     }
   }
+
+  static async smartSearch(req: Request, res: Response) {
+    try {
+      const q = req.query.q as string;
+      if (!q) return res.status(400).json({ message: "Query required" });
+
+      const result = await BlogService.advancedSearch(q);
+      return res.json(result);
+    } catch (err: any) {
+      console.error("BlogController.smartSearch error:", err);
+      return res.status(500).json({ message: "Smart search failed" });
+    }
+  }
 }

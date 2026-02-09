@@ -57,3 +57,54 @@ export const useDebouncedSearch = (query: string, delay: number = 300) => {
     refetch: searchResults.refetch,
   };
 };
+
+// Smart blog search hook
+export const useSmartBlogSearch = (query: string) => {
+    return useQuery({
+        queryKey: ['search-blogs-smart', query],
+        queryFn: () => searchService.smartSearchBlogs(query),
+        enabled: query.length > 0,
+    });
+};
+
+export const useDebouncedSearchWithType = (initialQuery: string = '', type: 'all' | 'place' | 'event' | 'blog' = 'all', delay: number = 500) => {
+    const [query, setQuery] = useState(initialQuery);
+    const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedQuery(query);
+        }, delay);
+
+        return () => clearTimeout(timer);
+    }, [query, delay]);
+
+    // Conditional hooks based on type
+    const searchAll = useSearch(debouncedQuery, type === 'all' && debouncedQuery.length > 0);
+    const searchPlaces = useSearchPlaces(type === 'place' && debouncedQuery.length > 0 ? debouncedQuery : '');
+    const searchEvents = useSearchEvents(type === 'event' && debouncedQuery.length > 0 ? debouncedQuery : '');
+    const searchBlogs = useSmartBlogSearch(type === 'blog' && debouncedQuery.length > 0 ? debouncedQuery : '');
+
+    // Normalize return data
+    let result = searchAll;
+    if (type === 'place') result = searchPlaces;
+    else if (type === 'event') result = searchEvents;
+    else if (type === 'blog') {
+        // Adapt smart search result to standard result for the UI
+        result = {
+            ...searchBlogs,
+            data: searchBlogs.data?.results || []
+        } as any;
+    }
+
+    // Expose raw smart search data for the UI to use intent
+    const smartSearchData = type === 'blog' ? searchBlogs.data : undefined;
+
+    return {
+        query,
+        setQuery,
+        debouncedQuery,
+        ...result,
+        smartSearchData // New field for smart capabilities
+    };
+};

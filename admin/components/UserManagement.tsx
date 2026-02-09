@@ -22,6 +22,30 @@ import {
     UserCheck,
     User as UserIcon,
     UserX
+  AlertCircle,
+  ArrowDown,
+  ArrowLeft,
+  ArrowUp,
+  Ban,
+  Calendar,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Eye,
+  FileText,
+  Hash,
+  Loader2,
+  Mail,
+  Pencil,
+  Plus,
+  ShieldAlert,
+  ShoppingBag,
+  Ticket,
+  Trash2,
+  UserCheck,
+  User as UserIcon,
+  UserX,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
@@ -34,12 +58,12 @@ import { FeedbackToast } from "./shared/FeedbackToast";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -355,6 +379,7 @@ const UserManagement: React.FC<UserManagementProps> = ({
       name: user.profile?.name || "",
       email: user.email,
       password: "",
+      id: user.id,
       role: user.role,
       banned: user.banned === true || String(user.banned) === "true",
     });
@@ -477,6 +502,12 @@ const UserManagement: React.FC<UserManagementProps> = ({
                       </span>
                     </div>
                     <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-zinc-800">
+                      <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-zinc-300">
+                        <Hash size={14} className="text-gray-400" />
+                        <span className="truncate font-mono text-xs">
+                          {selectedUserDetail.id}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-zinc-300">
                         <Mail size={14} className="text-gray-400" />
                         <span className="truncate">

@@ -1,3 +1,4 @@
+import { apiClient } from '@/src/core/api/client';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform } from 'react-native';
 
@@ -6,16 +7,19 @@ const isAndroidExpoGo = isExpoGo && Platform.OS === 'android';
 
 // Helper to safely get Notifications module
 const getNotifications = () => {
-  if (isAndroidExpoGo) return null;
-  return require('expo-notifications');
+  if (isAndroidExpoGo) {
+    console.warn('[PushService] Notifications are not supported in Expo Go on Android SDK 53+.');
+    return null;
+  }
+  try {
+    return require('expo-notifications');
+  } catch (error) {
+    console.warn('[PushService] Failed to load expo-notifications:', error);
+    return null;
+  }
 };
 
 export async function checkNotificationPermission() {
-  if (isAndroidExpoGo) {
-    console.warn('[PushService] Notifications not supported in Expo Go on Android.');
-    return false;
-  }
-
   const Notifications = getNotifications();
   if (!Notifications) return false;
 
@@ -29,11 +33,6 @@ export async function checkNotificationPermission() {
 }
 
 export async function requestNotificationPermission() {
-  if (isAndroidExpoGo) {
-    console.warn('[PushService] Cannot request notifications in Expo Go on Android.');
-    return false;
-  }
-
   const Notifications = getNotifications();
   if (!Notifications) return false;
 
@@ -42,6 +41,8 @@ export async function requestNotificationPermission() {
       await Notifications.setNotificationChannelAsync('default', {
         name: 'Default',
         importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
       });
     }
 
@@ -54,14 +55,18 @@ export async function requestNotificationPermission() {
 }
 
 export async function getPushToken() {
-  if (isAndroidExpoGo) {
-    return 'expo-go-android-dummy-token';
-  }
-
   const Notifications = getNotifications();
   if (!Notifications) return null;
 
   try {
+    // Check permissions first
+    const { status } = await Notifications.getPermissionsAsync();
+
+    if (status !== 'granted') {
+      console.log('[PushService] Permissions not granted, skipping token fetch');
+      return null;
+    }
+
     const projectId = Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId;
     console.log('[PushService] Fetching Expo push token for project:', projectId);
 
@@ -69,18 +74,11 @@ export async function getPushToken() {
     return token.data;
   } catch (e: any) {
     console.warn('[PushService] Failed to get push token:', e);
-    console.log('[PushService] Environment Info:', {
-      isExpoGo,
-      platform: Platform.OS,
-      executionEnvironment: Constants.executionEnvironment,
-      projectId: Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId,
-    });
     return null;
   }
 }
 
 export async function registerPushTokenWithBackend(token: string) {
-  const { apiClient } = await import('@/src/core/api/client');
   try {
     await apiClient.put('/notifications/push-token', { pushToken: token });
     console.log('[PushService] Push token registered with backend');
@@ -91,13 +89,46 @@ export async function registerPushTokenWithBackend(token: string) {
   }
 }
 
-// Global Notification Handler Wrapper
-export function setupNotificationHandler() {
-  if (isAndroidExpoGo) {
-    console.warn('[PushService] setNotificationHandler skipped in Expo Go Android');
-    return;
+// Send a test notification to the device notification bar
+export async function sendTestNotification() {
+  const Notifications = getNotifications();
+  if (!Notifications) {
+    console.warn('[PushService] Notifications not available');
+    return false;
   }
 
+  try {
+    const { status } = await Notifications.getPermissionsAsync();
+
+    if (status !== 'granted') {
+      console.warn('[PushService] Permissions not granted, cannot send notification');
+      return false;
+    }
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "New Event Near You! 🎉",
+        body: "Discover 'Ethiopian Coffee Ceremony' happening this weekend in Adama",
+        data: {
+          type: 'EVENT',
+          eventId: 'test-event-123',
+          screen: '/events'
+        },
+        sound: true,
+        badge: 1,
+      },
+      trigger: null,
+    });
+
+    console.log('[PushService] Test notification sent successfully');
+    return true;
+  } catch (error) {
+    console.warn('[PushService] Failed to send test notification:', error);
+    return false;
+  }
+}
+
+export function setupNotificationHandler() {
   const Notifications = getNotifications();
   if (!Notifications) return;
 
@@ -112,12 +143,7 @@ export function setupNotificationHandler() {
   });
 }
 
-// Notification Listeners Wrappers
 export function addNotificationReceivedListener(callback: (notification: any) => void) {
-  if (isAndroidExpoGo) {
-    return { remove: () => { } };
-  }
-
   const Notifications = getNotifications();
   if (!Notifications) return { remove: () => { } };
 
@@ -125,10 +151,6 @@ export function addNotificationReceivedListener(callback: (notification: any) =>
 }
 
 export function addNotificationResponseReceivedListener(callback: (response: any) => void) {
-  if (isAndroidExpoGo) {
-    return { remove: () => { } };
-  }
-
   const Notifications = getNotifications();
   if (!Notifications) return { remove: () => { } };
 

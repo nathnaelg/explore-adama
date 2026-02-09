@@ -69,7 +69,7 @@ export default function TermsConditionsScreen() {
                 {/* Last Updated */}
                 <View style={[styles.updatedContainer, { backgroundColor: mutedColor + '10' }]}>
                     <ThemedText type="default" style={[styles.updatedText, { color: mutedColor }]}>
-                        {t('public.lastUpdated', { date: 'OCTOBER 24, 2023' })}
+                        {t('public.lastUpdated', { date: 'FEBRUARY 5, 2026' })}
                     </ThemedText>
                 </View>
 

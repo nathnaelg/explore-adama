@@ -60,6 +60,11 @@ export const bookingService = {
     },
 
     // Tickets
+    async getTicketsForBooking(bookingId: string): Promise<{ data: Ticket[] }> {
+        const response = await apiClient.get(`/bookings/${bookingId}/tickets`);
+        return response.data;
+    },
+
     async getTicketById(id: string): Promise<Ticket> {
         const response = await apiClient.get(`/tickets/${id}`);
         return response.data;

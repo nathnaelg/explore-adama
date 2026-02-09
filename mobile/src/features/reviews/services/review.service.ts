@@ -9,7 +9,8 @@ export const reviewService = {
     // List reviews for an item
     async listReviews(params: ReviewQueryParams): Promise<{ data: Review[], total: number }> {
         const response = await apiClient.get('/reviews', { params });
-        return response.data;
+        // Backend returns { items: [], total: ... } but frontend expects { data: [], total: ... }
+        return { data: response.data.items, total: response.data.total };
     },
 
     // Get review by ID

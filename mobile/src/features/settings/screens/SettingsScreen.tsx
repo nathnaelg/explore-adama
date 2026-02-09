@@ -1,396 +1,565 @@
-import { ThemedText } from '@/src/components/themed/ThemedText';
-import { ThemedView } from '@/src/components/themed/ThemedView';
-import { useAuth } from '@/src/features/auth/contexts/AuthContext';
-import { useProfile } from '@/src/features/profile/hooks/useProfile';
-import { SettingsSkeleton } from '@/src/features/settings/components/SettingsSkeleton';
-import { useThemeColor } from '@/src/hooks/use-theme-color';
-import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { LocationPermissionModal } from "@/src/components/common/LocationPermissionModal";
+import { ThemedText } from "@/src/components/themed/ThemedText";
+import { ThemedView } from "@/src/components/themed/ThemedView";
+import { useAuth } from "@/src/features/auth/contexts/AuthContext";
+import { useProfile } from "@/src/features/profile/hooks/useProfile";
+import { SettingsSkeleton } from "@/src/features/settings/components/SettingsSkeleton";
+import { useThemeColor } from "@/src/hooks/use-theme-color";
+import { useTheme } from "@/src/providers/ThemeProvider";
+import { Ionicons } from "@expo/vector-icons";
+import * as ExpoLocation from "expo-location";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
+    // Alert, (removed)
     Image,
+    Modal,
     ScrollView,
     StyleSheet,
     Switch,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+type IoniconsName = React.ComponentProps<typeof Ionicons>["name"];
 
 export default function SettingsScreen() {
-    const { t, i18n } = useTranslation();
-    const { user: authUser, logout, isAuthenticated } = useAuth();
-    const { data: user, isLoading } = useProfile(authUser?.id, isAuthenticated);
-    const insets = useSafeAreaInsets();
+  const { t, i18n } = useTranslation();
+  const { user: authUser, logout, isAuthenticated } = useAuth();
+  const { data: user, isLoading } = useProfile(authUser?.id, isAuthenticated);
 
-    const primary = useThemeColor({}, 'primary');
-    const text = useThemeColor({}, 'text');
-    const muted = useThemeColor({}, 'muted');
-    const card = useThemeColor({}, 'card');
-    const bg = useThemeColor({}, 'bg');
-    const error = useThemeColor({}, 'error');
+  const insets = useSafeAreaInsets();
+  const { themePreference, setThemePreference } = useTheme();
 
-    // Local state for notification preferences (would be saved to backend in production)
-    const [notifications, setNotifications] = useState({
-        bookingUpdates: true,
-        promotions: true,
-        nearbyAttractions: false,
-    });
+  const primary = useThemeColor({}, "primary");
+  const text = useThemeColor({}, "text");
+  const muted = useThemeColor({}, "muted");
+  const card = useThemeColor({}, "card");
+  const bg = useThemeColor({}, "bg");
+  const error = useThemeColor({}, "error");
 
-    const settingsItems: Array<{
-        id: number;
-        title: string;
-        icon: IoniconsName;
-        screen: string;
-        color?: string;
-    }> = [
-            {
-                id: 1,
-                title: t('settings.privacyPolicy'),
-                icon: 'shield-checkmark-outline',
-                screen: '/(public)/legal/privacy',
-            },
-            {
-                id: 2,
-                title: t('settings.termsOfService'),
-                icon: 'document-text-outline',
-                screen: '/(public)/legal/terms',
-            },
-            {
-                id: 3,
-                title: t('settings.aiTransparency'),
-                icon: 'information-circle-outline',
-                screen: '/(public)/legal/ai-transparency',
-            },
-            {
-                id: 4,
-                title: t('settings.appVersion'),
-                icon: 'code-outline',
-                screen: '/(public)/meta/app-version',
-            },
-        ];
+  // Local state for notification preferences (would be saved to backend in production)
+  const [notifications, setNotifications] = useState({
+    bookingUpdates: true,
+    promotions: true,
+    nearbyAttractions: false,
+  });
 
-    const handleResetOnboarding = async () => {
-        try {
-            await AsyncStorage.removeItem('@adama_onboarding_seen');
-            console.log('[Settings] Onboarding status reset');
-            alert('Onboarding reset! Please restart the app to see onboarding again.');
-        } catch (error) {
-            console.error('[Settings] Error resetting onboarding:', error);
-            alert('Failed to reset onboarding');
+  const [locationModal, setLocationModal] = useState<{
+    visible: boolean;
+    type: "disabled" | "denied";
+  }>({ visible: false, type: "disabled" });
+
+  const [themeModalVisible, setThemeModalVisible] = useState(false);
+
+  const settingsItems: Array<{
+    id: number;
+    title: string;
+    icon: IoniconsName;
+    screen: string;
+    color?: string;
+  }> = [
+    {
+      id: 1,
+      title: t("settings.privacyPolicy"),
+      icon: "shield-checkmark-outline",
+      screen: "/(public)/legal/privacy",
+    },
+    {
+      id: 2,
+      title: t("settings.termsOfService"),
+      icon: "document-text-outline",
+      screen: "/(public)/legal/terms",
+    },
+    {
+      id: 3,
+      title: t("settings.aiTransparency"),
+      icon: "information-circle-outline",
+      screen: "/(public)/legal/ai-transparency",
+    },
+    {
+      id: 4,
+      title: t("settings.appVersion"),
+      icon: "code-outline",
+      screen: "/(public)/meta/app-version",
+    },
+  ];
+
+  // Check location service status on mount
+  useEffect(() => {
+    checkLocationServiceStatus();
+  }, []);
+
+  const checkLocationServiceStatus = async () => {
+    try {
+      const { status } = await ExpoLocation.getForegroundPermissionsAsync();
+      const isLocationEnabled = await ExpoLocation.hasServicesEnabledAsync();
+
+      // If location is disabled or permission not granted, turn off nearby attractions
+      if (!isLocationEnabled || status !== "granted") {
+        if (notifications.nearbyAttractions) {
+          setNotifications((prev) => ({ ...prev, nearbyAttractions: false }));
         }
-    };
-
-    const handleLogout = async () => {
-        try {
-            await logout();
-            router.replace('/(auth)/login');
-        } catch (error) {
-            console.error('Logout error:', error);
-        }
-    };
-
-    if (isLoading) {
-        return <SettingsSkeleton />;
+      }
+    } catch (error) {
+      console.error("Error checking location status:", error);
     }
+  };
 
+  const handleNearbyAttractionsToggle = async (value: boolean) => {
+    if (value) {
+      // First check if location services are enabled on the device
+      const isLocationEnabled = await ExpoLocation.hasServicesEnabledAsync();
 
-    return (
-        <ThemedView style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Header */}
-                <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                    <TouchableOpacity onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={24} color={text} />
-                    </TouchableOpacity>
-                    <ThemedText type="title" style={[styles.title, { color: text }]}>
-                        {t('common.settings')}
-                    </ThemedText>
-                    <View style={{ width: 24 }} />
-                </View>
+      if (!isLocationEnabled) {
+        // Location services are turned off on the device
+        setLocationModal({ visible: true, type: "disabled" });
+        return; // Don't enable the toggle
+      }
 
-                {/* Profile Info */}
-                <TouchableOpacity
-                    style={[styles.profileSection, { borderBottomColor: muted + '20' }]}
-                    onPress={() => router.push('/profile/edit')}
+      // Location services are enabled, now request permission
+      const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
+
+      if (status === "granted") {
+        // Permission granted, enable the feature
+        setNotifications({ ...notifications, nearbyAttractions: true });
+        // Optional: Show success toast/modal if needed, but simple toggle switch is usually enough feedback
+      } else {
+        // Permission denied
+        setLocationModal({ visible: true, type: "denied" });
+      }
+    } else {
+      // User is disabling - just turn it off
+      setNotifications({ ...notifications, nearbyAttractions: false });
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.replace("/(auth)/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  if (isLoading) {
+    return <SettingsSkeleton />;
+  }
+
+  return (
+    <ThemedView style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={text} />
+          </TouchableOpacity>
+          <ThemedText type="title" style={[styles.title, { color: text }]}>
+            {t("common.settings")}
+          </ThemedText>
+          <View style={{ width: 24 }} />
+        </View>
+
+        {/* Profile Info */}
+        <TouchableOpacity
+          style={[styles.profileSection, { borderBottomColor: muted + "20" }]}
+          onPress={() => router.push("/profile/edit")}
+        >
+          {user?.profile?.avatar ? (
+            <Image
+              source={{ uri: user.profile.avatar }}
+              style={styles.profileAvatar}
+            />
+          ) : (
+            <View style={[styles.avatar, { backgroundColor: card }]}>
+              <Ionicons name="person" size={28} color={primary} />
+            </View>
+          )}
+          <View style={{ flex: 1 }}>
+            <ThemedText
+              type="title"
+              style={[styles.profileName, { color: text }]}
+            >
+              {user?.profile?.name || authUser?.email || "User"}
+            </ThemedText>
+            <ThemedText
+              type="default"
+              style={[styles.profileEmail, { color: muted }]}
+            >
+              {user?.email || authUser?.email}
+            </ThemedText>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={muted} />
+        </TouchableOpacity>
+
+        {/* Preferences */}
+        <View style={[styles.section, { borderBottomColor: muted + "20" }]}>
+          <ThemedText
+            type="subtitle"
+            style={[styles.sectionTitle, { color: muted }]}
+          >
+            {t("settings.preferences")}
+          </ThemedText>
+
+          {/* Language */}
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push("/settings/language")}
+          >
+            <ThemedText
+              type="default"
+              style={[styles.settingLabel, { color: text }]}
+            >
+              {t("common.language")}
+            </ThemedText>
+            <View style={styles.settingValue}>
+              <ThemedText
+                type="default"
+                style={[styles.settingValueText, { color: muted }]}
+              >
+                {t(`settings.languages.${i18n.language}` as any)}
+              </ThemedText>
+              <Ionicons name="chevron-forward" size={20} color={muted} />
+            </View>
+          </TouchableOpacity>
+
+          {/* Theme */}
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => setThemeModalVisible(true)}
+          >
+            <ThemedText
+              type="default"
+              style={[styles.settingLabel, { color: text }]}
+            >
+              {t("settings.theme")}
+            </ThemedText>
+            <View style={styles.settingValue}>
+              <ThemedText
+                type="default"
+                style={[styles.settingValueText, { color: muted }]}
+              >
+                {t(`settings.themeMode.${themePreference}` as any)}
+              </ThemedText>
+              <Ionicons name="chevron-forward" size={20} color={muted} />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Notifications */}
+        <View style={[styles.section, { borderBottomColor: muted + "20" }]}>
+          <ThemedText
+            type="subtitle"
+            style={[styles.sectionTitle, { color: muted }]}
+          >
+            {t("common.notifications")}
+          </ThemedText>
+
+          <View style={styles.settingItem}>
+            <ThemedText
+              type="default"
+              style={[styles.settingLabel, { color: text }]}
+            >
+              {t("settings.notifUpdates")}
+            </ThemedText>
+            <Switch
+              value={notifications.bookingUpdates}
+              onValueChange={(value) =>
+                setNotifications({ ...notifications, bookingUpdates: value })
+              }
+              trackColor={{ false: muted + "40", true: primary }}
+              thumbColor="#fff"
+            />
+          </View>
+
+          <View style={styles.settingItem}>
+            <ThemedText
+              type="default"
+              style={[styles.settingLabel, { color: text }]}
+            >
+              {t("settings.notifPromos")}
+            </ThemedText>
+            <Switch
+              value={notifications.promotions}
+              onValueChange={(value) =>
+                setNotifications({ ...notifications, promotions: value })
+              }
+              trackColor={{ false: muted + "40", true: primary }}
+              thumbColor="#fff"
+            />
+          </View>
+
+          <View style={styles.settingItem}>
+            <ThemedText
+              type="default"
+              style={[styles.settingLabel, { color: text }]}
+            >
+              {t("settings.notifNearby")}
+            </ThemedText>
+            <Switch
+              value={notifications.nearbyAttractions}
+              onValueChange={handleNearbyAttractionsToggle}
+              trackColor={{ false: muted + "40", true: primary }}
+              thumbColor="#fff"
+            />
+          </View>
+        </View>
+
+        {/* Support & Legal */}
+        <View style={[styles.section, { borderBottomColor: muted + "20" }]}>
+          <ThemedText
+            type="subtitle"
+            style={[styles.sectionTitle, { color: muted }]}
+          >
+            {t("settings.supportLegal")}
+          </ThemedText>
+
+          {settingsItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.settingItem}
+              onPress={() => router.push(item.screen as any)}
+            >
+              <View style={styles.settingItemLeft}>
+                <Ionicons name={item.icon} size={20} color={primary} />
+                <ThemedText
+                  type="default"
+                  style={[styles.settingLabel, { color: text }]}
                 >
-                    {user?.profile?.avatar ? (
-                        <Image
-                            source={{ uri: user.profile.avatar }}
-                            style={styles.profileAvatar}
-                        />
-                    ) : (
-                        <View style={[styles.avatar, { backgroundColor: card }]}>
-                            <Ionicons name="person" size={28} color={primary} />
-                        </View>
+                  {item.title}
+                </ThemedText>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={muted} />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Log Out */}
+        <TouchableOpacity
+          style={[styles.logoutButton, { backgroundColor: error + "15" }]}
+          onPress={handleLogout}
+        >
+          <Ionicons name="log-out-outline" size={20} color={error} />
+          <ThemedText
+            type="default"
+            style={[styles.logoutText, { color: error }]}
+          >
+            {t("common.logout")}
+          </ThemedText>
+        </TouchableOpacity>
+
+        {/* App Version */}
+        <View style={styles.versionContainer}>
+          <ThemedText
+            type="default"
+            style={[styles.versionText, { color: muted }]}
+          >
+            Adama Smart Tourism v 1.0.1
+          </ThemedText>
+        </View>
+      </ScrollView>
+
+      <LocationPermissionModal
+        visible={locationModal.visible}
+        type={locationModal.type}
+        onClose={() =>
+          setLocationModal((prev) => ({ ...prev, visible: false }))
+        }
+        onSettings={() => {
+          setLocationModal((prev) => ({ ...prev, visible: false }));
+          if (locationModal.type === "denied") {
+            ExpoLocation.requestForegroundPermissionsAsync();
+          } else {
+            // For disabled location services, we can try to open settings or just close
+            // React Native doesn't have a direct "Open Location Settings" without linking
+            // But on Expo we can try Linking to settings if needed, or just let user do it manually
+            // For now, we'll try to re-request which might trigger system prompt or just close.
+          }
+        }}
+      />
+
+      <Modal
+        transparent
+        visible={themeModalVisible}
+        animationType="fade"
+        onRequestClose={() => setThemeModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setThemeModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={[styles.modalContent, { backgroundColor: card }]}>
+                <ThemedText
+                  type="subtitle"
+                  style={[styles.modalTitle, { color: text }]}
+                >
+                  {t("settings.theme")}
+                </ThemedText>
+
+                {(["system", "light", "dark"] as const).map((mode) => (
+                  <TouchableOpacity
+                    key={mode}
+                    style={[
+                      styles.modalOption,
+                      { borderBottomColor: muted + "20" },
+                    ]}
+                    onPress={() => {
+                      setThemePreference(mode);
+                      setThemeModalVisible(false);
+                    }}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.modalOptionText,
+                        { color: text },
+                        themePreference === mode && {
+                          color: primary,
+                          fontWeight: "bold",
+                        },
+                      ]}
+                    >
+                      {t(`settings.themeMode.${mode}` as any)}
+                    </ThemedText>
+                    {themePreference === mode && (
+                      <Ionicons name="checkmark" size={20} color={primary} />
                     )}
-                    <View style={{ flex: 1 }}>
-                        <ThemedText type="title" style={[styles.profileName, { color: text }]}>
-                            {user?.profile?.name || authUser?.email || 'User'}
-                        </ThemedText>
-                        <ThemedText type="default" style={[styles.profileEmail, { color: muted }]}>
-                            {user?.email || authUser?.email}
-                        </ThemedText>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color={muted} />
-                </TouchableOpacity>
-
-                {/* Preferences */}
-                <View style={[styles.section, { borderBottomColor: muted + '20' }]}>
-                    <ThemedText type="subtitle" style={[styles.sectionTitle, { color: muted }]}>
-                        {t('settings.preferences')}
-                    </ThemedText>
-
-                    {/* Language */}
-                    <TouchableOpacity
-                        style={styles.settingItem}
-                        onPress={() => router.push('/settings/language')}
-                    >
-                        <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
-                            {t('common.language')}
-                        </ThemedText>
-                        <View style={styles.settingValue}>
-                            <ThemedText type="default" style={[styles.settingValueText, { color: muted }]}>
-                                {i18n.language === 'am' ? 'Amharic' :
-                                    i18n.language === 'om' ? 'Afan Oromo' : 'English'}
-                            </ThemedText>
-                            <Ionicons name="chevron-forward" size={20} color={muted} />
-                        </View>
-                    </TouchableOpacity>
-
-                    {/* Country */}
-                    <TouchableOpacity style={styles.settingItem}>
-                        <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
-                            {t('common.country')}
-                        </ThemedText>
-                        <View style={styles.settingValue}>
-                            <ThemedText type="default" style={[styles.settingValueText, { color: muted }]}>
-                                {user?.profile?.country || 'Not set'}
-                            </ThemedText>
-                            <Ionicons name="chevron-forward" size={20} color={muted} />
-                        </View>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Notifications */}
-                <View style={[styles.section, { borderBottomColor: muted + '20' }]}>
-                    <ThemedText type="subtitle" style={[styles.sectionTitle, { color: muted }]}>
-                        {t('common.notifications')}
-                    </ThemedText>
-
-                    <View style={styles.settingItem}>
-                        <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
-                            {t('settings.notifUpdates')}
-                        </ThemedText>
-                        <Switch
-                            value={notifications.bookingUpdates}
-                            onValueChange={(value) =>
-                                setNotifications({ ...notifications, bookingUpdates: value })
-                            }
-                            trackColor={{ false: muted + '40', true: primary }}
-                            thumbColor="#fff"
-                        />
-                    </View>
-
-                    <View style={styles.settingItem}>
-                        <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
-                            {t('settings.notifPromos')}
-                        </ThemedText>
-                        <Switch
-                            value={notifications.promotions}
-                            onValueChange={(value) =>
-                                setNotifications({ ...notifications, promotions: value })
-                            }
-                            trackColor={{ false: muted + '40', true: primary }}
-                            thumbColor="#fff"
-                        />
-                    </View>
-
-                    <View style={styles.settingItem}>
-                        <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
-                            {t('settings.notifNearby')}
-                        </ThemedText>
-                        <Switch
-                            value={notifications.nearbyAttractions}
-                            onValueChange={(value) =>
-                                setNotifications({ ...notifications, nearbyAttractions: value })
-                            }
-                            trackColor={{ false: muted + '40', true: primary }}
-                            thumbColor="#fff"
-                        />
-                    </View>
-                </View>
-
-                {/* Support & Legal */}
-                <View style={[styles.section, { borderBottomColor: muted + '20' }]}>
-                    <ThemedText type="subtitle" style={[styles.sectionTitle, { color: muted }]}>
-                        {t('settings.supportLegal')}
-                    </ThemedText>
-
-                    {settingsItems.map((item) => (
-                        <TouchableOpacity
-                            key={item.id}
-                            style={styles.settingItem}
-                            onPress={() => router.push(item.screen as any)}
-                        >
-                            <View style={styles.settingItemLeft}>
-                                <Ionicons name={item.icon} size={20} color={primary} />
-                                <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
-                                    {item.title}
-                                </ThemedText>
-                            </View>
-                            <Ionicons name="chevron-forward" size={20} color={muted} />
-                        </TouchableOpacity>
-                    ))}
-                </View>
-
-                {/* Developer Options */}
-                <View style={[styles.section, { borderBottomColor: muted + '20' }]}>
-                    <ThemedText type="subtitle" style={[styles.sectionTitle, { color: muted }]}>
-                        DEVELOPER
-                    </ThemedText>
-
-                    <TouchableOpacity
-                        style={styles.settingItem}
-                        onPress={handleResetOnboarding}
-                    >
-                        <View style={styles.settingItemLeft}>
-                            <Ionicons name="refresh-outline" size={20} color={primary} />
-                            <ThemedText type="default" style={[styles.settingLabel, { color: text }]}>
-                                Reset Onboarding
-                            </ThemedText>
-                        </View>
-                        <Ionicons name="chevron-forward" size={20} color={muted} />
-                    </TouchableOpacity>
-                </View>
-
-
-                {/* Log Out */}
-                <TouchableOpacity
-                    style={[styles.logoutButton, { backgroundColor: error + '15' }]}
-                    onPress={handleLogout}
-                >
-                    <Ionicons name="log-out-outline" size={20} color={error} />
-                    <ThemedText type="default" style={[styles.logoutText, { color: error }]}>
-                        {t('common.logout')}
-                    </ThemedText>
-                </TouchableOpacity>
-
-                {/* App Version */}
-                <View style={styles.versionContainer}>
-                    <ThemedText type="default" style={[styles.versionText, { color: muted }]}>
-                        Adama Smart Tourism v2.4.0
-                    </ThemedText>
-                    <ThemedText type="default" style={[styles.copyrightText, { color: muted }]}>
-                        {t('settings.madeWithLove')}
-                    </ThemedText>
-                </View>
-            </ScrollView>
-        </ThemedView>
-    );
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+    </ThemedView>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingBottom: 20,
-        // paddingTop handled by insets in render
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    profileSection: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 20,
-        borderBottomWidth: 1,
-        gap: 16,
-    },
-    avatar: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    profileAvatar: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-    },
-    profileName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    profileEmail: {
-        fontSize: 14,
-        marginTop: 4,
-    },
-    section: {
-        padding: 20,
-        borderBottomWidth: 1,
-    },
-    sectionTitle: {
-        fontSize: 12,
-        fontWeight: '600',
-        marginBottom: 16,
-        letterSpacing: 1,
-    },
-    settingItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 16,
-    },
-    settingItemLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    settingLabel: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    settingValue: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    settingValueText: {
-        fontSize: 16,
-    },
-    logoutButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        padding: 20,
-        margin: 20,
-        borderRadius: 12,
-    },
-    logoutText: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    versionContainer: {
-        alignItems: 'center',
-        paddingVertical: 32,
-        paddingHorizontal: 20,
-    },
-    versionText: {
-        fontSize: 14,
-        marginBottom: 8,
-    },
-    copyrightText: {
-        fontSize: 14,
-    },
+  container: { flex: 1 },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    // paddingTop handled by insets in render
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  profileSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    gap: 16,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  profileAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  profileName: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  profileEmail: {
+    fontSize: 14,
+    marginTop: 4,
+  },
+  section: {
+    padding: 20,
+    borderBottomWidth: 1,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    marginBottom: 16,
+    letterSpacing: 1,
+  },
+  settingItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  settingItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  settingValue: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  settingValueText: {
+    fontSize: 16,
+  },
+  logoutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    padding: 20,
+    margin: 20,
+    borderRadius: 12,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  versionContainer: {
+    alignItems: "center",
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+  },
+  versionText: {
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  copyrightText: {
+    fontSize: 14,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    padding: 20,
+  },
+  modalContent: {
+    borderRadius: 16,
+    padding: 24,
+    maxHeight: "80%",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  modalOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+  },
+  modalOptionText: {
+    fontSize: 16,
+  },
 });

@@ -91,24 +91,32 @@ export default function CreateBookingScreen() {
                         <View style={{ width: 24 }} />
                     </View>
                     <ScrollView contentContainerStyle={styles.listContent}>
-                        {placeEventsData.data.map((evt) => (
-                            <TouchableOpacity
-                                key={evt.id}
-                                style={[styles.eventCard, { backgroundColor: card }]}
-                                onPress={() => setSelectedEvent(evt)}
-                            >
-                                <ThemedText style={styles.eventCardTitle}>{evt.title}</ThemedText>
-                                <View style={styles.row}>
-                                    <Ionicons name="calendar-outline" size={16} color={muted} />
-                                    <ThemedText style={{ color: muted }}>
-                                        {new Date(evt.date).toLocaleDateString()}
+                        {placeEventsData.data.map((evt) => {
+                            const eventDate = new Date(evt.date);
+                            const startOfToday = new Date();
+                            startOfToday.setHours(0, 0, 0, 0);
+                            const isPast = eventDate < startOfToday;
+                            if (isPast) return null;
+
+                            return (
+                                <TouchableOpacity
+                                    key={evt.id}
+                                    style={[styles.eventCard, { backgroundColor: card }]}
+                                    onPress={() => setSelectedEvent(evt)}
+                                >
+                                    <ThemedText style={styles.eventCardTitle}>{evt.title}</ThemedText>
+                                    <View style={styles.row}>
+                                        <Ionicons name="calendar-outline" size={16} color={muted} />
+                                        <ThemedText style={{ color: muted }}>
+                                            {new Date(evt.date).toLocaleDateString()}
+                                        </ThemedText>
+                                    </View>
+                                    <ThemedText style={{ color: primary, fontWeight: 'bold', marginTop: 8 }}>
+                                        ETB {evt.price?.toLocaleString()}
                                     </ThemedText>
-                                </View>
-                                <ThemedText style={{ color: primary, fontWeight: 'bold', marginTop: 8 }}>
-                                    ETB {evt.price?.toLocaleString()}
-                                </ThemedText>
-                            </TouchableOpacity>
-                        ))}
+                                </TouchableOpacity>
+                            );
+                        })}
                     </ScrollView>
                 </ThemedView>
             );
@@ -126,6 +134,33 @@ export default function CreateBookingScreen() {
                         ? 'There are no upcoming events or booking slots available for this place right now.'
                         : 'The event you are looking for does not exist.'
                     }
+                </ThemedText>
+                <TouchableOpacity
+                    style={[styles.payButton, { backgroundColor: primary, paddingHorizontal: 32 }]}
+                    onPress={() => router.back()}
+                >
+                    <ThemedText style={{ color: 'white' }}>Go Back</ThemedText>
+                </TouchableOpacity>
+            </ThemedView>
+        );
+    }
+
+    const isEventPassed = selectedEvent ? (() => {
+        const eventDate = new Date(selectedEvent.date);
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        return eventDate < startOfToday;
+    })() : false;
+
+    if (isEventPassed) {
+        return (
+            <ThemedView style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: bg }]}>
+                <Ionicons name="time-outline" size={60} color={muted} />
+                <ThemedText type="title" style={{ marginTop: 16, textAlign: 'center' }}>
+                    Event Has Passed
+                </ThemedText>
+                <ThemedText style={{ color: muted, textAlign: 'center', marginTop: 8, marginBottom: 24 }}>
+                    This event has already taken place. Bookings are no longer available.
                 </ThemedText>
                 <TouchableOpacity
                     style={[styles.payButton, { backgroundColor: primary, paddingHorizontal: 32 }]}

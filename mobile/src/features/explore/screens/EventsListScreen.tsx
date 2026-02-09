@@ -6,10 +6,12 @@ import { useThemeColor } from '@/src/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+type TabType = 'upcoming' | 'past';
 
 export default function EventsListScreen() {
     const { t, i18n } = useTranslation();
@@ -20,6 +22,7 @@ export default function EventsListScreen() {
     const muted = useThemeColor({}, 'muted');
     const primary = useThemeColor({}, 'primary');
     const { isAuthenticated } = useAuth();
+    const [activeTab, setActiveTab] = useState<TabType>('upcoming');
 
     const { data, isLoading, refetch, isRefetching } = useQuery({
         queryKey: ['events', 'list'],
@@ -27,6 +30,36 @@ export default function EventsListScreen() {
     });
 
     const events = data?.data || [];
+
+    // Filter and sort events based on active tab
+    const filteredEvents = useMemo(() => {
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        const upcoming = events
+            .filter(event => {
+                const eventDate = event.date ? new Date(event.date) : new Date();
+                return eventDate >= startOfToday;
+            })
+            .sort((a, b) => {
+                const dateA = a.date ? new Date(a.date).getTime() : 0;
+                const dateB = b.date ? new Date(b.date).getTime() : 0;
+                return dateA - dateB; // Ascending (soonest first)
+            });
+
+        const past = events
+            .filter(event => {
+                const eventDate = event.date ? new Date(event.date) : new Date();
+                return eventDate < startOfToday;
+            })
+            .sort((a, b) => {
+                const dateA = a.date ? new Date(a.date).getTime() : 0;
+                const dateB = b.date ? new Date(b.date).getTime() : 0;
+                return dateB - dateA; // Descending (most recent first)
+            });
+
+        return activeTab === 'upcoming' ? upcoming : past;
+    }, [events, activeTab]);
 
     if (isLoading) {
         return <EventsListSkeleton />;
@@ -46,8 +79,44 @@ export default function EventsListScreen() {
                 <View style={{ width: 40 }} />
             </View>
 
+            {/* Tabs */}
+            <View style={styles.tabsContainer}>
+                <TouchableOpacity
+                    style={[
+                        styles.tab,
+                        { backgroundColor: activeTab === 'upcoming' ? primary : card },
+                    ]}
+                    onPress={() => setActiveTab('upcoming')}
+                >
+                    <ThemedText
+                        style={[
+                            styles.tabText,
+                            { color: activeTab === 'upcoming' ? 'white' : text },
+                        ]}
+                    >
+                        Upcoming
+                    </ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[
+                        styles.tab,
+                        { backgroundColor: activeTab === 'past' ? primary : card },
+                    ]}
+                    onPress={() => setActiveTab('past')}
+                >
+                    <ThemedText
+                        style={[
+                            styles.tabText,
+                            { color: activeTab === 'past' ? 'white' : text },
+                        ]}
+                    >
+                        Past
+                    </ThemedText>
+                </TouchableOpacity>
+            </View>
+
             <FlatList
-                data={events}
+                data={filteredEvents}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.list}
                 refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={primary} />}
@@ -115,6 +184,24 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    tabsContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        gap: 12,
+        marginBottom: 16,
+    },
+    tab: {
+        flex: 1,
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    tabText: {
+        fontSize: 14,
+        fontWeight: '600',
     },
     list: {
         padding: 20,

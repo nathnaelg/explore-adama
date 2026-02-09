@@ -11,9 +11,8 @@ export default function AppVersionScreen() {
 
     const versionInfo = {
         name: 'Adama Smart Tourism',
-        version: '2.4.1',
-        build: '203',
-        releaseDate: 'October 24, 2023',
+        version: '1.0.1',
+        build: '203'
     };
 
     const features = [
@@ -54,9 +53,6 @@ export default function AppVersionScreen() {
                     </ThemedText>
                     <ThemedText type="default" style={styles.appVersion}>
                         Version {versionInfo.version} (Build {versionInfo.build})
-                    </ThemedText>
-                    <ThemedText type="default" style={styles.releaseDate}>
-                        Released {versionInfo.releaseDate}
                     </ThemedText>
                 </View>
 

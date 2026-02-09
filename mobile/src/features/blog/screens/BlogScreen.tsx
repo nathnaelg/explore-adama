@@ -89,12 +89,16 @@ export default function BlogScreen() {
         </ThemedText>
       </View>
 
-      <TouchableOpacity
-        style={[styles.iconCircle, { backgroundColor: card }]}
-        onPress={handleCreatePost}
-      >
-        <Ionicons name="add-outline" size={22} color={text} />
-      </TouchableOpacity>
+      <View style={styles.headerIcons}>
+        <TouchableOpacity
+          style={[styles.iconCircle, { backgroundColor: card }]}
+          onPress={handleCreatePost}
+        >
+          <Ionicons name="add-outline" size={22} color={text} />
+        </TouchableOpacity>
+
+
+      </View>
     </View>
   );
 

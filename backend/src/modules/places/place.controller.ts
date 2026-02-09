@@ -1,8 +1,8 @@
 // backend/src/api/controllers/place.controller.ts
 import type { Request, Response } from "express";
-import { PlaceService } from "./place.service.ts";
-import { UploadService } from "../file-management/upload.service.ts";
 import { distanceKm } from "../../utils/geo.ts";
+import { UploadService } from "../file-management/upload.service.ts";
+import { PlaceService } from "./place.service.ts";
 
 export class PlaceController {
   static async create(req: Request, res: Response) {
@@ -70,11 +70,12 @@ export class PlaceController {
     try {
       const page = Number(req.query.page || 1);
       const perPage = Number(req.query.perPage || 20);
+      const limit = Number(req.query.limit || 0);
       const q = req.query.q as string | undefined;
       const categoryId = req.query.categoryId as string | undefined;
       const sort = (req.query.sort as any) || "newest";
 
-      const result = await PlaceService.listPlaces({ page, perPage, categoryId, q, sort });
+      const result = await PlaceService.listPlaces({ page, perPage, limit, categoryId, q, sort });
       return res.json(result);
     } catch (err: any) {
       console.error(err);
