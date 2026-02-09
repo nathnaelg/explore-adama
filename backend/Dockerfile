@@ -10,6 +10,7 @@ RUN npm install
 # Install tsx for ES module support
 RUN npm install --save-dev tsx
 
+
 # Copy the rest of the backend source
 COPY backend/ .
 

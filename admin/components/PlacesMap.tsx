@@ -1,29 +1,41 @@
 "use client";
 
-import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
+import { GoogleGenAI } from "@google/genai";
+import { GoogleMap, MarkerF, useJsApiLoader } from "@react-google-maps/api";
 import {
     AlertCircle,
     ArrowDown,
     ArrowUp,
+    BusFront,
     Calendar,
+    Camera,
     CheckCircle,
     ChevronLeft,
     ChevronRight,
     Crosshair,
+    Dumbbell,
     Eye,
     Hash,
+    HeartPulse,
+    Hotel,
     Image as ImageIcon,
+    Landmark,
     LayoutGrid,
     Loader2,
     Locate,
     Map as MapIcon,
     MapPin,
+    Mountain,
+    Music,
     Pencil,
     Plus,
+    ShoppingBag,
+    Sparkles,
     Star,
     Ticket,
     Trash2,
-    X
+    Utensils,
+    X,
 } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../services/api";
@@ -49,6 +61,13 @@ interface PlacesMapProps {
   searchTerm?: string;
 }
 
+const GOOGLE_MAPS_LIBRARIES: (
+  | "places"
+  | "geometry"
+  | "drawing"
+  | "visualization"
+)[] = ["places"];
+
 const PlacesMap: React.FC<PlacesMapProps> = ({
   isDarkMode,
   searchTerm = "",
@@ -59,7 +78,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"list" | "map">("list");
   const [feedback, setFeedback] = useState<{
-    type: "success" | "error" | "delete";
+    type: "success" | "error" | "delete" | "info";
     message: string;
   } | null>(null);
 
@@ -78,7 +97,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const showFeedback = (
-    type: "success" | "error" | "delete",
+    type: "success" | "error" | "delete" | "info",
     message: string,
   ) => {
     setFeedback({ type, message });
@@ -108,6 +127,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [placeToDelete, setPlaceToDelete] = useState<Place | null>(null);
@@ -120,8 +140,16 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
   // Load Google Maps API
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: mapConfig.apiKey,
-    libraries: ["places"],
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
+
+  useEffect(() => {
+    if (loadError) {
+      console.error(
+        "Google Maps failed to load. Please check billing or API activation.",
+      );
+    }
+  }, [loadError]);
 
   const [formData, setFormData] = useState<{
     name: string;
@@ -270,6 +298,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
 
   const handleOpenDelete = (place: Place, e?: React.MouseEvent) => {
     e?.stopPropagation();
+    if (isDeleting) return; // Prevent opening dialog if another delete is in progress
     setPlaceToDelete(place);
     setIsDeleteDialogOpen(true);
   };
@@ -286,6 +315,40 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
       const file = e.target.files[0];
       setFileToUpload(file);
       setPreviewImage(URL.createObjectURL(file));
+    }
+  };
+
+  const handleGenerateDescription = async () => {
+    if (!formData.name) {
+      showFeedback(
+        "info",
+        "Please provide a name to generate relevant content.",
+      );
+      return;
+    }
+    setIsGeneratingAI(true);
+    try {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) throw new Error("VITE_GEMINI_API_KEY is not set");
+      const ai = new GoogleGenAI({ apiKey });
+      const categoryName =
+        categories.find((c: any) => c.id === formData.categoryId)?.name ||
+        "General";
+      const prompt = `Write a short, compelling description for a place called "${formData.name}" located in Adama, Ethiopia. Category: ${categoryName}. Keep it under 50 words.`;
+      const response = await ai.models.generateContent({
+        model: "gemini-flash-latest",
+        contents: prompt,
+      });
+      const text = response.text;
+      if (text) {
+        setFormData((prev) => ({ ...prev, description: text }));
+        showFeedback("success", "Description generated successfully!");
+      }
+    } catch (error) {
+      console.error("AI Generation failed", error);
+      showFeedback("error", "Failed to generate AI description.");
+    } finally {
+      setIsGeneratingAI(false);
     }
   };
 
@@ -341,7 +404,10 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
 
       await fetchData();
       setIsDialogOpen(false);
-      showFeedback("success", "Location data synchronized successfully.");
+      showFeedback(
+        "success",
+        `${editingId ? "Place updated" : "Place added"} successfully`,
+      );
     } catch (error: any) {
       console.error("Failed to save place", error);
       showFeedback(
@@ -355,6 +421,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
 
   const handleDelete = async () => {
     if (placeToDelete) {
+      setIsDeleting(true);
       try {
         await api.delete(`/places/${placeToDelete.id}`);
         setPlaces(places.filter((p) => p.id !== placeToDelete.id));
@@ -362,16 +429,20 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
         if (placeToDelete.id === selectedPlaceId) {
           setSelectedPlaceId(null);
         }
-        showFeedback("delete", "Place removed successfully.");
-      } catch (error) {
+        showFeedback("delete", "Place deleted successfully");
+        setIsDeleteDialogOpen(false);
+        setPlaceToDelete(null);
+        if (selectedPlaceId === placeToDelete?.id) {
+          setSelectedPlaceId(null);
+        }
+      } catch (error: any) {
         console.error("Failed to delete place", error);
-        showFeedback("error", "Deletion failed.");
-      }
-
-      setIsDeleteDialogOpen(false);
-      setPlaceToDelete(null);
-      if (selectedPlaceId === placeToDelete?.id) {
-        setSelectedPlaceId(null);
+        showFeedback(
+          "error",
+          error.response?.data?.message || "Deletion failed.",
+        );
+      } finally {
+        setIsDeleting(false);
       }
     }
   };
@@ -516,6 +587,53 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
     return "#6366f1";
   };
 
+  const getCategoryIcon = (category: string) => {
+    const cat = category?.toLowerCase() || "";
+    if (cat.includes("hotel") || cat.includes("stay") || cat.includes("resort"))
+      return <Hotel size={14} />;
+    if (
+      cat.includes("food") ||
+      cat.includes("restaurant") ||
+      cat.includes("cafe") ||
+      cat.includes("bar")
+    )
+      return <Utensils size={14} />;
+    if (
+      cat.includes("park") ||
+      cat.includes("nature") ||
+      cat.includes("garden")
+    )
+      return <Mountain size={14} />;
+    if (
+      cat.includes("museum") ||
+      cat.includes("history") ||
+      cat.includes("culture") ||
+      cat.includes("art")
+    )
+      return <Landmark size={14} />;
+    if (cat.includes("shop") || cat.includes("mall") || cat.includes("market"))
+      return <ShoppingBag size={14} />;
+    if (
+      cat.includes("transport") ||
+      cat.includes("station") ||
+      cat.includes("airport")
+    )
+      return <BusFront size={14} />;
+    if (
+      cat.includes("health") ||
+      cat.includes("hospital") ||
+      cat.includes("clinic")
+    )
+      return <HeartPulse size={14} />;
+    if (cat.includes("event") || cat.includes("hall") || cat.includes("cinema"))
+      return <Music size={14} />;
+    if (cat.includes("sport") || cat.includes("gym") || cat.includes("stadium"))
+      return <Dumbbell size={14} />;
+    if (cat.includes("attraction") || cat.includes("view"))
+      return <Camera size={14} />;
+    return <MapPin size={14} />;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -647,27 +765,19 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
                         <MapPin size={32} />
                       </div>
                     )}
-                    <div className="absolute top-3 right-3">
-                      <span
+
+                    <div className="absolute top-3 left-3">
+                      <div
                         className={cn(
-                          "px-2 py-1 rounded-lg text-[10px] font-bold uppercase backdrop-blur-md shadow-sm",
-                          place.status === "OPEN"
-                            ? "bg-green-500/90 text-white"
-                            : "bg-red-500/90 text-white",
-                        )}
-                      >
-                        {place.status}
-                      </span>
-                    </div>
-                    <div className="absolute bottom-3 left-3">
-                      <span
-                        className={cn(
-                          "text-white text-xs font-bold px-2 py-1 rounded-md backdrop-blur-md uppercase tracking-wider border border-white/20",
+                          "text-white flex items-center gap-2 px-3 py-1.5 rounded-xl backdrop-blur-md shadow-lg border border-white/20 transition-transform group-hover:scale-105",
                           getCategoryColorClass(place.category),
                         )}
                       >
-                        {place.category}
-                      </span>
+                        {getCategoryIcon(place.category)}
+                        <span className="text-[10px] font-black uppercase tracking-wider">
+                          {place.category}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -724,8 +834,15 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
                           className="h-8 w-8 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                           onClick={(e) => handleOpenDelete(place, e)}
                           title="Delete"
+                          disabled={
+                            isDeleting && placeToDelete?.id === place.id
+                          }
                         >
-                          <Trash2 size={16} />
+                          {isDeleting && placeToDelete?.id === place.id ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={16} />
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -794,7 +911,7 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
                 onClick={onMapClick}
               >
                 {filteredPlaces.map((place) => (
-                  <Marker
+                  <MarkerF
                     key={place.id}
                     position={{
                       lat: place.coordinates.lat,
@@ -971,13 +1088,15 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
               <div className="space-y-2">
                 <Label>Cover Image</Label>
                 <div className="flex flex-col gap-3">
-                  <label className="cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-200 bg-white hover:bg-gray-100 hover:text-gray-900 h-10 w-full px-3">
-                    <ImageIcon size={18} className="mr-2" />
-                    {fileToUpload
-                      ? fileToUpload.name
-                      : previewImage && editingId
-                        ? "Change Image"
-                        : "Upload Image"}
+                  <label className="cursor-pointer flex items-center justify-center rounded-xl border border-dashed border-gray-300 dark:border-zinc-700 h-10 w-full px-3 text-sm hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors bg-white dark:bg-zinc-900">
+                    <ImageIcon size={18} className="mr-2 text-gray-400" />
+                    <span className="text-gray-500">
+                      {fileToUpload
+                        ? fileToUpload.name
+                        : previewImage && editingId
+                          ? "Change Image"
+                          : "Upload Image"}
+                    </span>
                     <input
                       type="file"
                       className="hidden"
@@ -998,7 +1117,24 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
               </div>
 
               <div className="space-y-2">
-                <Label>Description</Label>
+                <div className="flex justify-between items-center">
+                  <Label>Description</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleGenerateDescription}
+                    disabled={isGeneratingAI}
+                    className="h-6 text-xs text-purple-600 hover:text-purple-700"
+                  >
+                    {isGeneratingAI ? (
+                      <Loader2 size={12} className="animate-spin mr-1" />
+                    ) : (
+                      <Sparkles size={12} className="mr-1" />
+                    )}{" "}
+                    AI Gen
+                  </Button>
+                </div>
                 <textarea
                   className="w-full h-24 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-zinc-800 dark:bg-zinc-950 resize-none"
                   value={formData.description}
@@ -1064,14 +1200,17 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
                   >
                     {placeToView.status}
                   </span>
-                  <span
+                  <div
                     className={cn(
-                      "px-3 py-1 rounded-full text-white text-xs font-bold uppercase backdrop-blur-md border border-white/10 w-fit",
+                      "flex items-center gap-2 px-3 py-1.5 rounded-xl text-white backdrop-blur-md border border-white/10 shadow-lg",
                       getCategoryColorClass(placeToView.category),
                     )}
                   >
-                    {placeToView.category}
-                  </span>
+                    {getCategoryIcon(placeToView.category)}
+                    <span className="text-[10px] font-black uppercase tracking-wider">
+                      {placeToView.category}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 text-white md:hidden">
@@ -1196,8 +1335,15 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
                       className="h-11 px-4"
                       onClick={() => handleOpenDelete(placeToView)}
                       title="Delete Place"
+                      disabled={
+                        isDeleting && placeToDelete?.id === placeToView.id
+                      }
                     >
-                      <Trash2 size={18} />
+                      {isDeleting && placeToDelete?.id === placeToView.id ? (
+                        <Loader2 size={18} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={18} />
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -1247,20 +1393,24 @@ const PlacesMap: React.FC<PlacesMapProps> = ({
       {feedback && (
         <div
           className={cn(
-            "fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-5 fade-in z-[9999] text-white",
+            "fixed bottom-6 right-6 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 fade-in z-[9999] text-white border backdrop-blur-md",
             feedback.type === "error"
-              ? "bg-red-600"
+              ? "bg-red-500/90 border-red-400/50"
               : feedback.type === "delete"
-                ? "bg-red-500"
-                : "bg-green-600",
+                ? "bg-orange-500/90 border-orange-400/50"
+                : feedback.type === "info"
+                  ? "bg-blue-500/90 border-blue-400/50"
+                  : "bg-green-500/90 border-green-400/50",
           )}
         >
           {feedback.type === "error" ? (
             <AlertCircle size={20} />
+          ) : feedback.type === "info" ? (
+            <AlertCircle size={20} className="rotate-180" />
           ) : (
             <CheckCircle size={20} />
           )}
-          <span className="font-medium">{feedback.message}</span>
+          <span className="font-bold tracking-tight">{feedback.message}</span>
         </div>
       )}
     </div>

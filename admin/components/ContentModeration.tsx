@@ -1,19 +1,19 @@
 "use client";
 
 import {
-  AlertCircle,
-  Check,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  FileText,
-  Loader2,
-  MessageSquare,
-  ShieldCheck,
-  Trash2,
-  X,
-  XCircle,
+    AlertCircle,
+    Check,
+    CheckCircle,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    FileText,
+    Loader2,
+    MessageSquare,
+    ShieldCheck,
+    Trash2,
+    X,
+    XCircle,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
@@ -21,12 +21,12 @@ import { cn } from "../utils";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Select } from "./ui/select";
@@ -264,7 +264,7 @@ const ContentModeration: React.FC<ContentModerationProps> = ({
         else await api.delete(`/reviews/${itemToDeleteId}`);
       }
       setItems((prev) => prev.filter((item) => item.id !== itemToDeleteId));
-      showFeedback("delete", "Item permanently removed.");
+      showFeedback("delete", "Item deleted successfully");
     } catch (e) {
       console.error("Delete failed", e);
       showFeedback("error", "Failed to delete item.");
@@ -500,8 +500,14 @@ const ContentModeration: React.FC<ContentModerationProps> = ({
                         variant="ghost"
                         className="text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 gap-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
                         onClick={() => confirmDelete(item.id)}
+                        disabled={isDeleting && itemToDeleteId === item.id}
                       >
-                        <Trash2 size={18} /> Delete
+                        {isDeleting && itemToDeleteId === item.id ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                          <Trash2 size={18} />
+                        )}
+                        Delete
                       </Button>
                     </div>
                   </div>
