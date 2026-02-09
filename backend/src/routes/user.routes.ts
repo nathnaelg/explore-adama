@@ -20,7 +20,12 @@ router.get("/:id", auth, UserController.getOne);
 router.put("/profile", auth, UserController.updateProfile);
 
 // Upload avatar (multipart/form-data) field name: avatar
-router.post("/profile/avatar", auth, upload.single("avatar"), UserController.uploadAvatar);
+router.post(
+  "/profile/avatar",
+  auth,
+  upload.single("avatar"),
+  UserController.uploadAvatar,
+);
 
 // Change password
 router.put("/change-password", auth, UserController.changePassword);

@@ -5,7 +5,6 @@ import { prisma } from "../../config/db.ts";
 import { UploadService } from "../file-management/upload.service.ts";
 import { UserService } from "./user.service.ts";
 
-
 const SALT_ROUNDS = 12;
 
 export class UserController {
@@ -13,7 +12,10 @@ export class UserController {
   static async list(req: Request, res: Response) {
     try {
       const page = Math.max(1, Number(req.query.page || 1));
-      const perPage = Math.max(1, Math.min(100, Number(req.query.perPage || 25)));
+      const perPage = Math.max(
+        1,
+        Math.min(100, Number(req.query.perPage || 25)),
+      );
       const result = await UserService.listAll(page, perPage);
       return res.json(result);
     } catch (err) {
@@ -53,7 +55,9 @@ export class UserController {
       return res.json(stats);
     } catch (err: any) {
       console.error(err);
-      return res.status(500).json({ message: err.message || "Failed to get user stats" });
+      return res
+        .status(500)
+        .json({ message: err.message || "Failed to get user stats" });
     }
   }
 
@@ -76,7 +80,9 @@ export class UserController {
       return res.json({ message: "Profile updated", user });
     } catch (err: any) {
       console.error(err);
-      return res.status(500).json({ message: err.message || "Failed to update profile" });
+      return res
+        .status(500)
+        .json({ message: err.message || "Failed to update profile" });
     }
   }
 
@@ -96,7 +102,9 @@ export class UserController {
       return res.json({ message: "Avatar updated", url, profile, user });
     } catch (err: any) {
       console.error(err);
-      return res.status(500).json({ message: err.message || "Failed to upload avatar" });
+      return res
+        .status(500)
+        .json({ message: err.message || "Failed to upload avatar" });
     }
   }
 
@@ -107,21 +115,29 @@ export class UserController {
       if (!requester) return res.status(401).json({ message: "Unauthorized" });
 
       const { oldPassword, newPassword } = req.body;
-      if (!oldPassword || !newPassword) return res.status(400).json({ message: "oldPassword and newPassword required" });
+      if (!oldPassword || !newPassword)
+        return res
+          .status(400)
+          .json({ message: "oldPassword and newPassword required" });
 
       // load user with password for verification
-      const user = await prisma.user.findUnique({ where: { id: requester.sub } });
+      const user = await prisma.user.findUnique({
+        where: { id: requester.sub },
+      });
       if (!user) return res.status(404).json({ message: "User not found" });
 
       const ok = await bcrypt.compare(oldPassword, user.password);
-      if (!ok) return res.status(400).json({ message: "Incorrect current password" });
+      if (!ok)
+        return res.status(400).json({ message: "Incorrect current password" });
 
       const hashed = await bcrypt.hash(newPassword, SALT_ROUNDS);
       await UserService.changePassword(requester.sub, hashed);
       return res.json({ message: "Password changed" });
     } catch (err: any) {
       console.error(err);
-      return res.status(500).json({ message: err.message || "Failed to change password" });
+      return res
+        .status(500)
+        .json({ message: err.message || "Failed to change password" });
     }
   }
 
@@ -138,7 +154,9 @@ export class UserController {
       return res.json({ message: "User updated", user: updated });
     } catch (err: any) {
       console.error(err);
-      return res.status(500).json({ message: err.message || "Failed to update user" });
+      return res
+        .status(500)
+        .json({ message: err.message || "Failed to update user" });
     }
   }
 
@@ -158,7 +176,9 @@ export class UserController {
       return res.json({ message: "User deleted" });
     } catch (err: any) {
       console.error(err);
-      return res.status(500).json({ message: err.message || "Failed to delete user" });
+      return res
+        .status(500)
+        .json({ message: err.message || "Failed to delete user" });
     }
   }
 }
