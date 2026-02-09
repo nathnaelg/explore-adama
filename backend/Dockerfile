@@ -15,7 +15,7 @@ COPY backend/ .
 
 # Generate Prisma client
 RUN npm run db:generate
-
+RUN npm run dev
 # Environment & port
 ENV NODE_ENV=production
 EXPOSE 3000
